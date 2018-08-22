@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.IO;
 using System.Windows.Forms;
 using CefSharp;
 
@@ -9,13 +10,22 @@ namespace StreamingRespirator
         [STAThread]
         static void Main()
         {
-            CefSharpSettings.ShutdownOnExit = false;
+            CefSharpSettings.ShutdownOnExit = true;
             CefSharpSettings.SubprocessExitIfParentProcessClosed = true;
             CefSharpSettings.WcfEnabled = false;
             //CefSharpSettings.Proxy = null;
 
+            var cefSettings = new CefSettings
+            {
+                CachePath = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), ".cache")
+            };
+            cefSettings.DisableTouchpadAndWheelScrollLatching();
+            cefSettings.DisableGpuAcceleration();
+
+            Cef.Initialize(cefSettings: cefSettings,
+                           performDependencyCheck: true,
+                           browserProcessHandler: null);
             Cef.EnableHighDPISupport();
-            Cef.Initialize(new CefSettings(), performDependencyCheck: true, browserProcessHandler: null);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
