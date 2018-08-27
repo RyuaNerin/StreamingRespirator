@@ -18,7 +18,7 @@ using Titanium.Web.Proxy.EventArguments;
 using Titanium.Web.Proxy.Http;
 using Titanium.Web.Proxy.Models;
 
-namespace StreamingRespirator.Core
+namespace StreamingRespirator.Core.Streaming
 {
     internal class RespiratorServer
     {
@@ -114,16 +114,23 @@ namespace StreamingRespirator.Core
 
         public void Stop()
         {
-            Parallel.ForEach(this.m_connections, e => { e.Stream.Close(); e.Stream.WaitHandle.WaitOne(); });
+            Parallel.ForEach(this.GetConnections(0), e => { e.Stream.Close(); e.Stream.WaitHandle.WaitOne(); });
 
             this.m_proxy.Stop();
             this.m_httpStreamingListener.Stop();
         }
 
+        private StreamingConnection[] GetConnections(long ownerId = 0)
+        {
+            lock (this.m_connections)
+                return ownerId == 0 ? this.m_connections.ToArray() : this.m_connections.Where(e => e.OwnerId == ownerId).ToArray();
+        }
+
         private static readonly byte[] KeepAlivePacket = Encoding.UTF8.GetBytes("\r\n");
         private void KeepAliveTimerCallback(object state)
         {
-            this.SendToStream(0, KeepAlivePacket);
+            foreach (var conn in this.GetConnections(0))
+                this.SendToStream(conn, KeepAlivePacket);
         }
 
         private Task EntPoint_BeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
@@ -198,8 +205,13 @@ namespace StreamingRespirator.Core
 
                     if (ownerId != 0)
                     {
-                        var ws = new WaitableStream(eCnt.Response.OutputStream);
-                        var sc = new StreamingConnection(ws, ownerId, desc);
+                        var sc = new StreamingConnection(new WaitableStream(eCnt.Response.OutputStream), ownerId, desc);
+
+                        eCnt.Response.AppendHeader("Content-type", "application/json; charset=utf-8");
+                        eCnt.Response.AppendHeader("Connection", "close");
+                        eCnt.Response.SendChunked = true;
+                        
+                        SendToStream(sc, KeepAlivePacket);
 
                         lock (this.m_connections)
                         {
@@ -209,15 +221,7 @@ namespace StreamingRespirator.Core
                                 this.m_keepAliveTimer.Change(KeepAlivePeriod, KeepAlivePeriod);
                         }
 
-                        eCnt.Response.AppendHeader("Content-type", "application/json; charset=utf-8");
-                        eCnt.Response.AppendHeader("Connection", "close");
-                        eCnt.Response.SendChunked = true;
-
-                        ws.Flush();
-
-                        SendToStream(ownerId, NoticeJson);
-
-                        ws.WaitHandle.WaitOne();
+                        sc.Stream.WaitHandle.WaitOne();
 
                         lock (this.m_connections)
                         {
@@ -259,6 +263,8 @@ namespace StreamingRespirator.Core
             {
                 do
                 {
+                    this.m_streamingQueueEvnet.Wait();
+
                     if (this.m_streamingQueue.TryDequeue(out var queue))
                     {
                         JToken jt = null;
@@ -272,25 +278,38 @@ namespace StreamingRespirator.Core
                             return;
                         }
 
+                        var connArray = this.GetConnections(queue.OwnerId);
+
                         switch (queue.RequestType)
                         {
                             case ReqeustType.Statuses:
-                                this.QueueWorker_Statuses(queue, jt.ToObject<Td_statuses>());
+                                {
+                                    var json = jt.ToObject<Td_statuses>();
+                                    foreach (var conn in connArray)
+                                        this.QueueWorker_Statuses(conn, json);
+                                }
                                 break;
 
                             case ReqeustType.Activity:
-                                this.QueueWorker_Activity(queue, jt.ToObject<Td_activity>());
+                                {
+                                    var json = jt.ToObject<Td_activity>();
+                                    foreach (var conn in connArray)
+                                        this.QueueWorker_Activity(conn, json);
+                                }
                                 break;
 
                             case ReqeustType.DirectMessage:
-                                this.QueueWorker_DirectMessage(queue, jt.ToObject<Td_dm>());
+                                {
+                                    var json = jt.ToObject<Td_dm>();
+                                    foreach (var conn in connArray)
+                                        this.QueueWorker_DirectMessage(conn, json);
+                                }
                                 break;
                         }
                     }
                     else
                     {
                         this.m_streamingQueueEvnet.Reset();
-                        this.m_streamingQueueEvnet.Wait();
                     }
                 } while (true);
             }
@@ -300,55 +319,51 @@ namespace StreamingRespirator.Core
             }
         }
         
-        private long m_last_status = 0;
-        private void QueueWorker_Statuses(TwitterApiResponse response, Td_statuses json)
+        private void QueueWorker_Statuses(StreamingConnection conn, Td_statuses json)
         {
             if (json == null) return;
 
-            var max_id = this.m_last_status;
+            var max_id = conn.LastStatus;
 
-            var items = json.Where(e => this.m_last_status < e.Id)
+            var items = json.Where(e => conn.LastStatus < e.Id)
                             .OrderBy(e => e.Id);
 
             if (items.Count() == 0)
                 return;
 
-            if (this.m_last_status == 0)
+            if (conn.LastStatus == 0)
                 max_id = items.Last().Id;
 
             else
             {
                 foreach (var item in items)
                 {
-                    Debug.WriteLine($"status updated: {response.OwnerId} {item.Text}");
+                    Debug.WriteLine($"status updated: {conn.OwnerId} {item.Text}");
 
-                    SendToStream(response.OwnerId, JsonConvert.SerializeObject(item, Jss));
+                    SendToStream(conn, JsonConvert.SerializeObject(item, Jss));
 
                     max_id = Math.Max(max_id, item.Id);
                 }
             }
 
-
-            this.m_last_status = max_id;
+            conn.LastStatus = max_id;
         }
-
-
-        private long m_last_aboutMe = 0;
-        private void QueueWorker_Activity(TwitterApiResponse response, Td_activity json)
+        
+        private void QueueWorker_Activity(StreamingConnection conn, Td_activity json)
         {
             if (json == null) return;
 
-            var max_id = this.m_last_aboutMe;
+            var max_id = conn.LastActivity;
 
-            var items = json.Where(e => e.Action == "retweet")
+            var items = json.Where(e => e.Action == "retweet" || e.Action == "reply")
                             .SelectMany(e => e.Targets)
-                            .Where(e => this.m_last_aboutMe < e.Id)
+                            .Where(e => max_id < e.Id)
                             .OrderBy(e => e.Id);
 
             if (items.Count() == 0)
                 return;
 
-            if (this.m_last_aboutMe == 0)
+            if (conn.LastActivity == 0)
                 max_id = items.Last().Id;
 
             else
@@ -357,24 +372,23 @@ namespace StreamingRespirator.Core
                 {
                     Debug.WriteLine($"about me : retweeted: {item.Text}");
 
-                    SendToStream(response.OwnerId, JsonConvert.SerializeObject(item, Jss));
+                    SendToStream(conn, JsonConvert.SerializeObject(item, Jss));
 
                     max_id = Math.Max(max_id, item.Id);
                 }
             }
 
-            this.m_last_aboutMe = max_id;
+            conn.LastActivity = max_id;
         }
-
-        private long m_last_dm = 0;
-        private void QueueWorker_DirectMessage(TwitterApiResponse response, Td_dm json)
+        
+        private void QueueWorker_DirectMessage(StreamingConnection conn, Td_dm json)
         {
             if (json == null || json?.Item?.Conversations == null) return;
 
-            var max_id = this.m_last_aboutMe;
+            var max_id = conn.LastDirectMessage;
 
-            var entries = json.Item.Entries.Where(e => this.m_last_dm < e.Message.Data.Id)
-                                   .OrderBy(e => e.Message.Data.Id);
+            var entries = json.Item.Entries.Where(e => conn.LastDirectMessage < e.Message.Data.Id)
+                                           .OrderBy(e => e.Message.Data.Id);
             
             foreach (var entry in entries)
             {
@@ -396,53 +410,41 @@ namespace StreamingRespirator.Core
                 dm.Item.RecipientScreenName = recipient.ScreenName;
 
                 Debug.WriteLine($"direct message : {dm.Item.Text}");
-                SendToStream(response.OwnerId, JsonConvert.SerializeObject(dm, Jss));
+                SendToStream(conn, JsonConvert.SerializeObject(dm, Jss));
 
                 max_id = Math.Max(max_id, entry.Message.Data.Id);
             }
 
-            this.m_last_aboutMe = max_id;
+            conn.LastDirectMessage = max_id;
         }
 
-        private void SendToStream(long ownerId, string data)
+        private void SendToStream(StreamingConnection conn, string data)
         {
             data += "\r\n";
 
-            SendToStream(ownerId, Encoding.UTF8.GetBytes(data));
+            SendToStream(conn, Encoding.UTF8.GetBytes(data));
         }
 
-        private void SendToStream(long ownerId, byte[] data)
+        private void SendToStream(StreamingConnection conn, byte[] data)
         {
-            StreamingConnection[] boxArray;
+            try
+            {
+                Debug.WriteLine($"Streaming. Sending. Size: {data.Length} - {conn.Description}");
 
-            lock (this.m_connections)
-                boxArray = this.m_connections.ToArray();
+                conn.Stream.Write(data, 0, data.Length);
+                conn.Stream.Flush();
 
-            Parallel.ForEach(boxArray,
-                box =>
-                {
-                    if (ownerId != -1 && box.OwnerId != ownerId)
-                        return;
+                Debug.WriteLine($"Streaming. Sent,    Size: {data.Length} - {conn.Description}");
+            }
+            catch (HttpListenerException ex)
+            {
+                Debug.WriteLine($"Streaming. Exception - {conn.Description}");
+                Debug.Indent();
+                Debug.WriteLine(ex.ToString());
+                Debug.Unindent();
 
-                    try
-                    {
-                        box.Stream.Write(data, 0, data.Length);
-                        box.Stream.Flush();
-
-                        Debug.WriteLine($"Streaming. Size: {data.Length} - {box.Description}");
-                    }
-                    catch (HttpListenerException ex)
-                    {
-                        Debug.WriteLine($"Streaming. Exception - {box.Description}");
-                        Debug.Indent();
-                        Debug.WriteLine(ex.ToString());
-                        Debug.Unindent();
-
-                        box.Stream.Close();
-                    }
-                });
+                conn.Stream.Close();
+            }
         }
-
-        private static readonly byte[] NoticeJson = Encoding.UTF8.GetBytes("{\"created_at\":\"Sat Aug 25 12:00:41 +0000 2018\",\"id\":1033323274954895361,\"id_str\":\"1033323274954895361\",\"full_text\":\"\\uc131\\uacf5\\uc801\\uc73c\\ub85c \\ud638\\ud761\\uae30\\uc5d0 \\uc5f0\\uacb0\\ub418\\uc5c8\\uc2b5\\ub2c8\\ub2e4.\\n\\n\\uc774 \\ud504\\ub85c\\uadf8\\ub7a8\\uc740 GNU Public Licesnse v3 \\ub85c \\ub77c\\uc774\\uc120\\uc2a4\\ub85c \\ubc30\\ud3ec\\ub429\\ub2c8\\ub2e4.\\n\\uc774 \\ud504\\ub85c\\uadf8\\ub7a8\\uc73c\\ub85c \\uc778\\ud55c \\ubaa8\\ub4e0 \\ucc45\\uc784\\uc740 \\uc0ac\\uc6a9\\uc790\\uc5d0\\uac8c \\uc788\\uc2b5\\ub2c8\\ub2e4.\\n\\n\\ubc84\\uadf8 \\uc2e0\\uace0 : https://t.co/h5LNn9mH4K\\n\\n\\ubb38\\uc758 :@_RyuaRin\",\"truncated\":false,\"display_text_range\":[0,146],\"entities\":{\"hashtags\":[],\"symbols\":[],\"user_mentions\":[{\"screen_name\":\"_RyuaRin\",\"name\":\"RyuaNerin\",\"id\":433843459,\"id_str\":\"433843459\",\"indices\":[137,146]}],\"urls\":[{\"url\":\"https://t.co/h5LNn9mH4K\",\"expanded_url\":\"https://github.com/RyuaNerin/StreamingRespirator/issues\",\"display_url\":\"github.com/RyuaNerin/Stre…\",\"indices\":[107,130]}]},\"source\":\"<a href=\\\"https://about.twitter.com/products/tweetdeck\\\" rel=\\\"nofollow\\\">TweetDeck</a>\",\"in_reply_to_status_id\":null,\"in_reply_to_status_id_str\":null,\"in_reply_to_user_id\":null,\"in_reply_to_user_id_str\":null,\"in_reply_to_screen_name\":null,\"user\":{\"id\":433843459,\"id_str\":\"433843459\",\"name\":\"RyuaNerin\",\"screen_name\":\"_RyuaRin\",\"location\":\"\",\"description\":\"RyuaNerin\",\"url\":\"https://t.co/C4nd9KflYh\",\"entities\":{\"url\":{\"urls\":[{\"url\":\"https://t.co/C4nd9KflYh\",\"expanded_url\":\"https://ryuanerin.kr\",\"display_url\":\"ryuanerin.kr\",\"indices\":[0,23]}]},\"description\":{\"urls\":[]}},\"protected\":false,\"followers_count\":0,\"fast_followers_count\":0,\"normal_followers_count\":0,\"friends_count\":0,\"listed_count\":0,\"created_at\":\"Sun Dec 11 03:03:09 +0000 2011\",\"favourites_count\":0,\"utc_offset\":null,\"time_zone\":null,\"geo_enabled\":true,\"verified\":false,\"statuses_count\":0,\"media_count\":0,\"lang\":\"ko\",\"contributors_enabled\":false,\"is_translator\":false,\"is_translation_enabled\":true,\"profile_background_color\":\"C0DEED\",\"profile_background_image_url\":\"http://abs.twimg.com/images/themes/theme1/bg.png\",\"profile_background_image_url_https\":\"https://abs.twimg.com/images/themes/theme1/bg.png\",\"profile_background_tile\":true,\"profile_image_url\":\"http://pbs.twimg.com/profile_images/887933626159030274/8GbIq_qG_normal.jpg\",\"profile_image_url_https\":\"https://pbs.twimg.com/profile_images/887933626159030274/8GbIq_qG_normal.jpg\",\"profile_banner_url\":null,\"profile_image_extensions_alt_text\":null,\"profile_banner_extensions_alt_text\":null,\"profile_link_color\":\"1B95E0\",\"profile_sidebar_border_color\":\"FFFFFF\",\"profile_sidebar_fill_color\":\"DDEEF6\",\"profile_text_color\":\"333333\",\"profile_use_background_image\":false,\"has_extended_profile\":false,\"default_profile\":false,\"default_profile_image\":false,\"has_custom_timelines\":true,\"following\":true,\"follow_request_sent\":false,\"notifications\":false,\"business_profile_state\":\"none\",\"translator_type\":\"regular\",\"require_some_consent\":false},\"geo\":null,\"coordinates\":null,\"place\":null,\"contributors\":null,\"is_quote_status\":false,\"retweet_count\":0,\"favorite_count\":0,\"reply_count\":0,\"conversation_id\":1033323274954895361,\"conversation_id_str\":\"1033323274954895361\",\"favorited\":false,\"retweeted\":false,\"possibly_sensitive\":true,\"possibly_sensitive_appealable\":false,\"lang\":\"ko\",\"supplemental_language\":null}");
     }
 }

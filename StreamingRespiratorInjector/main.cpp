@@ -52,8 +52,8 @@ int wmain(int argc, wchar_t *argv[], wchar_t *envp[])
     if (argc != 4)
         return 0;
 
-    const DWORD    pid  = (DWORD)std::wcstol(argv[1], NULL, 10);
-    const DWORD    port = (DWORD)std::wcstol(argv[2], NULL, 10);
+    const DWORD pid  = (DWORD)std::wcstol(argv[1], NULL, 10);
+    const DWORD port = (DWORD)std::wcstol(argv[2], NULL, 10);
 
     std::wstring dllPath = getExeDirectory();
     dllPath.append(argv[3]);

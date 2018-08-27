@@ -110,7 +110,7 @@
     <Compile Include="Core\Json\Tweetdeck\Td_statuses.cs" />
     <Compile Include="Core\TwitterApiResponse.cs" />
     <Compile Include="Utilities\BaseRequestHandler.cs" />
-    <Compile Include="Utilities\StreamingConnection.cs" />
+    <Compile Include="Core\Streaming\StreamingConnection.cs" />
     <Compile Include="Core\Windows\MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -119,7 +119,7 @@
     </Compile>
     <Compile Include="Core\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Core\RespiratorServer.cs" />
+    <Compile Include="Core\Streaming\RespiratorServer.cs" />
     <Compile Include="Utilities\WaitingStream.cs" />
     <EmbeddedResource Include="Core\Windows\MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>

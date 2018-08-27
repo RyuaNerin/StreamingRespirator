@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using CefSharp;
 using CefSharp.WinForms;
+using StreamingRespirator.Core.Streaming;
 
 namespace StreamingRespirator.Core.Windows
 {
@@ -112,7 +113,10 @@ namespace StreamingRespirator.Core.Windows
                     b |= Hook.HookWinInet(this.m_server.ProxyPort, process);
 
             if (b)
+            {
+                this.Focus();
                 MessageBox.Show(this, "아즈레아에 스트리밍 호흡기를 적용하였습니다.");
+            }
         }
     }
 }

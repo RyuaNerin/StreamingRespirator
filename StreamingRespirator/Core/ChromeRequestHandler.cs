@@ -64,6 +64,8 @@ namespace StreamingRespirator.Core
                     filter.Dispose();
                     return;
                 }
+
+                //Debug.WriteLine($"{new Uri(request.Url).AbsolutePath} - {response.ResponseHeaders.Get("x-acted-as-user-id")}");
                 
                 ThreadPool.QueueUserWorkItem(e =>
                 {
