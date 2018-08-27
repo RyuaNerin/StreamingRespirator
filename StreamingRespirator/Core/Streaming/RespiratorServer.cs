@@ -48,8 +48,7 @@ namespace StreamingRespirator.Core.Streaming
         {
             if (this.m_proxyEndPoint != null)
                 this.m_proxy.RemoveEndPoint(this.m_proxyEndPoint);
-
-
+            
             this.m_proxyEndPoint = new ExplicitProxyEndPoint(IPAddress.Loopback, port, true);
             this.m_proxyEndPoint.BeforeTunnelConnectRequest += this.EntPoint_BeforeTunnelConnectRequest;
 
@@ -65,16 +64,16 @@ namespace StreamingRespirator.Core.Streaming
             this.m_httpStreamingListener.Prefixes.Add(this.m_streamingUrl);
         }
 
+        private readonly ProxyServer m_proxy;
         private ExplicitProxyEndPoint m_proxyEndPoint;
 
-        private readonly ProxyServer m_proxy;
         private readonly HttpListener m_httpStreamingListener;
+        private string m_streamingUrl;
+
         private readonly Timer m_keepAliveTimer;
 
         private readonly List<StreamingConnection> m_connections = new List<StreamingConnection>();
-
-        private string m_streamingUrl;
-        
+                
         public int ProxyPort => this.m_proxyEndPoint.Port;
         public int WebHttpPort { get; private set; }
 
