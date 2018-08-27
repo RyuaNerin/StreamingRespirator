@@ -13,15 +13,14 @@ namespace StreamingRespirator.Core
 
         private static bool HookProcess(int port, Process process, string dll)
         {
-            var hProcess = NativeMethods.OpenProcess(NativeMethods.ProcessAccessFlags.All, false, process.Id);
-
             bool isX86;
             if (!Environment.Is64BitProcess)
                 isX86 = true;
             else
             {
-                bool isWow64;
-                isX86 = NativeMethods.IsWow64Process(hProcess, out isWow64) && isWow64;
+                var hProcess = NativeMethods.OpenProcess(NativeMethods.ProcessAccessFlags.All, false, process.Id);
+                isX86 = NativeMethods.IsWow64Process(hProcess, out var isWow64) && isWow64;
+                NativeMethods.CloseHandle(hProcess);
             }
 
             var sz = isX86 ? 32 : 64;

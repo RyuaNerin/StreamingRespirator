@@ -1,8 +1,10 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using CefSharp;
 using CefSharp.WinForms;
+using StreamingRespirator.Core.Cef;
 using StreamingRespirator.Core.Streaming;
 
 namespace StreamingRespirator.Core.Windows
@@ -37,25 +39,42 @@ namespace StreamingRespirator.Core.Windows
                     RemoteFonts               = CefState.Disabled,
                     WindowlessFrameRate       = 1,
                 },
-                RequestHandler = this.m_chromeReqeustHandler
+                RequestHandler = this.m_chromeReqeustHandler,
             };
             this.m_browser.FrameLoadEnd += this.M_browser_FrameLoadEnd;
-
-            this.Controls.Add(this.m_browser);
+            this.m_browser.LifeSpanHandler = new LifeSpanHandler();
         }
 
-        protected override void OnLoad(EventArgs e)
+        protected override async void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
+
+            if (await Task.Factory.StartNew(GithubLatestRelease.CheckNewVersion))
+            {
+                MessageBox.Show(this, "새로운 업데이트가 있습니다.");
+
+                try
+                {
+                    Process.Start("https://github.com/RyuaNerin/StreamingRespirator/blob/master/README.md")?.Dispose();
+                }
+                catch
+                {
+                }
+
+                Application.Exit();
+                return;
+            }
 
             this.m_server.Start();
 
             this.Text = $"{this.Text} - Port {this.m_server.ProxyPort}";
-            this.localhost8080ToolStripMenuItem.Text = $"localhost / port: {this.m_server.ProxyPort}";
+            this.ntf.Text = this.Text;
 
             this.ntf.Text = this.Text;
             this.ntf.Icon = this.Icon;
             this.ntf.Visible = true;
+
+            this.Controls.Add(this.m_browser);
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
@@ -117,6 +136,12 @@ namespace StreamingRespirator.Core.Windows
                 this.Focus();
                 MessageBox.Show(this, "아즈레아에 스트리밍 호흡기를 적용하였습니다.");
             }
+        }
+
+        private void ntf_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+                this.Show();
         }
     }
 }

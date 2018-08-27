@@ -1,7 +1,7 @@
 using System.Security.Cryptography.X509Certificates;
 using CefSharp;
 
-namespace StreamingRespirator.Utilities
+namespace StreamingRespirator.Core.Cef
 {
     internal class BaseRequestHandler : IRequestHandler
     {

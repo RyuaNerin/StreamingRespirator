@@ -30,7 +30,6 @@ namespace StreamingRespirator.Core.Windows
         {
             this.components = new System.ComponentModel.Container();
             this.cms = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.localhost8080ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.byRyuaNerinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.azureaPatchToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -44,7 +43,6 @@ namespace StreamingRespirator.Core.Windows
             // cms
             // 
             this.cms.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.localhost8080ToolStripMenuItem,
             this.byRyuaNerinToolStripMenuItem,
             this.toolStripSeparator2,
             this.azureaPatchToolStripMenuItem,
@@ -52,49 +50,45 @@ namespace StreamingRespirator.Core.Windows
             this.열기ToolStripMenuItem,
             this.닫기ToolStripMenuItem});
             this.cms.Name = "cms";
-            this.cms.Size = new System.Drawing.Size(181, 148);
-            // 
-            // localhost8080ToolStripMenuItem
-            // 
-            this.localhost8080ToolStripMenuItem.Name = "localhost8080ToolStripMenuItem";
-            this.localhost8080ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.localhost8080ToolStripMenuItem.Text = "localhost / 8080";
+            this.cms.RenderMode = System.Windows.Forms.ToolStripRenderMode.Professional;
+            this.cms.ShowImageMargin = false;
+            this.cms.Size = new System.Drawing.Size(154, 104);
             // 
             // byRyuaNerinToolStripMenuItem
             // 
             this.byRyuaNerinToolStripMenuItem.Name = "byRyuaNerinToolStripMenuItem";
-            this.byRyuaNerinToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.byRyuaNerinToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.byRyuaNerinToolStripMenuItem.Text = "By RyuaNerin";
             this.byRyuaNerinToolStripMenuItem.Click += new System.EventHandler(this.byRyuaNerinToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(150, 6);
             // 
             // azureaPatchToolStripMenuItem
             // 
             this.azureaPatchToolStripMenuItem.Name = "azureaPatchToolStripMenuItem";
-            this.azureaPatchToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.azureaPatchToolStripMenuItem.Text = "OneClick - Azurea";
+            this.azureaPatchToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
+            this.azureaPatchToolStripMenuItem.Text = "아즈레아 바로 적용";
             this.azureaPatchToolStripMenuItem.Click += new System.EventHandler(this.azureaPatchToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(150, 6);
             // 
             // 열기ToolStripMenuItem
             // 
             this.열기ToolStripMenuItem.Name = "열기ToolStripMenuItem";
-            this.열기ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.열기ToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.열기ToolStripMenuItem.Text = "열기";
             this.열기ToolStripMenuItem.Click += new System.EventHandler(this.열기ToolStripMenuItem_Click);
             // 
             // 닫기ToolStripMenuItem
             // 
             this.닫기ToolStripMenuItem.Name = "닫기ToolStripMenuItem";
-            this.닫기ToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.닫기ToolStripMenuItem.Size = new System.Drawing.Size(153, 22);
             this.닫기ToolStripMenuItem.Text = "종료";
             this.닫기ToolStripMenuItem.Click += new System.EventHandler(this.닫기ToolStripMenuItem_Click);
             // 
@@ -102,6 +96,7 @@ namespace StreamingRespirator.Core.Windows
             // 
             this.ntf.ContextMenuStrip = this.cms;
             this.ntf.Visible = true;
+            this.ntf.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ntf_MouseDoubleClick);
             // 
             // MainWindow
             // 
@@ -112,7 +107,6 @@ namespace StreamingRespirator.Core.Windows
             this.Text = "스트리밍호흡기";
             this.cms.ResumeLayout(false);
             this.ResumeLayout(false);
-
         }
 
         #endregion
@@ -123,7 +117,6 @@ namespace StreamingRespirator.Core.Windows
         private System.Windows.Forms.ToolStripMenuItem byRyuaNerinToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 열기ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 닫기ToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem localhost8080ToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripMenuItem azureaPatchToolStripMenuItem;
     }
