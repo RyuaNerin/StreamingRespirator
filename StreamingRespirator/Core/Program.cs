@@ -22,8 +22,13 @@ namespace StreamingRespirator.Core
                 LogFile = null,
                 WindowlessRenderingEnabled = true,
             };
+
             cefSettings.CefCommandLineArgs.Add("no-proxy-server", "1");
             cefSettings.CefCommandLineArgs.Add("disable-extensions", "1");
+            cefSettings.CefCommandLineArgs.Add("mute-audio", "1");
+            cefSettings.CefCommandLineArgs.Add("disable-features", "AsyncWheelEvents,TouchpadAndWheelScrollLatching");
+            cefSettings.CefCommandLineArgs.Add("disable-gpu-vsync", "1");
+            cefSettings.CefCommandLineArgs.Add("disable-gpu", "1");
 
             cefSettings.DisableGpuAcceleration();
             cefSettings.SetOffScreenRenderingBestPerformanceArgs();
