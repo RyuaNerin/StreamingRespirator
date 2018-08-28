@@ -36,10 +36,8 @@ namespace StreamingRespirator.Core.Streaming
         {
             this.m_proxy = new ProxyServer();
             this.m_proxy.BeforeRequest += this.Proxy_BeforeRequest;
-            this.SetProxyPort(ProxyPortDefault);
 
             this.m_httpStreamingListener = new HttpListener();
-            this.SetStreamingPort(StreamingPortDefault);
 
             this.m_keepAliveTimer = new Timer(this.KeepAliveTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
         }
@@ -57,7 +55,6 @@ namespace StreamingRespirator.Core.Streaming
 
         private void SetStreamingPort(int port)
         {
-            this.WebHttpPort = port;
             this.m_streamingUrl = $"http://127.0.0.1:{port}/";
 
             this.m_httpStreamingListener.Prefixes.Clear();
@@ -75,34 +72,40 @@ namespace StreamingRespirator.Core.Streaming
         private readonly List<StreamingConnection> m_connections = new List<StreamingConnection>();
                 
         public int ProxyPort => this.m_proxyEndPoint.Port;
-        public int WebHttpPort { get; private set; }
 
         private static readonly Random rnd = new Random(DateTime.Now.Millisecond);
         public void Start()
         {
+            int port;
+
+            port = ProxyPortDefault;
             do
             {
                 try
                 {
+                    this.SetProxyPort(port);
                     this.m_proxy.Start();
                     break;
                 }
                 catch
                 {
-                    this.SetProxyPort(rnd.Next(ProxyPortMin, ProxyPortMax));
+                    port = rnd.Next(ProxyPortMin, ProxyPortMax);
                 }
             } while (true);
 
+
+            port = StreamingPortDefault;
             do
             {
                 try
                 {
+                    this.SetStreamingPort(port);
                     this.m_httpStreamingListener.Start();
                     break;
                 }
-                catch (Exception)
+                catch
                 {
-                    this.SetProxyPort(rnd.Next(StreamingPortMin, StreamingPortMax));
+                    port = rnd.Next(StreamingPortMin, StreamingPortMax);
                 }
             } while (true);
 
@@ -258,27 +261,27 @@ namespace StreamingRespirator.Core.Streaming
 
         private void QueueWorker()
         {
-            try
+            do
             {
-                do
+                this.m_streamingQueueEvnet.Wait();
+
+                if (this.m_streamingQueue.TryDequeue(out var queue))
                 {
-                    this.m_streamingQueueEvnet.Wait();
+                    JToken jt = null;
 
-                    if (this.m_streamingQueue.TryDequeue(out var queue))
+                    try
                     {
-                        JToken jt = null;
+                        jt = JToken.Parse(queue.ResponseBody);
+                    }
+                    catch
+                    {
+                        return;
+                    }
 
-                        try
-                        {
-                            jt = JToken.Parse(queue.ResponseBody);
-                        }
-                        catch
-                        {
-                            return;
-                        }
+                    var connArray = this.GetConnections(queue.OwnerId);
 
-                        var connArray = this.GetConnections(queue.OwnerId);
-
+                    try
+                    {
                         switch (queue.RequestType)
                         {
                             case ReqeustType.Statuses:
@@ -306,16 +309,16 @@ namespace StreamingRespirator.Core.Streaming
                                 break;
                         }
                     }
-                    else
+                    catch
                     {
-                        this.m_streamingQueueEvnet.Reset();
+
                     }
-                } while (true);
-            }
-            catch
-            {
-                throw;
-            }
+                }
+                else
+                {
+                    this.m_streamingQueueEvnet.Reset();
+                }
+            } while (true);
         }
         
         private void QueueWorker_Statuses(StreamingConnection conn, Td_statuses json)
