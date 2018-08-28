@@ -3,18 +3,18 @@
 - 이제는 없어져버린 스트리밍을 트윗덱을 이용하여 비슷하게나마 사용 가능하게 해줍니다
 - 버그 및 건의사항은 아래 방법으로 연락주세요.
 
-[![](https://img.shields.io/badge/Github-RyuaNerin-lightgray.svg?longCache=true&style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/issues)
+[![](https://img.shields.io/badge/Github-Issue-lightgray.svg?longCache=true&style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/issues)
 [![](https://img.shields.io/badge/Twitter-RyuaNerin-blue.svg?longCache=true&style=flat-square)](https://twitter.com/RyuaNerin)
 [![](https://img.shields.io/badge/Telegram-unknown5766-blue.svg?longCache=true&style=flat-square)](https://t.me/unknown5766)
 
 
 ## 목차
 
-- [LICENSE](#)
-- [사용 방법](#)
-  - [아즈레아 적용법 (아즈레아 설정)](#)
-  - [아즈레아 적용법 (1회성 적용)](#)
-  - [기타 앱 적용 방법](#)
+- [LICENSE](#license)
+- [사용 방법](#사용-방법)
+  - [아즈레아 적용법 (아즈레아 설정)](#아즈레아-적용-방법-아즈레아-설정)
+  - [아즈레아 적용법 (1회성 적용)](#아즈레아-적용-방법-1회성-적용)
+  - [기타 앱 적용 방법](#기타-앱-적용-방법)
 
 
 ## LICENSE
@@ -27,7 +27,7 @@
 
 ## 사용 방법
 
-![Github Releases](https://img.shields.io/github/downloads/RyuaNerin/StreamingRespirator/latest/total.svg?style=flat-square)
+[![Github Releases](https://img.shields.io/github/downloads/RyuaNerin/StreamingRespirator/latest/total.svg?style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/releases/latest)
 
 1. [여기](https://github.com/RyuaNerin/StreamingRespirator/releases/latest) 에서 프로그램을 다운로드합니다.
 
@@ -60,9 +60,9 @@
   ![](docs/5-3.png)
 
 6. 아래 연결 방법을 이용하여 스트리밍 호흡기에 연결하시면 됩니다.
-  - [아즈레아 적용법 (아즈레아 설정)](#)
-  - [아즈레아 적용법 (1회성 적용)](#)
-  - [기타 앱 적용 방법](#)
+  - [아즈레아 적용법 (아즈레아 설정)](#아즈레아-적용-방법-아즈레아-설정)
+  - [아즈레아 적용법 (1회성 적용)](#아즈레아-적용-방법-1회성-적용)
+  - [기타 앱 적용 방법](#기타-앱-적용-방법)
 
 7. 창을 닫아도 프로그램이 종료되지 않으며 트레이 (하단 시계 옆) 에서 작동합니다.
 
@@ -94,7 +94,7 @@
 
   ![](docs/azurea-way2-1.png)
 
-### 기타 앱 적용 방법 (앱에서 프록시 사용이 가능해야 함)
+### 기타 앱 적용 방법
 
 - 이 기능은 앱에서 **프록시** 기능을 설정할 수 있어야 합니다.
 
