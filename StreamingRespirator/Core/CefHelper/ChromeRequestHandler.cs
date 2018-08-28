@@ -8,7 +8,7 @@ using CefSharp;
 using Newtonsoft.Json.Linq;
 using StreamingRespirator.Utilities;
 
-namespace StreamingRespirator.Core.Cef
+namespace StreamingRespirator.Core.CefHelper
 {
     internal class ChromeRequestHandler : BaseRequestHandler
     {

@@ -33,14 +33,14 @@ namespace StreamingRespirator.Core
             cefSettings.DisableGpuAcceleration();
             cefSettings.SetOffScreenRenderingBestPerformanceArgs();
 
-            CefSharp.Cef.Initialize(cefSettings, true, null);
-            CefSharp.Cef.EnableHighDPISupport();
+            Cef.Initialize(cefSettings, true, null);
+            Cef.EnableHighDPISupport();
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Windows.MainWindow());
 
-            CefSharp.Cef.Shutdown();
+            Cef.Shutdown();
         }
     }
 }

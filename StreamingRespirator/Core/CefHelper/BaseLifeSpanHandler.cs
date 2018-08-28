@@ -1,6 +1,6 @@
 using CefSharp;
 
-namespace StreamingRespirator.Core.Cef
+namespace StreamingRespirator.Core.CefHelper
 {
     internal class BaseLifeSpanHandler : ILifeSpanHandler
     {

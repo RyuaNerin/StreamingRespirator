@@ -110,8 +110,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Cef\ChromeRequestHandler.cs" />
-    <Compile Include="Core\Cef\LifeSpanHandlercs.cs" />
+    <Compile Include="Core\CefHelper\ChromeRequestHandler.cs" />
+    <Compile Include="Core\CefHelper\LifeSpanHandlercs.cs" />
     <Compile Include="Core\Hook.cs" />
     <Compile Include="Core\Json\JExpendo.cs" />
     <Compile Include="Core\Json\Streaming\St_dm.cs" />
@@ -120,7 +120,7 @@
     <Compile Include="Core\Json\Tweetdeck\Td_statuses.cs" />
     <Compile Include="Core\LastRelease.cs" />
     <Compile Include="Core\TwitterApiResponse.cs" />
-    <Compile Include="Core\Cef\BaseRequestHandler.cs" />
+    <Compile Include="Core\CefHelper\BaseRequestHandler.cs" />
     <Compile Include="Core\Streaming\StreamingConnection.cs" />
     <Compile Include="Core\Windows\MainWindow.cs">
       <SubType>Form</SubType>
@@ -131,7 +131,7 @@
     <Compile Include="Core\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\Streaming\RespiratorServer.cs" />
-    <Compile Include="Core\Cef\BaseLifeSpanHandler.cs" />
+    <Compile Include="Core\CefHelper\BaseLifeSpanHandler.cs" />
     <Compile Include="Utilities\WaitingStream.cs" />
     <EmbeddedResource Include="Core\Windows\MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
