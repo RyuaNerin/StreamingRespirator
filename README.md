@@ -32,6 +32,14 @@
 1. [여기](https://github.com/RyuaNerin/StreamingRespirator/releases/latest) 에서 프로그램을 다운로드합니다.
 
   - 파일 용량이 매우 큰 관계로 다운로드에 오랜 시간이 걸릴 수 있습니다
+  - 윈도우 이용 환경에 맞게 다운로드해주시면 됩니다.
+
+  |Architecture|파일이름|
+|:-:|-|
+|잘 모름|`StreamingRespirator.x86.zip`|
+|32비트|`StreamingRespirator.x86.zip`|
+|64비트|`StreamingRespirator.x64.zip`|
+
   ![](docs/1.png)
 
 2. **1** 에서 다운로드한 파일의 압축을 풀고 `StreamingRespirator.exe` 파일을 실행합니다.
