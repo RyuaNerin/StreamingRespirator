@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using CefSharp;
 using CefSharp.WinForms;
+using StreamingRespirator.Core.CefHelper;
 using StreamingRespirator.Core.Streaming;
 
 namespace StreamingRespirator.Core.Windows

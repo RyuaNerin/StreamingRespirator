@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading;
 using CefSharp;
 using Newtonsoft.Json.Linq;
-using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core.CefHelper
 {
