@@ -45,15 +45,15 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)\StreamingRespirator\hook\</OutDir>
+    <OutDir>$(SolutionDir)\bin\$(Configuration)\hook\</OutDir>
     <TargetName>hookwininet32</TargetName>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)\StreamingRespirator\hook\</OutDir>
+    <OutDir>$(SolutionDir)\bin\$(Configuration)\hook\</OutDir>
     <TargetName>hookwininet32</TargetName>
-    <IntDir>$(ProjectDir)\obj\$(Platform)\</IntDir>
+    <IntDir>$(ProjectDir)\obj\$(Platform)\$(Configuration)\</IntDir>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
