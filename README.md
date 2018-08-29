@@ -27,7 +27,7 @@
 
 ## 사용 방법
 
-[![Github Releases](https://img.shields.io/github/downloads/RyuaNerin/StreamingRespirator/latest/total.svg?style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/releases/latest)
+[![Github Releases](https://img.shields.io/github/downloads/RyuaNerin/StreamingRespirator/total.svg?style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/releases/latest)
 
 1. [여기](https://github.com/RyuaNerin/StreamingRespirator/releases/latest) 에서 프로그램을 다운로드합니다.
 
