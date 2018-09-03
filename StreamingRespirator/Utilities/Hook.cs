@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
-namespace StreamingRespirator.Core
+namespace StreamingRespirator.Utilities
 {
     internal static class Hook
     {
