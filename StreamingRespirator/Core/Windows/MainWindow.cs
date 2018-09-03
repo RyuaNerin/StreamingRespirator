@@ -6,6 +6,7 @@ using CefSharp;
 using CefSharp.WinForms;
 using StreamingRespirator.Core.CefHelper;
 using StreamingRespirator.Core.Streaming;
+using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core.Windows
 {
