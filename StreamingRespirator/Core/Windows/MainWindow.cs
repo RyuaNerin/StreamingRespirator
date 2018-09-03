@@ -15,6 +15,8 @@ namespace StreamingRespirator.Core.Windows
         private readonly ChromeRequestHandler m_chromeReqeustHandler;
         private readonly ChromiumWebBrowser   m_browser;
 
+        private bool m_authorized = false;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -22,33 +24,24 @@ namespace StreamingRespirator.Core.Windows
             this.m_server = new RespiratorServer();
 
             this.m_chromeReqeustHandler = new ChromeRequestHandler();
+            this.m_chromeReqeustHandler.TweetdeckAuthorized += this.Twitter_TweetdeckAuthorized;
             this.m_chromeReqeustHandler.TwitterApiRersponse += this.Twitter_TwitterApiRersponse;
 
-            this.m_browser = new ChromiumWebBrowser("https://tweetdeck.twitter.com/")
+            this.m_browser = new ChromiumWebBrowser("")
             {
-                Dock = DockStyle.Fill,
-                BrowserSettings =
-                {
-                    DefaultEncoding           = "UTF-8",
-                    WebGl                     = CefState.Disabled,
-                    Plugins                   = CefState.Disabled,
-                    JavascriptAccessClipboard = CefState.Disabled,
-                    ImageLoading              = CefState.Disabled,
-                    JavascriptCloseWindows    = CefState.Disabled,
-                    ApplicationCache          = CefState.Enabled,
-                    RemoteFonts               = CefState.Disabled,
-                    WindowlessFrameRate       = 1,
-                },
-                RequestHandler = this.m_chromeReqeustHandler,
+                Dock            = DockStyle.Fill,
+                BrowserSettings = Program.DefaultBrowserSetting,
+                RequestHandler  = this.m_chromeReqeustHandler,
+                LifeSpanHandler = new LifeSpanHandler(),
             };
-            this.m_browser.FrameLoadEnd += this.M_browser_FrameLoadEnd;
-            this.m_browser.LifeSpanHandler = new LifeSpanHandler();
+            this.m_browser.FrameLoadEnd += this.Browser_FrameLoadEnd;
+            this.m_browser.IsBrowserInitializedChanged += this.M_browser_IsBrowserInitializedChanged;
         }
 
         protected override async void OnLoad(EventArgs e)
         {
             base.OnLoad(e);
-
+            
             if (await Task.Factory.StartNew(GithubLatestRelease.CheckNewVersion))
             {
                 MessageBox.Show(this, "새로운 업데이트가 있습니다.");
@@ -65,23 +58,24 @@ namespace StreamingRespirator.Core.Windows
                 return;
             }
 
-            this.m_server.Start();
-
-            this.Text = $"{this.Text} - Port {this.m_server.ProxyPort}";
-            this.ntf.Text = this.Text;
-
-            this.ntf.Text = this.Text;
-            this.ntf.Icon = this.Icon;
-            this.ntf.Visible = true;
-
             this.Controls.Add(this.m_browser);
+
+        }
+
+        private void M_browser_IsBrowserInitializedChanged(object sender, IsBrowserInitializedChangedEventArgs e)
+        {
+            if (e.IsBrowserInitialized)
+            {
+                //this.m_browser.ShowDevTools();
+                this.m_browser.Load("https://tweetdeck.twitter.com/");
+            }
         }
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
             base.OnFormClosing(e);
 
-            if (e.CloseReason == CloseReason.UserClosing)
+            if (this.m_authorized && e.CloseReason == CloseReason.UserClosing)
             {
                 this.Hide();
                 e.Cancel = true;
@@ -92,15 +86,35 @@ namespace StreamingRespirator.Core.Windows
             this.ntf.Visible = false;
         }
 
-        private void Twitter_TwitterApiRersponse(TwitterApiResponse response)
-        {
-            this.m_server.AddApiResponse(response);
-        }
-
-        private void M_browser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
+        private void Browser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
         {
             if (Uri.TryCreate(e.Url, UriKind.Absolute, out var uri) && !uri.Host.Contains("twitter.com"))
                 e.Frame.LoadUrl("https://tweetdeck.twitter.com/");
+        }
+
+        private void Twitter_TweetdeckAuthorized()
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(this.Twitter_TweetdeckAuthorized));
+                return;
+            }
+
+            this.m_server.Start();
+
+            this.Text = $"{this.Text} - Port {this.m_server.ProxyPort}";
+            this.ntf.Text = this.Text;
+
+            this.ntf.Text = this.Text;
+            this.ntf.Icon = this.Icon;
+            this.ntf.Visible = true;
+
+            this.m_authorized = true;
+        }
+
+        private void Twitter_TwitterApiRersponse(TwitterApiResponse response)
+        {
+            this.m_server.AddApiResponse(response);
         }
 
         private void byRyuaNerinToolStripMenuItem_Click(object sender, EventArgs e)

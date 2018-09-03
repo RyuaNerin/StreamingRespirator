@@ -12,34 +12,36 @@ namespace StreamingRespirator.Core.CefHelper
     internal class ChromeRequestHandler : BaseRequestHandler
     {
         public event Action<TwitterApiResponse> TwitterApiRersponse;
+        public event Action TweetdeckAuthorized;
 
         private long m_mainOwnerId;
         private readonly Dictionary<ulong, ResponseFilter> m_filters = new Dictionary<ulong, ResponseFilter>();
 
         protected override IResponseFilter GetResourceResponseFilter(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response)
         {
-            if (request.Method == "GET" &&
-                Uri.TryCreate(request.Url, UriKind.Absolute, out var uri) &&
-                uri.Host == "api.twitter.com")
+            if (request.Method == "GET" && request.Url.Contains("api.twitter.com"))
             {
-                var requestType = ReqeustType.None;
-
-                switch (uri.AbsolutePath)
+                if (Uri.TryCreate(request.Url, UriKind.Absolute, out var uri))
                 {
-                    case "/1.1/account/verify_credentials.json": requestType = ReqeustType.Account;       break;
-                    case "/1.1/activity/about_me.json":          requestType = ReqeustType.Activity;      break;
-                    case "/1.1/statuses/home_timeline.json":     requestType = ReqeustType.Statuses;      break;
-                    case "/1.1/dm/user_updates.json":            requestType = ReqeustType.DirectMessage; break;
-                }
+                    var requestType = ReqeustType.None;
+
+                    switch (uri.AbsolutePath)
+                    {
+                        case "/1.1/account/verify_credentials.json": requestType = ReqeustType.Account;       break;
+                        case "/1.1/activity/about_me.json":          requestType = ReqeustType.Activity;      break;
+                        case "/1.1/statuses/home_timeline.json":     requestType = ReqeustType.Statuses;      break;
+                        case "/1.1/dm/user_updates.json":            requestType = ReqeustType.DirectMessage; break;
+                    }
                 
-                if (requestType != ReqeustType.None)
-                {
-                    var dataFilter = new ResponseFilter(requestType);
+                    if (requestType != ReqeustType.None)
+                    {
+                        var dataFilter = new ResponseFilter(requestType);
 
-                    lock (this.m_filters)
-                        this.m_filters.Add(request.Identifier, dataFilter);
+                        lock (this.m_filters)
+                            this.m_filters.Add(request.Identifier, dataFilter);
 
-                    return dataFilter;
+                        return dataFilter;
+                    }
                 }
             }
 
@@ -48,7 +50,7 @@ namespace StreamingRespirator.Core.CefHelper
         
         protected override void OnResourceLoadComplete(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response, UrlRequestStatus status, long receivedContentLength)
         {
-            if (request.Method == "GET")
+            if (request.Method == "GET" && request.Url.Contains("api.twitter.com"))
             {
                 ResponseFilter filter;
 
@@ -85,6 +87,9 @@ namespace StreamingRespirator.Core.CefHelper
 
                     eFilter.Dispose();
                 }, (response.ResponseHeaders.Get("x-acted-as-user-id"), filter));
+
+                if (filter.ReqeustType == ReqeustType.Account)
+                    this.TweetdeckAuthorized?.Invoke();
             }
         }
     }

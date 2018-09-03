@@ -36,10 +36,16 @@ namespace StreamingRespirator.Core.Streaming
         {
             this.m_proxy = new ProxyServer();
             this.m_proxy.BeforeRequest += this.Proxy_BeforeRequest;
+            this.m_proxy.ExceptionFunc = new ExceptionHandler(this.HandleException);
 
             this.m_httpStreamingListener = new HttpListener();
 
             this.m_keepAliveTimer = new Timer(this.KeepAliveTimerCallback, null, Timeout.Infinite, Timeout.Infinite);
+        }
+
+        private void HandleException(Exception ex)
+        {
+
         }
 
         private void SetProxyPort(int port)
