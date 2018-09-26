@@ -16,8 +16,10 @@ namespace StreamingRespirator.Core
 
         public static void Init()
         {
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+
             AppDomain.CurrentDomain.UnhandledException += (s, e) => Error(e.ExceptionObject as Exception);
-            TaskScheduler.UnobservedTaskException += (s, e) => Error(e.Exception);
+            TaskScheduler.UnobservedTaskException += (s, e) => Error(e.Exception);            
             Application.ThreadException += (s, e) => Error(e.Exception);
         }
 

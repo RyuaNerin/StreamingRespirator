@@ -29,7 +29,7 @@ namespace StreamingRespirator.Core
                     { "disable-features"         , "AsyncWheelEvents,TouchpadAndWheelScrollLatching" },
                     { "disable-gpu"              , "1" },
                     { "disable-gpu-vsync"        , "1" },
-                    { "disable-gpu-compositing"  , "1" },
+                    //{ "disable-gpu-compositing"  , "1" },
                 }
             };
             DefaultCefSetting.DisableGpuAcceleration();
@@ -56,6 +56,8 @@ namespace StreamingRespirator.Core
         [STAThread]
         static void Main()
         {
+            CrashReport.Init();
+
             CefSharpSettings.SubprocessExitIfParentProcessClosed = true;
             CefSharpSettings.ShutdownOnExit = true;
             CefSharpSettings.WcfEnabled = false;
