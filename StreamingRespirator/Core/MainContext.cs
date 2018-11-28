@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using CefSharp;
 using CefSharp.OffScreen;
@@ -62,7 +63,6 @@ namespace StreamingRespirator.Core
                 LifeSpanHandler = new LifeSpanHandler(),
             };
             this.m_browser.LoadingStateChanged += this.Browser_LoadingStateChanged;
-            this.m_browser.ConsoleMessage += this.Browser_ConsoleMessage;
         }
 
         private void InitializeComponent()
@@ -124,7 +124,7 @@ namespace StreamingRespirator.Core
             this.m_notifyIcon.Visible = false;
         }
 
-        private void Twitter_TweetdeckAuthorized(bool logined)
+        private async void Twitter_TweetdeckAuthorized(bool logined)
         {
             if (this.m_control.InvokeRequired)
             {
@@ -135,7 +135,7 @@ namespace StreamingRespirator.Core
             if (logined)
             {
                 Debug.WriteLine("server start");
-                this.m_server.Start();
+                await Task.Factory.StartNew(new Action(this.m_server.Start));
 
                 Debug.WriteLine("proxy port : " + this.m_server.ProxyPort);
                 this.m_stripPort.Text = $"Port : {this.m_server.ProxyPort}";
@@ -193,11 +193,6 @@ namespace StreamingRespirator.Core
         private void Twitter_TwitterApiRersponse(TwitterApiResponse response)
         {
             this.m_server.AddApiResponse(response);
-        }
-
-        private void Browser_ConsoleMessage(object sender, ConsoleMessageEventArgs e)
-        {
-            Debug.WriteLine("ConsoleMessage " + e.Message);
         }
 
         private void Browser_LoadingStateChanged(object sender, LoadingStateChangedEventArgs e)
@@ -266,7 +261,7 @@ namespace StreamingRespirator.Core
 
         private void StripRefresh_Click(object sender, EventArgs e)
         {
-            this.m_browser.Load("https://tweetdeck.twitter.com/");
+            Task.Factory.StartNew(() => this.m_browser.Load("https://tweetdeck.twitter.com/"));
         }
 
         private void StripExit_Click(object sender, EventArgs e)
