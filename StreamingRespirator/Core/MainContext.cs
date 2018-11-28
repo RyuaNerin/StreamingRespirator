@@ -117,10 +117,8 @@ namespace StreamingRespirator.Core
             };
         }
 
-        protected override void OnMainFormClosed(object sender, EventArgs e)
+        public void StopProxy()
         {
-            base.OnMainFormClosed(sender, e);
-
             this.m_server.Stop();
 
             this.m_notifyIcon.Visible = false;

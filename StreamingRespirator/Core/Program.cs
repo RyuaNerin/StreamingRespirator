@@ -66,7 +66,9 @@ namespace StreamingRespirator.Core
                 if (!CheckUpdate())
                     return;
 
-                Application.Run(new MainContext());
+                var context = new MainContext();
+                Application.Run(context);
+                context.StopProxy();
 
                 Cef.Shutdown();
             }
