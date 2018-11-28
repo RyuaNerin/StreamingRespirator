@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Windows.Forms;
 using CefSharp;
 using CefSharp.OffScreen;
@@ -9,6 +10,7 @@ namespace StreamingRespirator.Core
 {
     internal static class Program
     {
+        public const string MutexName = "{5FF75362-95BA-4399-8C77-C1A0C5B8A291}";
         public static readonly CefSettings     DefaultCefSetting;
         public static readonly BrowserSettings DefaultBrowserSetting;
 
@@ -53,15 +55,21 @@ namespace StreamingRespirator.Core
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            using (var mut = new Mutex(true, MutexName, out bool createdNew))
+            {
+                if (!createdNew)
+                    return;
 
-            if (!CheckUpdate())
-                return;
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
 
-            Application.Run(new MainContext());
+                if (!CheckUpdate())
+                    return;
 
-            Cef.Shutdown();
+                Application.Run(new MainContext());
+
+                Cef.Shutdown();
+            }
         }
 
         static bool CheckUpdate()
