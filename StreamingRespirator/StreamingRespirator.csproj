@@ -176,9 +176,6 @@
     <None Include="Resources\uniF055.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\uniF056.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\uniF063.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
