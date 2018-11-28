@@ -199,7 +199,16 @@ namespace StreamingRespirator.Core.Streaming
 
         private void Listener_GetHttpContext(IAsyncResult ar)
         {
-            var cnt = this.m_httpStreamingListener.EndGetContext(ar);
+            HttpListenerContext cnt;
+            try
+            {
+                cnt = this.m_httpStreamingListener.EndGetContext(ar);
+            }
+            catch
+            {
+                return;
+            }
+
             this.m_httpStreamingListener.BeginGetContext(this.Listener_GetHttpContext, null);
 
             Task.Factory.StartNew(
