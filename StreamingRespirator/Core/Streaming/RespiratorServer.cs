@@ -80,8 +80,14 @@ namespace StreamingRespirator.Core.Streaming
         public int ProxyPort => this.m_proxyEndPoint.Port;
 
         private static readonly Random rnd = new Random(DateTime.Now.Millisecond);
+
+        private bool m_started = false;
         public void Start()
         {
+            if (this.m_started)
+                return;
+            this.m_started = true;
+
             int port;
 
             port = ProxyPortDefault;
