@@ -66,9 +66,6 @@
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>StreamingRespirator.pfx</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
-  <PropertyGroup>
     <DelaySign>false</DelaySign>
   </PropertyGroup>
   <ItemGroup>
@@ -141,7 +138,6 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="StreamingRespirator.pfx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -208,5 +204,4 @@ RMDIR /S /Q "$(TargetDir)\swiftshader"
 DEL /Q "$(TargetDir)\*.pdb"
 DEL /Q "$(TargetDir)\*.xml"</PostBuildEvent>
   </PropertyGroup>
-
 </Project>
