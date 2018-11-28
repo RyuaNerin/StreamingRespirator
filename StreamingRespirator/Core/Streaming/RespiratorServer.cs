@@ -128,6 +128,9 @@ namespace StreamingRespirator.Core.Streaming
 
         public void Stop()
         {
+            if (!this.m_started)
+                return;
+
             Parallel.ForEach(this.GetConnections(0), e => { e.Stream.Close(); e.Stream.WaitHandle.WaitOne(); });
 
             this.m_proxy.Stop();
