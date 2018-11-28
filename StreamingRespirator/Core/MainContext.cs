@@ -134,10 +134,8 @@ namespace StreamingRespirator.Core
 
             if (logined)
             {
-                Debug.WriteLine("server start");
                 await Task.Factory.StartNew(new Action(this.m_server.Start));
-
-                Debug.WriteLine("proxy port : " + this.m_server.ProxyPort);
+                
                 this.m_stripPort.Text = $"Port : {this.m_server.ProxyPort}";
 
                 this.m_notifyIcon.Text = $"스트리밍 호흡기 - Port {this.m_server.ProxyPort}";
@@ -145,8 +143,6 @@ namespace StreamingRespirator.Core
             }
             else
             {
-                Debug.WriteLine("navigate to login");
-
                 this.m_browser.Load("https://twitter.com/login?hide_message=true&redirect_after_login=https%3A%2F%2Ftweetdeck.twitter.com%2F%3Fvia_twitter_login%3Dtrue");
             }
         }
@@ -194,10 +190,10 @@ namespace StreamingRespirator.Core
         {
             this.m_server.AddApiResponse(response);
         }
-
+        
         private void Browser_LoadingStateChanged(object sender, LoadingStateChangedEventArgs e)
         {
-            Debug.WriteLine("LoadingStateChanged " + e.Browser.MainFrame.Url);
+            Debug.WriteLine($"LoadingStateChanged {e.IsLoading} {e.Browser.MainFrame.Url}");
 
             if (e.IsLoading)
                 return;
@@ -208,44 +204,56 @@ namespace StreamingRespirator.Core
             if ((uri.Host == "twitter.com" || uri.Host == "www.twitter.com") &&
                  uri.AbsolutePath.Contains("login"))
             {
-                // 에러띄우기
-                var esa = this.m_browser.EvaluateScriptAsync("(function() { return document.getElementsByClassName('message-text')[0].innerText; })()", TimeSpan.FromSeconds(1));
-                try
-                {
-                    esa.Wait();
-                    if (esa.Result.Success)
-                    {
-                        var err_msg = esa.Result.Result as string;
-                        if (string.IsNullOrWhiteSpace(err_msg))
-                            MessageBox.Show(err_msg, "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                    }
-                }
-                catch
-                { }
-
-                string username, password;
-                using (var frm = new LoginWindow())
-                {
-                    if (frm.ShowDialog() != DialogResult.OK)
-                    {
-                        Application.Exit();
-                        return;
-                    }
-
-                    username = frm.Username;
-                    password = frm.Password;
-                }
-
-                var js =
-                    $"(function() {{" +
-                    $"    var form = document.getElementsByClassName('signin-wrapper')[0].getElementsByTagName('form')[0];" +
-                    $"    form.getElementsByClassName('js-username-field')[0].value = '{username.Replace("'", "\\'")}';" +
-                    $"    form.getElementsByClassName('js-password-field')[0].value = '{password.Replace("'", "\\'")}';" +
-                    $"    form.submit();" +
-                    $"}})();";
-
-                e.Browser.MainFrame.ExecuteJavaScriptAsync(js);
+                Task.Factory.StartNew(new Action(this.StartLogin));
             }
+        }
+
+        private void StartLogin()
+        {
+            // 에러띄우기
+            var esa = this.m_browser.EvaluateScriptAsync("(function() { return document.getElementsByClassName('message-text')[0].innerText; })()", TimeSpan.FromSeconds(1));
+            try
+            {
+                esa.Wait();
+                if (esa.Result.Success)
+                {
+                    var err_msg = esa.Result.Result as string;
+                    if (!string.IsNullOrWhiteSpace(err_msg))
+                        MessageBox.Show(err_msg, "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                }
+            }
+            catch
+            { }
+
+            string username = null, password = null;
+            if ((bool)this.m_control.Invoke(new Func<bool>(
+                () =>
+                {
+                    using (var frm = new LoginWindow())
+                    {
+                        if (frm.ShowDialog() != DialogResult.OK)
+                            return true;
+
+                        username = frm.Username;
+                        password = frm.Password;
+
+                        return false;
+                    }
+                })))
+            {
+                Application.Exit();
+                return;
+            }
+
+            var js = $@"
+                (function() {{
+                    var form = document.getElementsByClassName('signin-wrapper')[0].getElementsByTagName('form')[0];
+                    form.getElementsByClassName('js-username-field')[0].value = '{username.Replace("'", "\\'")}';
+                    form.getElementsByClassName('js-password-field')[0].value = '{password.Replace("'", "\\'")}';
+                    setTimeout(function() {{ form.submit(); }}, 1000);
+                }})();";
+
+            this.m_browser.ExecuteScriptAsync(js);
         }
 
         private void StripAbout_Click(object sender, EventArgs e)
