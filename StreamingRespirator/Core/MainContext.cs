@@ -78,7 +78,6 @@ namespace StreamingRespirator.Core
             this.m_stripCredentials.Enabled = false;
             (this.m_stripCredentials.DropDown as ToolStripDropDownMenu).ShowImageMargin = false;
 
-
             this.m_stripRefresh = new ToolStripMenuItem("새로고침");
             this.m_stripRefresh.Click += this.StripRefresh_Click;
 
@@ -107,7 +106,7 @@ namespace StreamingRespirator.Core
                     this.m_scripHookAzurea,
                     this.m_scripSep2,
                     this.m_stripExit,
-                },                
+                },
             };
 
             this.m_notifyIcon = new NotifyIcon
@@ -121,6 +120,8 @@ namespace StreamingRespirator.Core
         protected override void OnMainFormClosed(object sender, EventArgs e)
         {
             base.OnMainFormClosed(sender, e);
+
+            this.m_server.Stop();
 
             this.m_notifyIcon.Visible = false;
         }
