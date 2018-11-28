@@ -213,8 +213,6 @@ namespace StreamingRespirator.Core
             if ((uri.Host == "twitter.com" || uri.Host == "www.twitter.com") &&
                  uri.AbsolutePath.Contains("login"))
             {
-                this.m_browser.ExecuteScriptAsync("console.log(document.getElementsByClassName('message-text')[0].innerText);");
-
                 // 에러띄우기
                 var esa = this.m_browser.EvaluateScriptAsync("(function() { return document.getElementsByClassName('message-text')[0].innerText; })()", TimeSpan.FromSeconds(1));
                 try
@@ -246,7 +244,6 @@ namespace StreamingRespirator.Core
                 var js =
                     $"(function() {{" +
                     $"    var form = document.getElementsByClassName('signin-wrapper')[0].getElementsByTagName('form')[0];" +
-                    $"    console.log(form);" +
                     $"    form.getElementsByClassName('js-username-field')[0].value = '{username.Replace("'", "\\'")}';" +
                     $"    form.getElementsByClassName('js-password-field')[0].value = '{password.Replace("'", "\\'")}';" +
                     $"    form.submit();" +
