@@ -190,7 +190,8 @@ namespace StreamingRespirator.Core
         {
             this.m_server.AddApiResponse(response);
         }
-        
+
+        private bool m_submitted = false;
         private void Browser_LoadingStateChanged(object sender, LoadingStateChangedEventArgs e)
         {
             Debug.WriteLine($"LoadingStateChanged {e.IsLoading} {e.Browser.MainFrame.Url}");
@@ -202,8 +203,14 @@ namespace StreamingRespirator.Core
                 return;
 
             if ((uri.Host == "twitter.com" || uri.Host == "www.twitter.com") &&
-                 uri.AbsolutePath.Contains("login"))
+                (uri.AbsolutePath == "/login" || uri.AbsolutePath == "/login/error"))
             {
+                if (m_submitted)
+                {
+                    this.m_submitted = false;
+                    return;
+                }
+
                 Task.Factory.StartNew(new Action(this.StartLogin));
             }
         }
@@ -254,6 +261,8 @@ namespace StreamingRespirator.Core
                 }})();";
 
             this.m_browser.ExecuteScriptAsync(js);
+
+            this.m_submitted = true;
         }
 
         private void StripAbout_Click(object sender, EventArgs e)
