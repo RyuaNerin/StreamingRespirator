@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using CefSharp;
@@ -9,10 +10,40 @@ using Newtonsoft.Json.Linq;
 
 namespace StreamingRespirator.Core.CefHelper
 {
+    internal enum ColumnTypes
+    {
+        HomeTimeline,
+        Notification,
+        Activity,
+        DirectMessage,
+        Other,
+    }
+    internal struct ColumnInfo
+    {
+        public ColumnTypes ColumnType;
+        public string      Description;
+    }
+
     internal class ChromeRequestHandler : BaseRequestHandler
     {
         public event Action<TwitterApiResponse> TwitterApiRersponse;
-        public event Action TweetdeckAuthorized;
+        public event Action<bool> TweetdeckAuthorized;
+        public event Action<ColumnInfo[]> ColumnsUpdated;
+
+        private struct OwnerInfo
+        {
+            public int Index;
+            public long Id;
+            public string Description;
+        }
+        private struct InnerColumnInfo
+        {
+            public long         Owner;
+            public ColumnTypes  ColumnType;
+        }
+
+        private readonly Dictionary<long, OwnerInfo> Owners = new Dictionary<long, OwnerInfo>();
+        private readonly List<InnerColumnInfo> Columns = new List<InnerColumnInfo>();
 
         private long m_mainOwnerId;
         private readonly Dictionary<ulong, ResponseFilter> m_filters = new Dictionary<ulong, ResponseFilter>();
@@ -27,10 +58,13 @@ namespace StreamingRespirator.Core.CefHelper
 
                     switch (uri.AbsolutePath)
                     {
-                        case "/1.1/account/verify_credentials.json": requestType = ReqeustType.Account;       break;
-                        case "/1.1/activity/about_me.json":          requestType = ReqeustType.Activity;      break;
-                        case "/1.1/statuses/home_timeline.json":     requestType = ReqeustType.Statuses;      break;
-                        case "/1.1/dm/user_updates.json":            requestType = ReqeustType.DirectMessage; break;
+                        case "/1.1/account/verify_credentials.json": requestType = ReqeustType.account__verify_credentials; break;
+                        case "/1.1/help/settings.json":              requestType = ReqeustType.help__settings;              break;
+                        case "/1.1/activity/about_me.json":          requestType = ReqeustType.activity__about_me;          break;
+                        case "/1.1/statuses/home_timeline.json":     requestType = ReqeustType.statuses__home_timeline;     break;
+                        case "/1.1/dm/user_updates.json":            requestType = ReqeustType.dm__user_updates;            break;
+                        case "/1.1/users/contributees.json":         requestType = ReqeustType.users__contributees;         break;
+                        case "/1.1/tweetdeck/clients/blackbird/all": requestType = ReqeustType.tweetdeck__clients__blackbird__all; break;
                     }
                 
                     if (requestType != ReqeustType.None)
@@ -62,6 +96,10 @@ namespace StreamingRespirator.Core.CefHelper
 
                 if (response.StatusCode != 200)
                 {
+                    if (filter.ReqeustType == ReqeustType.help__settings &&
+                        response.StatusCode == 401)
+                        this.TweetdeckAuthorized?.Invoke(false);
+
                     filter.Dispose();
                     return;
                 }
@@ -76,9 +114,75 @@ namespace StreamingRespirator.Core.CefHelper
                     if (string.IsNullOrWhiteSpace(ownerIdStr) || !long.TryParse(ownerIdStr, out ownerId))
                         ownerId = this.m_mainOwnerId;
 
-                    if (eFilter.ReqeustType == ReqeustType.Account)
+                    if (eFilter.ReqeustType == ReqeustType.account__verify_credentials)
                     {
-                        this.m_mainOwnerId = JToken.Parse(eFilter.ResponseBody)["id"].Value<long>();
+                        var jt = JToken.Parse(eFilter.ResponseBody);
+                        this.m_mainOwnerId = jt["id"].Value<long>();
+
+                        lock (this.Owners)
+                        {
+                            this.ClearOwner(true);
+
+                            var id   = jt["id"].Value<long>();
+                            var desc = $"@{jt["screen_name"].Value<string>()} ({jt["name"].Value<string>()})";
+
+                            this.Owners.Add(id, new OwnerInfo { Index = -1, Id = id, Description = desc });
+                        }
+
+                        this.InvokeColumnUpdated();
+                    }
+                    else if (eFilter.ReqeustType == ReqeustType.users__contributees)
+                    {
+                        var jta = JArray.Parse(eFilter.ResponseBody);
+
+                        lock (this.Owners)
+                        {
+                            this.ClearOwner(false);
+
+                            for (int index = 0; index < jta.Count; ++index)
+                            {
+                                var jt = jta[index]["user"];
+
+                                var id = jt["id"].Value<long>();
+                                var desc = $"@{jt["screen_name"].Value<string>()} ({jt["name"].Value<string>()})";
+
+                                this.Owners.Add(id, new OwnerInfo { Index = index, Id = id, Description = desc });
+                            }
+                        }
+
+                        this.InvokeColumnUpdated();
+                    }
+                    else if (eFilter.ReqeustType == ReqeustType.tweetdeck__clients__blackbird__all)
+                    {
+                        var jt = JObject.Parse(eFilter.ResponseBody);
+                        var feeds = jt["feeds"].Value<JObject>();
+
+                        lock (this.Columns)
+                        {
+                            this.Columns.Clear();
+
+                            foreach (var feedPair in feeds)
+                            {
+                                var feed = feedPair.Value;
+
+                                if (feed["service"].Value<string>() != "twitter")
+                                    continue;
+
+                                var ctype = ColumnTypes.Other;
+                                switch (feed["type"].Value<string>())
+                                {
+                                    case "home":            ctype = ColumnTypes.HomeTimeline;   break;
+                                    case "interactions":    ctype = ColumnTypes.Notification;   break;
+                                    case "networkactivity": ctype = ColumnTypes.Activity;       break;
+                                    case "direct":          ctype = ColumnTypes.DirectMessage;  break;
+                                }
+
+                                if (ctype != ColumnTypes.Other)
+                                    this.Columns.Add(new InnerColumnInfo { ColumnType = ctype, Owner = feed["account"]["userid"].Value<long>() });
+                            }
+                        }
+
+                        this.InvokeColumnUpdated();
                     }
                     else
                     {
@@ -86,11 +190,46 @@ namespace StreamingRespirator.Core.CefHelper
                     }
 
                     eFilter.Dispose();
-                }, (response.ResponseHeaders.Get("x-acted-as-user-id"), filter));
+                }, (response.Headers.Get("x-acted-as-user-id"), filter));
 
-                if (filter.ReqeustType == ReqeustType.Account)
-                    this.TweetdeckAuthorized?.Invoke();
+                if (filter.ReqeustType == ReqeustType.account__verify_credentials)
+                    this.TweetdeckAuthorized?.Invoke(true);
             }
+        }
+
+        private void ClearOwner(bool clearMaster)
+        {
+            // clearMaster | ==     | !=
+            // true        | true   | false
+            // false       | false  | true
+            var keys = this.Owners.Where(e => clearMaster ^ e.Value.Index != -1).Select(e => e.Key).ToArray();
+
+            foreach (var key in keys)
+                this.Owners.Remove(key);
+        }
+
+        private void InvokeColumnUpdated()
+        {
+            ColumnInfo[] lst;
+
+            lock (this.Owners)
+            {
+                lock (this.Columns)
+                {
+                    if (this.Columns.Count == 0)
+                        return;
+
+                    if (this.Columns.Select(e => e.Owner).Distinct().Any(e => !this.Owners.ContainsKey(e)))
+                        return;
+
+                    lst = this.Columns.OrderBy(e => Owners[e.Owner].Index)
+                                      .ThenBy(e => e.ColumnType)
+                                      .Select(e => new ColumnInfo { ColumnType = e.ColumnType, Description = Owners[e.Owner].Description })
+                                      .ToArray();
+                }
+            }
+
+            this.ColumnsUpdated?.Invoke(lst);
         }
     }
 

@@ -3,10 +3,13 @@ namespace StreamingRespirator.Core
     internal enum ReqeustType
     {
         None,
-        Account,
-        Statuses,
-        Activity,
-        DirectMessage
+        account__verify_credentials,
+        statuses__home_timeline,
+        activity__about_me,
+        dm__user_updates,
+        help__settings,
+        users__contributees,
+        tweetdeck__clients__blackbird__all,
     }
 
     internal class TwitterApiResponse

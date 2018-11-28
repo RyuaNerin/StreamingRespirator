@@ -290,7 +290,7 @@ namespace StreamingRespirator.Core.Streaming
                     {
                         switch (queue.RequestType)
                         {
-                            case ReqeustType.Statuses:
+                            case ReqeustType.statuses__home_timeline:
                                 {
                                     var json = jt.ToObject<Td_statuses>();
                                     foreach (var conn in connArray)
@@ -298,7 +298,7 @@ namespace StreamingRespirator.Core.Streaming
                                 }
                                 break;
 
-                            case ReqeustType.Activity:
+                            case ReqeustType.activity__about_me:
                                 {
                                     var json = jt.ToObject<Td_activity>();
                                     foreach (var conn in connArray)
@@ -306,7 +306,7 @@ namespace StreamingRespirator.Core.Streaming
                                 }
                                 break;
 
-                            case ReqeustType.DirectMessage:
+                            case ReqeustType.dm__user_updates:
                                 {
                                     var json = jt.ToObject<Td_dm>();
                                     foreach (var conn in connArray)

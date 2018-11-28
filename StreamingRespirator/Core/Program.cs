@@ -1,15 +1,16 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 using CefSharp;
-using CefSharp.WinForms;
+using CefSharp.OffScreen;
 
 namespace StreamingRespirator.Core
 {
     internal static class Program
     {
-        public static CefSettings     DefaultCefSetting { get; }
-        public static BrowserSettings DefaultBrowserSetting { get; }
+        public static readonly CefSettings     DefaultCefSetting;
+        public static readonly BrowserSettings DefaultBrowserSetting;
 
         public static readonly string CookiePath;
 
@@ -24,13 +25,8 @@ namespace StreamingRespirator.Core
                 CefCommandLineArgs =
                 {
                     { "no-proxy-server"          , "1" },
-                    { "mute-audio"               , "1" },
                     { "disable-application-cache", "1" },
                     { "disable-extensions"       , "1" },
-                    { "disable-features"         , "AsyncWheelEvents,TouchpadAndWheelScrollLatching" },
-                    { "disable-gpu"              , "1" },
-                    { "disable-gpu-vsync"        , "1" },
-                    //{ "disable-gpu-compositing"  , "1" },
                 }
             };
             DefaultCefSetting.DisableGpuAcceleration();
@@ -57,23 +53,35 @@ namespace StreamingRespirator.Core
         [STAThread]
         static void Main()
         {
-            CrashReport.Init();
-
-            CefSharpSettings.SubprocessExitIfParentProcessClosed = true;
-            CefSharpSettings.ShutdownOnExit = true;
-            CefSharpSettings.WcfEnabled = false;
-            CefSharpSettings.Proxy = null;
-
-            Cef.Initialize(DefaultCefSetting, false, null);
-            Cef.EnableHighDPISupport();
-
-            Cef.GetGlobalCookieManager().SetStoragePath(CookiePath, true, null);
-
             Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);            
-            Application.Run(new Windows.MainWindow());
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            if (!CheckUpdate())
+                return;
+
+            Application.Run(new MainContext());
 
             Cef.Shutdown();
+        }
+
+        static bool CheckUpdate()
+        {
+            if (GithubLatestRelease.CheckNewVersion())
+            {
+                MessageBox.Show("새로운 업데이트가 있습니다.", "스트리밍 호흡기");
+
+                try
+                {
+                    Process.Start("https://github.com/RyuaNerin/StreamingRespirator/blob/master/README.md")?.Dispose();
+                }
+                catch
+                {
+                }
+
+                return false;
+            }
+
+            return true;
         }
     }
 }
