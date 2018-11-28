@@ -198,7 +198,7 @@
     <Error Condition="!Exists('..\packages\CefSharp.OffScreen.69.0.0\build\CefSharp.OffScreen.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.OffScreen.69.0.0\build\CefSharp.OffScreen.targets'))" />
   </Target>
   <Import Project="..\packages\CefSharp.Common.69.0.0\build\CefSharp.Common.targets" Condition="Exists('..\packages\CefSharp.Common.69.0.0\build\CefSharp.Common.targets')" />
-  <Import Project="..\packages\CefSharp.OffScreen.69.0.0\build\CefSharp.OffScreen.targets" Condition="Exists('..\packages\CefSharp.OffScreen.69.0.0\build\CefSharp.OffScreen.targets')" />  <PropertyGroup>
+  <Import Project="..\packages\CefSharp.OffScreen.69.0.0\build\CefSharp.OffScreen.targets" Condition="Exists('..\packages\CefSharp.OffScreen.69.0.0\build\CefSharp.OffScreen.targets')" />
   <PropertyGroup>
     <PostBuildEvent>MKDIR "$(TargetDir)\hook\"
 COPY "$(SolutionDir)\bin\$(ConfigurationName)\hook\*.dll" "$(TargetDir)\hook\"
