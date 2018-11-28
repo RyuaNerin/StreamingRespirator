@@ -63,8 +63,10 @@ namespace StreamingRespirator.Core
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
 
+#if !DEBUG
                 if (!CheckUpdate())
                     return;
+#endif
 
                 var context = new MainContext();
                 Application.Run(context);
