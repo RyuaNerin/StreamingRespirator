@@ -26,7 +26,9 @@ namespace StreamingRespirator.Core
                 WindowlessRenderingEnabled = true,
                 CefCommandLineArgs =
                 {
+#if !DEBUG
                     { "no-proxy-server"          , "1" },
+#endif
                     { "disable-application-cache", "1" },
                     { "disable-extensions"       , "1" },
                     { "off-screen-rendering-enabled", "1" }
