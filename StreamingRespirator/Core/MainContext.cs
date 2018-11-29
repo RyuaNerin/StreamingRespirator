@@ -233,16 +233,28 @@ namespace StreamingRespirator.Core
         private void StartLogin()
         {
             // 에러띄우기
-            var esa = this.m_browser.EvaluateScriptAsync("(function() { return document.getElementsByClassName('message-text')[0].innerText; })()", TimeSpan.FromSeconds(1));
             try
             {
-                esa.Wait();
-                if (esa.Result.Success)
+                var task = this.m_browser.EvaluateScriptAsync("(function() { return document.getElementsByClassName('message-text')[0].innerText; })()", TimeSpan.FromSeconds(1));
+                task.Wait();
+                if (task.Result.Success)
                 {
-                    var err_msg = esa.Result.Result as string;
+                    var err_msg = task.Result.Result as string;
                     if (!string.IsNullOrWhiteSpace(err_msg))
                         MessageBox.Show(err_msg, "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                 }
+            }
+            catch
+            { }
+
+            // 아이디 기본값
+            string defaultUsername = null;
+            try
+            {
+                var task = this.m_browser.EvaluateScriptAsync("(function() { return document.getElementsByClassName('js-username-field')[0].value; })()", TimeSpan.FromSeconds(1));
+                task.Wait();
+                if (task.Result.Success)
+                    defaultUsername = task.Result.Result as string;
             }
             catch
             { }
@@ -251,7 +263,7 @@ namespace StreamingRespirator.Core
             if ((bool)this.m_control.Invoke(new Func<bool>(
                 () =>
                 {
-                    using (var frm = new LoginWindow())
+                    using (var frm = new LoginWindow(defaultUsername))
                     {
                         if (frm.ShowDialog() != DialogResult.OK)
                             return true;

@@ -5,9 +5,11 @@ namespace StreamingRespirator.Core.Windows
 {
     public partial class LoginWindow : Form
     {
-        public LoginWindow()
+        public LoginWindow(string defaultUsername)
         {
             InitializeComponent();
+
+            this.ctlUsername.Text = defaultUsername;
         }
 
         public string Username => this.ctlUsername.Text;
