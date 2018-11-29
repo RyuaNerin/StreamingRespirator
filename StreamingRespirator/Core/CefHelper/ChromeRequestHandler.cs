@@ -102,8 +102,6 @@ namespace StreamingRespirator.Core.CefHelper
                     filter.Dispose();
                     return;
                 }
-
-                //Debug.WriteLine($"{new Uri(request.Url).AbsolutePath} - {response.ResponseHeaders.Get("x-acted-as-user-id")}");
                 
                 ThreadPool.QueueUserWorkItem(e =>
                 {
@@ -220,9 +218,9 @@ namespace StreamingRespirator.Core.CefHelper
                     if (this.Columns.Select(e => e.Owner).Distinct().Any(e => !this.Owners.ContainsKey(e)))
                         return;
 
-                    lst = this.Columns.OrderBy(e => Owners[e.Owner].Index)
+                    lst = this.Columns.OrderBy(e => this.Owners[e.Owner].Index)
                                       .ThenBy(e => e.ColumnType)
-                                      .Select(e => new ColumnInfo { ColumnType = e.ColumnType, Description = Owners[e.Owner].Description })
+                                      .Select(e => new ColumnInfo { ColumnType = e.ColumnType, Description = this.Owners[e.Owner].Description })
                                       .ToArray();
                 }
             }

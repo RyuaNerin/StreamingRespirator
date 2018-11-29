@@ -87,8 +87,10 @@ namespace StreamingRespirator.Core
 
             this.m_stripSep0 = new ToolStripSeparator();
 
-            this.m_stripCredentials = new ToolStripMenuItem("활성화된 아이디");
-            this.m_stripCredentials.Enabled = false;
+            this.m_stripCredentials = new ToolStripMenuItem("활성화된 아이디")
+            {
+                Enabled = false
+            };
             (this.m_stripCredentials.DropDown as ToolStripDropDownMenu).ShowImageMargin = false;
             (this.m_stripCredentials.DropDown as ToolStripDropDownMenu).ImageScalingSize = new Size(32 * 3, 32);
 
@@ -214,7 +216,7 @@ namespace StreamingRespirator.Core
             if ((uri.Host == "twitter.com" || uri.Host == "www.twitter.com") &&
                 (uri.AbsolutePath == "/login" || uri.AbsolutePath == "/login/error"))
             {
-                if (m_submitted)
+                if (this.m_submitted)
                 {
                     this.m_submitted = false;
                     return;
