@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -68,7 +69,7 @@ namespace StreamingRespirator.Core.CefHelper
                 
                     if (requestType != ReqeustType.None)
                     {
-                        var dataFilter = new ResponseFilter(requestType);
+                        var dataFilter = new ResponseFilter(response?.Headers, requestType);
 
                         lock (this.m_filters)
                             this.m_filters.Add(request.Identifier, dataFilter);
@@ -231,17 +232,31 @@ namespace StreamingRespirator.Core.CefHelper
 
     internal class ResponseFilter : IResponseFilter
     {
-        public ResponseFilter(ReqeustType requestType)
+        private const int BufferSize = 8 * 1024; // 8 KiB
+
+        public ResponseFilter(NameValueCollection responseHeader, ReqeustType requestType)
         {
             this.ReqeustType = requestType;
-        }
-        
-        private readonly MemoryStream m_buffer = new MemoryStream(32768);
 
+            int defaultCapacity;
+            if (!int.TryParse(responseHeader?.Get("content-length"), out defaultCapacity))
+                defaultCapacity = BufferSize;
+
+            // gzip 이나 brotli 등으로 압축해서 오면 Realloc 이 자주 발생해서 널널하게 설정
+            else if (!string.IsNullOrWhiteSpace(responseHeader?.Get("content-encoding")))
+                defaultCapacity *= 10;
+
+            this.m_body = new MemoryStream(defaultCapacity);
+            this.m_buff = new byte[BufferSize];
+        }
+
+        private readonly MemoryStream m_body;
+        private readonly byte[]       m_buff;
+        
         public ReqeustType ReqeustType { get; }
 
         public string ResponseBody
-            => Encoding.UTF8.GetString(this.m_buffer.ToArray());
+            => Encoding.UTF8.GetString(this.m_body.ToArray());
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         bool IResponseFilter.InitFilter()
@@ -257,22 +272,32 @@ namespace StreamingRespirator.Core.CefHelper
                 return FilterStatus.Done;
             }
 
+            int read, totalRead = 0;
+
             var len = Math.Min(dataIn.Length, dataOut.Length);
-            var buffer = new byte[len];
+            while (len > 0)
+            {
+                read = dataIn.Read(this.m_buff, 0, BufferSize);
 
-            var read = dataIn.Read(buffer, 0, (int)len);
+                if (read > 0)
+                {
+                    totalRead += read;
 
-            this.m_buffer.Write(buffer, 0, read);
-            dataOut      .Write(buffer, 0, read);
+                    this.m_body.Write(this.m_buff, 0, read);
+                    dataOut.Write(this.m_buff, 0, read);
 
-            dataInRead = dataOutWritten = read;
+                    len -= read;
+                }
+            }
 
-            return FilterStatus.Done;
+            dataInRead = dataOutWritten = totalRead;
+
+            return dataIn.Length > dataOut.Length ? FilterStatus.NeedMoreData : FilterStatus.Done;
         }
 
         public void Dispose()
         {
-            this.m_buffer.Dispose();
+            this.m_body.Dispose();
         }
     }
 }
