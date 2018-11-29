@@ -144,7 +144,7 @@ namespace StreamingRespirator.Core
         {
             if (this.m_control.InvokeRequired)
             {
-                this.m_control.Invoke(new Action<bool>(this.Twitter_TweetdeckAuthorized), logined);
+                this.m_control.BeginInvoke(new Action<bool>(this.Twitter_TweetdeckAuthorized), logined);
                 return;
             }
 
@@ -167,7 +167,7 @@ namespace StreamingRespirator.Core
         {
             if (this.m_control.InvokeRequired)
             {
-                this.m_control.Invoke(new Action<ColumnInfo[]>(this.Twitter_ColumnsUpdated), columns);
+                this.m_control.BeginInvoke(new Action<ColumnInfo[]>(this.Twitter_ColumnsUpdated), columns);
                 return;
             }
 
