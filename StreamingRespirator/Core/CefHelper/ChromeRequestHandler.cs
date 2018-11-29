@@ -14,7 +14,6 @@ namespace StreamingRespirator.Core.CefHelper
     {
         HomeTimeline,
         Notification,
-        Activity,
         DirectMessage,
         Other,
     }
@@ -173,7 +172,6 @@ namespace StreamingRespirator.Core.CefHelper
                                 {
                                     case "home":            ctype = ColumnTypes.HomeTimeline;   break;
                                     case "interactions":    ctype = ColumnTypes.Notification;   break;
-                                    case "networkactivity": ctype = ColumnTypes.Activity;       break;
                                     case "direct":          ctype = ColumnTypes.DirectMessage;  break;
                                 }
 

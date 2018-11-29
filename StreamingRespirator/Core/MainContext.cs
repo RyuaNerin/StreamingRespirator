@@ -174,7 +174,6 @@ namespace StreamingRespirator.Core
                     {
                         case ColumnTypes.HomeTimeline:  img = Properties.Resources.uniF053; break;
                         case ColumnTypes.Notification:  img = Properties.Resources.uniF055; break;
-                        case ColumnTypes.Activity:      img = Properties.Resources.uniF063; break;
                         case ColumnTypes.DirectMessage: img = Properties.Resources.uniF054; break;
                     }
 
