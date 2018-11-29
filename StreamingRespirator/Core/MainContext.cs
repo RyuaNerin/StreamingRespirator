@@ -75,6 +75,7 @@ namespace StreamingRespirator.Core
                 RequestHandler = this.m_chromeReqeustHandler,
                 LifeSpanHandler = new LifeSpanHandler(),
             };
+            this.m_browser.Size = new Size(1, 1);
             this.m_browser.FrameLoadEnd += this.Browser_FrameLoadEnd;
 
 #if DEBUG
@@ -85,7 +86,7 @@ namespace StreamingRespirator.Core
             this.m_browser.FrameLoadStart     += (s, e) => Debug.WriteLine("FrameLoadStart : " + e.Url);
             this.m_browser.LoadingStateChanged+= (s, e) => Debug.WriteLine("LoadingStateChanged : " + e.IsLoading);
             this.m_browser.LoadError          += (s, e) => Debug.WriteLine("LoadError : " + e.ErrorText);
-            this.m_browser.Paint              += (s, e) => Debug.WriteLine("Paint : " + e.DirtyRect.ToString());
+            this.m_browser.Paint              += (s, e) => Debug.WriteLine($"Paint : w:{e.Width} x h:{e.Height}");
             this.m_browser.StatusMessage      += (s, e) => Debug.WriteLine("StatusMessage : " + e.Value);
             this.m_browser.TitleChanged       += (s, e) => Debug.WriteLine("TitleChanged : " + e.Title);
 #endif
