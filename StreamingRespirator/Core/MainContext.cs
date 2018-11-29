@@ -75,7 +75,7 @@ namespace StreamingRespirator.Core
                 RequestHandler = this.m_chromeReqeustHandler,
                 LifeSpanHandler = new LifeSpanHandler(),
             };
-            this.m_browser.LoadingStateChanged += this.Browser_LoadingStateChanged;
+            this.m_browser.FrameLoadEnd += this.Browser_FrameLoadEnd;
 
 #if DEBUG
             this.m_browser.AddressChanged     += (s, e) => Debug.WriteLine("AddressChanged : " + e.Address);
@@ -83,6 +83,7 @@ namespace StreamingRespirator.Core
             this.m_browser.ConsoleMessage     += (s, e) => Debug.WriteLine("ConsoleMessage : " + e.Message);
             this.m_browser.FrameLoadEnd       += (s, e) => Debug.WriteLine("FrameLoadEnd : " + e.Url);
             this.m_browser.FrameLoadStart     += (s, e) => Debug.WriteLine("FrameLoadStart : " + e.Url);
+            this.m_browser.LoadingStateChanged+= (s, e) => Debug.WriteLine("LoadingStateChanged : " + e.IsLoading);
             this.m_browser.LoadError          += (s, e) => Debug.WriteLine("LoadError : " + e.ErrorText);
             this.m_browser.Paint              += (s, e) => Debug.WriteLine("Paint : " + e.DirtyRect.ToString());
             this.m_browser.StatusMessage      += (s, e) => Debug.WriteLine("StatusMessage : " + e.Value);
@@ -214,12 +215,9 @@ namespace StreamingRespirator.Core
             this.m_server.AddApiResponse(response);
         }
 
-        private bool m_submitted = false;
-        private void Browser_LoadingStateChanged(object sender, LoadingStateChangedEventArgs e)
+        private void Browser_FrameLoadEnd(object sender, FrameLoadEndEventArgs e)
         {
-            Debug.WriteLine($"LoadingStateChanged {e.IsLoading} {e.Browser.MainFrame.Url}");
-
-            if (e.IsLoading)
+            if (!e.Frame.IsMain)
                 return;
 
             if (!Uri.TryCreate(e.Browser.MainFrame.Url, UriKind.Absolute, out var uri))
@@ -228,12 +226,6 @@ namespace StreamingRespirator.Core
             if ((uri.Host == "twitter.com" || uri.Host == "www.twitter.com") &&
                 (uri.AbsolutePath == "/login" || uri.AbsolutePath == "/login/error"))
             {
-                if (this.m_submitted)
-                {
-                    this.m_submitted = false;
-                    return;
-                }
-
                 Task.Factory.StartNew(new Action(this.StartLogin));
             }
         }
@@ -284,8 +276,6 @@ namespace StreamingRespirator.Core
                 }})();";
 
             this.m_browser.ExecuteScriptAsync(js);
-
-            this.m_submitted = true;
         }
 
         private void StripAbout_Click(object sender, EventArgs e)
