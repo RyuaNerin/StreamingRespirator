@@ -49,7 +49,7 @@ namespace StreamingRespirator.Core.Windows
             this.pnl.Location = new System.Drawing.Point(0, 0);
             this.pnl.Margin = new System.Windows.Forms.Padding(0);
             this.pnl.Name = "pnl";
-            this.pnl.Padding = new System.Windows.Forms.Padding(3);
+            this.pnl.Padding = new System.Windows.Forms.Padding(4);
             this.pnl.RowCount = 2;
             this.pnl.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.pnl.RowStyles.Add(new System.Windows.Forms.RowStyle());
@@ -58,7 +58,7 @@ namespace StreamingRespirator.Core.Windows
             // 
             // ctlUsername
             // 
-            this.ctlUsername.Location = new System.Drawing.Point(3, 3);
+            this.ctlUsername.Location = new System.Drawing.Point(4, 4);
             this.ctlUsername.Margin = new System.Windows.Forms.Padding(0, 0, 0, 4);
             this.ctlUsername.Name = "ctlUsername";
             this.ctlUsername.Size = new System.Drawing.Size(160, 23);
@@ -66,7 +66,7 @@ namespace StreamingRespirator.Core.Windows
             // 
             // ctlPassword
             // 
-            this.ctlPassword.Location = new System.Drawing.Point(3, 30);
+            this.ctlPassword.Location = new System.Drawing.Point(4, 31);
             this.ctlPassword.Margin = new System.Windows.Forms.Padding(0);
             this.ctlPassword.Name = "ctlPassword";
             this.ctlPassword.Size = new System.Drawing.Size(160, 23);
@@ -78,12 +78,12 @@ namespace StreamingRespirator.Core.Windows
             this.ctlLogin.AutoSize = true;
             this.ctlLogin.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ctlLogin.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ctlLogin.Location = new System.Drawing.Point(166, 3);
+            this.ctlLogin.Location = new System.Drawing.Point(167, 4);
             this.ctlLogin.Margin = new System.Windows.Forms.Padding(3, 0, 0, 0);
             this.ctlLogin.Name = "ctlLogin";
             this.ctlLogin.Padding = new System.Windows.Forms.Padding(5);
             this.pnl.SetRowSpan(this.ctlLogin, 2);
-            this.ctlLogin.Size = new System.Drawing.Size(63, 61);
+            this.ctlLogin.Size = new System.Drawing.Size(63, 59);
             this.ctlLogin.TabIndex = 2;
             this.ctlLogin.Text = "로그인";
             this.ctlLogin.UseVisualStyleBackColor = true;
