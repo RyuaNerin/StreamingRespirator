@@ -218,7 +218,8 @@
 COPY "$(SolutionDir)\bin\$(ConfigurationName)\hook\*.dll" "$(TargetDir)\hook\"
 COPY "$(SolutionDir)\bin\$(ConfigurationName)\hook\*.exe" "$(TargetDir)\hook\"
 RMDIR /S /Q "$(TargetDir)\swiftshader"
-#DEL /Q "$(TargetDir)\devtools_resources.pak"
+DEL /Q "$(TargetDir)\devtools_resources.pak"
+DEL /Q "$(TargetDir)\cef_extensions.pak"
 DEL /Q "$(TargetDir)\*.pdb"
 DEL /Q "$(TargetDir)\*.xml"</PostBuildEvent>
   </PropertyGroup>
