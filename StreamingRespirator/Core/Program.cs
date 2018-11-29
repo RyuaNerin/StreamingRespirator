@@ -24,6 +24,7 @@ namespace StreamingRespirator.Core
                 LogSeverity                = LogSeverity.Disable,
                 LogFile                    = null,
                 WindowlessRenderingEnabled = true,
+                MultiThreadedMessageLoop   = false,
                 CefCommandLineArgs =
                 {
                     { "no-proxy-server"          , "1" },
