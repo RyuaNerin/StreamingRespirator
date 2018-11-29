@@ -76,6 +76,18 @@ namespace StreamingRespirator.Core
                 LifeSpanHandler = new LifeSpanHandler(),
             };
             this.m_browser.LoadingStateChanged += this.Browser_LoadingStateChanged;
+
+#if DEBUG
+            this.m_browser.AddressChanged     += (s, e) => Debug.WriteLine("AddressChanged : " + e.Address);
+            this.m_browser.BrowserInitialized += (s, e) => Debug.WriteLine("BrowserInitialized");
+            this.m_browser.ConsoleMessage     += (s, e) => Debug.WriteLine("ConsoleMessage : " + e.Message);
+            this.m_browser.FrameLoadEnd       += (s, e) => Debug.WriteLine("FrameLoadEnd : " + e.Url);
+            this.m_browser.FrameLoadStart     += (s, e) => Debug.WriteLine("FrameLoadStart : " + e.Url);
+            this.m_browser.LoadError          += (s, e) => Debug.WriteLine("LoadError : " + e.ErrorText);
+            this.m_browser.Paint              += (s, e) => Debug.WriteLine("Paint : " + e.DirtyRect.ToString());
+            this.m_browser.StatusMessage      += (s, e) => Debug.WriteLine("StatusMessage : " + e.Value);
+            this.m_browser.TitleChanged       += (s, e) => Debug.WriteLine("TitleChanged : " + e.Title);
+#endif
         }
 
         private void InitializeComponent()
