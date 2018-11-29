@@ -270,8 +270,8 @@ namespace StreamingRespirator.Core
             var js = $@"
                 (function() {{
                     var form = document.getElementsByClassName('signin-wrapper')[0].getElementsByTagName('form')[0];
-                    form.getElementsByClassName('js-username-field')[0].value = '{username.Replace("'", "\\'")}';
-                    form.getElementsByClassName('js-password-field')[0].value = '{password.Replace("'", "\\'")}';
+                    form.getElementsByClassName('js-username-field')[0].value = '{username.Replace("\\", "\\\\").Replace("'", "\\'")}';
+                    form.getElementsByClassName('js-password-field')[0].value = '{password.Replace("\\", "\\\\").Replace("'", "\\'")}';
                     setTimeout(function() {{ form.submit(); }}, 1000);
                 }})();";
 
