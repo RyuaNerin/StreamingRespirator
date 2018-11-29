@@ -47,7 +47,7 @@ namespace StreamingRespirator.Utilities
             return false;
         }
 
-        private class NativeMethods
+        private static class NativeMethods
         {
             [DllImport("kernel32.dll")]
             public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, int processId);
