@@ -24,12 +24,12 @@ namespace StreamingRespirator.Core
                 LogSeverity                = LogSeverity.Disable,
                 LogFile                    = null,
                 WindowlessRenderingEnabled = true,
-                MultiThreadedMessageLoop   = false,
                 CefCommandLineArgs =
                 {
                     { "no-proxy-server"          , "1" },
                     { "disable-application-cache", "1" },
                     { "disable-extensions"       , "1" },
+                    { "off-screen-rendering-enabled", "1" }
                 }
             };
             DefaultCefSetting.DisableGpuAcceleration();
