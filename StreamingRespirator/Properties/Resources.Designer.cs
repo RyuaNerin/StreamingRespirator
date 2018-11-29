@@ -73,9 +73,9 @@ namespace StreamingRespirator.Properties {
         /// <summary>
         ///   System.Drawing.Bitmap 형식의 지역화된 리소스를 찾습니다.
         /// </summary>
-        internal static System.Drawing.Bitmap uniF053 {
+        internal static System.Drawing.Bitmap Cols_0_min {
             get {
-                object obj = ResourceManager.GetObject("uniF053", resourceCulture);
+                object obj = ResourceManager.GetObject("Cols_0_min", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -83,9 +83,9 @@ namespace StreamingRespirator.Properties {
         /// <summary>
         ///   System.Drawing.Bitmap 형식의 지역화된 리소스를 찾습니다.
         /// </summary>
-        internal static System.Drawing.Bitmap uniF054 {
+        internal static System.Drawing.Bitmap Cols_1_min {
             get {
-                object obj = ResourceManager.GetObject("uniF054", resourceCulture);
+                object obj = ResourceManager.GetObject("Cols_1_min", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -93,9 +93,59 @@ namespace StreamingRespirator.Properties {
         /// <summary>
         ///   System.Drawing.Bitmap 형식의 지역화된 리소스를 찾습니다.
         /// </summary>
-        internal static System.Drawing.Bitmap uniF055 {
+        internal static System.Drawing.Bitmap Cols_2_min {
             get {
-                object obj = ResourceManager.GetObject("uniF055", resourceCulture);
+                object obj = ResourceManager.GetObject("Cols_2_min", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   System.Drawing.Bitmap 형식의 지역화된 리소스를 찾습니다.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cols_3_min {
+            get {
+                object obj = ResourceManager.GetObject("Cols_3_min", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   System.Drawing.Bitmap 형식의 지역화된 리소스를 찾습니다.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cols_4_min {
+            get {
+                object obj = ResourceManager.GetObject("Cols_4_min", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   System.Drawing.Bitmap 형식의 지역화된 리소스를 찾습니다.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cols_5_min {
+            get {
+                object obj = ResourceManager.GetObject("Cols_5_min", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   System.Drawing.Bitmap 형식의 지역화된 리소스를 찾습니다.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cols_6_min {
+            get {
+                object obj = ResourceManager.GetObject("Cols_6_min", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   System.Drawing.Bitmap 형식의 지역화된 리소스를 찾습니다.
+        /// </summary>
+        internal static System.Drawing.Bitmap Cols_7_min {
+            get {
+                object obj = ResourceManager.GetObject("Cols_7_min", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

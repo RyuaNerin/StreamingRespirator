@@ -176,7 +176,28 @@
     <None Include="Resources\uniF055.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\uniF063.png" />
+    <None Include="Resources\Cols-0-min.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cols-1-min.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cols-2-min.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cols-3-min.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cols-4-min.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cols-5-min.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cols-6-min.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Cols-7-min.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

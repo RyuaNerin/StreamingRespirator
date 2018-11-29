@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -15,6 +16,18 @@ namespace StreamingRespirator.Core
 {
     internal class MainContext : ApplicationContext
     {
+        private static readonly IDictionary<int, Image> ColImages = new SortedDictionary<int, Image>
+        {
+            { 0, Properties.Resources.Cols_0_min },
+            { 1, Properties.Resources.Cols_1_min },
+            { 2, Properties.Resources.Cols_2_min },
+            { 3, Properties.Resources.Cols_3_min },
+            { 4, Properties.Resources.Cols_4_min },
+            { 5, Properties.Resources.Cols_5_min },
+            { 6, Properties.Resources.Cols_6_min },
+            { 7, Properties.Resources.Cols_7_min },
+        };
+
         private readonly RespiratorServer m_server;
         private readonly ChromeRequestHandler m_chromeReqeustHandler;
         private readonly ChromiumWebBrowser m_browser;
@@ -77,6 +90,7 @@ namespace StreamingRespirator.Core
             this.m_stripCredentials = new ToolStripMenuItem("활성화된 아이디");
             this.m_stripCredentials.Enabled = false;
             (this.m_stripCredentials.DropDown as ToolStripDropDownMenu).ShowImageMargin = false;
+            (this.m_stripCredentials.DropDown as ToolStripDropDownMenu).ImageScalingSize = new Size(32 * 3, 32);
 
             this.m_stripRefresh = new ToolStripMenuItem("새로고침");
             this.m_stripRefresh.Click += this.StripRefresh_Click;
@@ -167,18 +181,14 @@ namespace StreamingRespirator.Core
             var gc = columns.GroupBy(e => e.Description).ToArray();
             for (int i = 0; i < gc.Length; ++i)
             {
-                foreach (var column in gc[i])
-                {
-                    Image img = null;
-                    switch (column.ColumnType)
-                    {
-                        case ColumnTypes.HomeTimeline:  img = Properties.Resources.uniF053; break;
-                        case ColumnTypes.Notification:  img = Properties.Resources.uniF055; break;
-                        case ColumnTypes.DirectMessage: img = Properties.Resources.uniF054; break;
-                    }
+                var imgIndex = 0;
 
-                    this.m_stripCredentials.DropDownItems.Add(new ToolStripLabel(column.Description, img));
-                }
+                if (gc[i].Any(e => e.ColumnType == ColumnTypes.HomeTimeline))  imgIndex += 4;
+                if (gc[i].Any(e => e.ColumnType == ColumnTypes.Notification))  imgIndex += 2;
+                if (gc[i].Any(e => e.ColumnType == ColumnTypes.DirectMessage)) imgIndex += 1;
+
+                this.m_stripCredentials.DropDownItems.Add(new ToolStripLabel(gc[i].Key));
+                this.m_stripCredentials.DropDownItems.Add(new ToolStripLabel(ColImages[imgIndex]) { ImageScaling = ToolStripItemImageScaling.None });
 
                 if (i != gc.Length - 1)
                     this.m_stripCredentials.DropDownItems.Add(new ToolStripSeparator());
