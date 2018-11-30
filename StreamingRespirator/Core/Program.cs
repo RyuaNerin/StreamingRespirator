@@ -24,6 +24,7 @@ namespace StreamingRespirator.Core
                 LogSeverity                = LogSeverity.Disable,
                 LogFile                    = null,
                 WindowlessRenderingEnabled = true,
+                BrowserSubprocessPath      = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "StreamingRespirator.cef.exe"),
                 CefCommandLineArgs =
                 {
 #if !DEBUG

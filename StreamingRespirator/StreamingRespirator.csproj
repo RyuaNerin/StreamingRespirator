@@ -215,8 +215,9 @@
   <Import Project="..\packages\CefSharp.OffScreen.69.0.0\build\CefSharp.OffScreen.targets" Condition="Exists('..\packages\CefSharp.OffScreen.69.0.0\build\CefSharp.OffScreen.targets')" />
   <PropertyGroup>
     <PostBuildEvent>MKDIR "$(TargetDir)\hook\"
-COPY "$(SolutionDir)\bin\$(ConfigurationName)\hook\*.dll" "$(TargetDir)\hook\"
-COPY "$(SolutionDir)\bin\$(ConfigurationName)\hook\*.exe" "$(TargetDir)\hook\"
+COPY "$(TargetDir)\..\hook\*.dll" "$(TargetDir)\hook\"
+COPY "$(TargetDir)\..\hook\*.exe" "$(TargetDir)\hook\"
+RENAME "$(TargetDir)\CefSharp.BrowserSubprocess.exe" "StreamingRespirator.cef.exe"
 RMDIR /S /Q "$(TargetDir)\swiftshader"
 DEL /Q "$(TargetDir)\devtools_resources.pak"
 DEL /Q "$(TargetDir)\cef_extensions.pak"
