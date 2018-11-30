@@ -24,9 +24,9 @@ namespace StreamingRespirator.Core.Streaming
     {
         private const int KeepAlivePeriod = 5 * 1000;
 
-        private const int ProxyPortMin     =  1000;
-        private const int ProxyPortDefault = 34811;
-        private const int ProxyPortMax     = 65000;
+        private const int ProxyPortMin     = 1000;
+        private const int ProxyPortDefault = 8080;
+        private const int ProxyPortMax     = 9999;
 
         private const int StreamingPortMin     =  1000;
         private const int StreamingPortDefault = 51443;
