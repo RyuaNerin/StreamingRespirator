@@ -107,7 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\CefHelper\ChromeRequestHandler.cs" />
-    <Compile Include="Core\CefHelper\LifeSpanHandlercs.cs" />
+    <Compile Include="Core\CefHelper\LifeSpanHandler.cs" />
     <Compile Include="Core\MainContext.cs" />
     <Compile Include="Core\Windows\LoginWindow.cs">
       <SubType>Form</SubType>
