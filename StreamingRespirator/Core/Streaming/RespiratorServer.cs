@@ -24,9 +24,9 @@ namespace StreamingRespirator.Core.Streaming
     {
         private const int KeepAlivePeriod = 5 * 1000;
 
-        private const int ProxyPortMin     = 1000;
-        private const int ProxyPortDefault = 8080;
-        private const int ProxyPortMax     = 9999;
+        private const int ProxyPortMin     =  1000;
+        private const int ProxyPortDefault = 34811;
+        private const int ProxyPortMax     = 65000;
 
         private const int StreamingPortMin     =  1000;
         private const int StreamingPortDefault = 51443;
@@ -89,9 +89,11 @@ namespace StreamingRespirator.Core.Streaming
             this.m_started = true;
 
             int port;
+            int tried;
 
             port = ProxyPortDefault;
-            do
+            tried = 0;
+            while (tried++ < 3)
             {
                 try
                 {
@@ -99,15 +101,19 @@ namespace StreamingRespirator.Core.Streaming
                     this.m_proxy.Start();
                     break;
                 }
-                catch
+                catch (Exception ex)
                 {
                     port = rnd.Next(ProxyPortMin, ProxyPortMax);
+
+                    if (tried == 3)
+                        throw ex;
                 }
-            } while (true);
+            }
 
 
             port = StreamingPortDefault;
-            do
+            tried = 0;
+            while (tried++ < 3)
             {
                 try
                 {
@@ -115,11 +121,14 @@ namespace StreamingRespirator.Core.Streaming
                     this.m_httpStreamingListener.Start();
                     break;
                 }
-                catch
+                catch (Exception ex)
                 {
                     port = rnd.Next(StreamingPortMin, StreamingPortMax);
+
+                    if (tried == 3)
+                        throw ex;
                 }
-            } while (true);
+            }
 
             this.m_httpStreamingListener.BeginGetContext(this.Listener_GetHttpContext, null);
 
@@ -131,10 +140,10 @@ namespace StreamingRespirator.Core.Streaming
             if (!this.m_started)
                 return;
 
-            Parallel.ForEach(this.GetConnections(0), e => { e.Stream.Close(); e.Stream.WaitHandle.WaitOne(); });
-
             this.m_proxy.Stop();
             this.m_httpStreamingListener.Stop();
+
+            Parallel.ForEach(this.GetConnections(0), e => { e.Stream.Close(); e.Stream.WaitHandle.WaitOne(); });
         }
 
         private StreamingConnection[] GetConnections(long ownerId = 0)

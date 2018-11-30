@@ -164,7 +164,11 @@ namespace StreamingRespirator.Core
 
             if (logined)
             {
-                await Task.Factory.StartNew(new Action(this.m_server.Start));
+                if (!await Task.Factory.StartNew(this.StartProxy))
+                {
+                    Application.Exit();
+                    return;
+                }
                 
                 this.m_stripPort.Text = $"Port : {this.m_server.ProxyPort}";
 
@@ -174,6 +178,20 @@ namespace StreamingRespirator.Core
             else
             {
                 this.m_browser.Load("https://twitter.com/login?hide_message=true&redirect_after_login=https%3A%2F%2Ftweetdeck.twitter.com%2F%3Fvia_twitter_login%3Dtrue");
+            }
+        }
+
+        private bool StartProxy()
+        {
+            try
+            {
+                this.m_server.Start();
+                return true;
+            }
+            catch
+            {
+                MessageBox.Show("호흡기 작동중에 오류가 발생하였습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
             }
         }
 
