@@ -143,7 +143,19 @@ namespace StreamingRespirator.Core.Streaming
             this.m_proxy.Stop();
             this.m_httpStreamingListener.Stop();
 
-            Parallel.ForEach(this.GetConnections(0), e => { e.Stream.Close(); e.Stream.WaitHandle.WaitOne(); });
+            Parallel.ForEach(
+                this.GetConnections(0),
+                e =>
+                {
+                    try
+                    {
+                        e.Stream.Close();
+                    }
+                    catch
+                    {
+                    }
+                    e.Stream.WaitHandle.WaitOne();
+                });
         }
 
         private StreamingConnection[] GetConnections(long ownerId = 0)

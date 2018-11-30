@@ -29,11 +29,19 @@ namespace StreamingRespirator.Utilities
 
         public override void Close()
         {
-            base.Close();
-
-            this.m_stream.Close();
-
-            this.m_event.Set();
+            try
+            {
+                base.Close();
+                this.m_stream.Close();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                this.m_event.Set();
+            }
         }
 
         public WaitHandle WaitHandle
