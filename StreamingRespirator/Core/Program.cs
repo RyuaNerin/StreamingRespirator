@@ -25,18 +25,25 @@ namespace StreamingRespirator.Core
                 LogFile                    = null,
                 WindowlessRenderingEnabled = true,
                 BrowserSubprocessPath      = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), "StreamingRespirator.cef.exe"),
-                CefCommandLineArgs =
-                {
-#if !DEBUG
-                    { "no-proxy-server"          , "1" },
-#endif
-                    { "disable-application-cache", "1" },
-                    { "disable-extensions"       , "1" },
-                    { "off-screen-rendering-enabled", "1" }
-                }
             };
-            DefaultCefSetting.DisableGpuAcceleration();
-            DefaultCefSetting.SetOffScreenRenderingBestPerformanceArgs();
+
+#if !DEBUG
+            DefaultCefSetting.CefCommandLineArgs["no-proxy-server"]           = "1";
+#endif
+            DefaultCefSetting.CefCommandLineArgs["disable-application-cache"] = "1";
+            DefaultCefSetting.CefCommandLineArgs["disable-extensions"       ] = "1";
+            DefaultCefSetting.CefCommandLineArgs["off-screen-frame-rate"    ] = "1";
+
+            // Disable Surfaces so internal PDF viewer works for OSR
+            DefaultCefSetting.CefCommandLineArgs["disable-surfaces"] = "1";
+
+            //DisableGpuAcceleration
+            DefaultCefSetting.CefCommandLineArgs["disable-gpu"] = "1";
+
+            //SetOffScreenRenderingBestPerformanceArgs
+            DefaultCefSetting.CefCommandLineArgs["disable-gpu"                  ] = "1";
+            DefaultCefSetting.CefCommandLineArgs["disable-gpu-compositing"      ] = "1";
+            DefaultCefSetting.CefCommandLineArgs["enable-begin-frame-scheduling"] = "1";
 
             DefaultBrowserSetting = new BrowserSettings
             {
