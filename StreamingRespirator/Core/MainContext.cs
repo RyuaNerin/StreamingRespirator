@@ -70,13 +70,19 @@ namespace StreamingRespirator.Core
             this.m_chromeReqeustHandler.TwitterApiRersponse += this.Twitter_TwitterApiRersponse;
             this.m_chromeReqeustHandler.ColumnsUpdated += this.Twitter_ColumnsUpdated;
 
-            this.m_browser = new ChromiumWebBrowser("https://tweetdeck.twitter.com/", Program.DefaultBrowserSetting)
+            this.m_browser = new ChromiumWebBrowser("https://tweetdeck.twitter.com/", Program.DefaultBrowserSetting, null, false)
             {
                 RequestHandler = this.m_chromeReqeustHandler,
                 LifeSpanHandler = new LifeSpanHandler(),
             };
-            this.m_browser.Size = new Size(1, 1);
             this.m_browser.FrameLoadEnd += this.Browser_FrameLoadEnd;
+
+            // MinimalRenderHandler 로 교체
+            var old = this.m_browser.RenderHandler;
+            this.m_browser.RenderHandler = new NullRenderHandler();
+            old.Dispose();
+
+            this.m_browser.CreateBrowser(IntPtr.Zero, Program.DefaultBrowserSetting);
 
 #if DEBUG
             this.m_browser.AddressChanged     += (s, e) => Debug.WriteLine("AddressChanged : " + e.Address);
