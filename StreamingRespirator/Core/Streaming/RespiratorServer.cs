@@ -23,10 +23,8 @@ namespace StreamingRespirator.Core.Streaming
     internal class RespiratorServer
     {
         private const int KeepAlivePeriod = 5 * 1000;
-
-        private const int ProxyPortMin     = 1000;
-        private const int ProxyPortDefault = 8080;
-        private const int ProxyPortMax     = 9999;
+        
+        public const int ProxyPort = 8811;
 
         private const int StreamingPortMin     =  1000;
         private const int StreamingPortDefault = 51443;
@@ -70,43 +68,22 @@ namespace StreamingRespirator.Core.Streaming
         private readonly Timer m_keepAliveTimer;
 
         private readonly List<StreamingConnection> m_connections = new List<StreamingConnection>();
-                
-        public int ProxyPort => this.m_proxyEndPoint.Port;
 
         private static readonly Random rnd = new Random(DateTime.Now.Millisecond);
 
-        private bool m_started = false;
+        public bool IsRunning { get; private set; }
+
         public void Start()
         {
-            if (this.m_started)
+            if (this.IsRunning)
                 return;
-            this.m_started = true;
+            this.IsRunning = true;
+            
+            this.SetProxyPort(ProxyPort);
+            this.m_proxy.Start();
 
-            int port;
-            int tried;
-
-            port = ProxyPortDefault;
-            tried = 0;
-            while (tried++ < 3)
-            {
-                try
-                {
-                    this.SetProxyPort(port);
-                    this.m_proxy.Start();
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    port = rnd.Next(ProxyPortMin, ProxyPortMax);
-
-                    if (tried == 3)
-                        throw ex;
-                }
-            }
-
-
-            port = StreamingPortDefault;
-            tried = 0;
+            var port = StreamingPortDefault;
+            var tried = 0;
             while (tried++ < 3)
             {
                 try
@@ -131,7 +108,7 @@ namespace StreamingRespirator.Core.Streaming
 
         public void Stop()
         {
-            if (!this.m_started)
+            if (!this.IsRunning)
                 return;
 
             this.m_proxy.Stop();

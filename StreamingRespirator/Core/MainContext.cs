@@ -12,6 +12,8 @@ using StreamingRespirator.Core.Streaming;
 using StreamingRespirator.Core.Windows;
 using StreamingRespirator.Utilities;
 
+using Timer = System.Threading.Timer;
+
 namespace StreamingRespirator.Core
 {
     internal class MainContext : ApplicationContext
@@ -34,12 +36,14 @@ namespace StreamingRespirator.Core
 
         private readonly Control m_control;
 
+        private readonly Timer m_autoRefresh;
+
         private NotifyIcon         m_notifyIcon;
         private ContextMenuStrip   m_contextMenuStrip;
-        private ToolStripLabel     m_stripPort;
         private ToolStripMenuItem  m_stripAbout;
         private ToolStripSeparator m_stripSep0;
         private ToolStripMenuItem  m_stripCredentials;
+        private ToolStripMenuItem  m_stripAutoRefresh;
         private ToolStripMenuItem  m_stripRefresh;
         private ToolStripSeparator m_stripSep1;
         private ToolStripMenuItem  m_scripHookAzurea;
@@ -59,8 +63,6 @@ namespace StreamingRespirator.Core
             CefSharpSettings.Proxy = null;
 
             Cef.Initialize(Program.DefaultCefSetting, false, null);
-            Cef.EnableHighDPISupport();
-
             Cef.GetGlobalCookieManager().SetStoragePath(Program.CookiePath, true, null);
 
             this.m_server = new RespiratorServer();
@@ -77,12 +79,19 @@ namespace StreamingRespirator.Core
             };
             this.m_browser.FrameLoadEnd += this.Browser_FrameLoadEnd;
 
+            try
+            {
+                this.m_browser.CreateBrowser(IntPtr.Zero, Program.DefaultBrowserSetting);
+            }
+            catch
+            {
+                throw;
+            }
+
             // MinimalRenderHandler 로 교체
             var old = this.m_browser.RenderHandler;
             this.m_browser.RenderHandler = new NullRenderHandler();
             old.Dispose();
-
-            this.m_browser.CreateBrowser(IntPtr.Zero, Program.DefaultBrowserSetting);
 
 #if DEBUG
             this.m_browser.AddressChanged     += (s, e) => Debug.WriteLine("AddressChanged : " + e.Address);
@@ -96,12 +105,12 @@ namespace StreamingRespirator.Core
             this.m_browser.StatusMessage      += (s, e) => Debug.WriteLine("StatusMessage : " + e.Value);
             this.m_browser.TitleChanged       += (s, e) => Debug.WriteLine("TitleChanged : " + e.Title);
 #endif
+
+            this.m_autoRefresh = new Timer(this.AutoRefresh);
         }
 
         private void InitializeComponent()
         {
-            this.m_stripPort = new ToolStripLabel("Port : ");
-
             this.m_stripAbout = new ToolStripMenuItem("By RyuaNerin");
             this.m_stripAbout.Click += this.StripAbout_Click;
 
@@ -113,6 +122,12 @@ namespace StreamingRespirator.Core
             };
             (this.m_stripCredentials.DropDown as ToolStripDropDownMenu).ShowImageMargin = false;
             (this.m_stripCredentials.DropDown as ToolStripDropDownMenu).ImageScalingSize = new Size(32 * 3, 32);
+
+            this.m_stripAutoRefresh = new ToolStripMenuItem("자동 새로고침")
+            {
+                CheckOnClick = true
+            };
+            this.m_stripAutoRefresh.CheckedChanged += this.StripAutoRefresh_CheckedChanged;
 
             this.m_stripRefresh = new ToolStripMenuItem("새로고침");
             this.m_stripRefresh.Click += this.StripRefresh_Click;
@@ -130,13 +145,12 @@ namespace StreamingRespirator.Core
             this.m_contextMenuStrip = new ContextMenuStrip
             {
                 RenderMode      = ToolStripRenderMode.Professional,
-                ShowImageMargin = false,
                 Items =
                 {
-                    this.m_stripPort,
                     this.m_stripAbout,
                     this.m_stripSep0,
                     this.m_stripCredentials,
+                    this.m_stripAutoRefresh,
                     this.m_stripRefresh,
                     this.m_stripSep1,
                     this.m_scripHookAzurea,
@@ -160,6 +174,27 @@ namespace StreamingRespirator.Core
             this.m_notifyIcon.Visible = false;
         }
 
+        private void AutoRefresh(object state)
+        {
+            this.m_control.Invoke(new Action(this.m_browser.Reload));
+        }
+
+        private void StripAutoRefresh_CheckedChanged(object sender, EventArgs e)
+        {
+            if (!this.m_server.IsRunning)
+                return;
+
+            this.SetAutoRefresh();
+        }
+
+        private void SetAutoRefresh()
+        {
+            if ((bool)this.m_control.Invoke(new Func<bool>(() => this.m_stripAutoRefresh.Checked)))
+                this.m_autoRefresh.Change(TimeSpan.FromHours(3), TimeSpan.FromMilliseconds(-1));
+            else
+                this.m_autoRefresh.Change(0, 0);
+        }
+
         private async void Twitter_TweetdeckAuthorized(bool logined)
         {
             if (this.m_control.InvokeRequired)
@@ -175,10 +210,8 @@ namespace StreamingRespirator.Core
                     Application.Exit();
                     return;
                 }
-                
-                this.m_stripPort.Text = $"Port : {this.m_server.ProxyPort}";
 
-                this.m_notifyIcon.Text = $"스트리밍 호흡기 - Port {this.m_server.ProxyPort}";
+                this.m_notifyIcon.Text = $"스트리밍 호흡기";
                 this.m_notifyIcon.Visible = true;
             }
             else
@@ -247,6 +280,9 @@ namespace StreamingRespirator.Core
 
             if (!Uri.TryCreate(e.Browser.MainFrame.Url, UriKind.Absolute, out var uri))
                 return;
+
+            if (uri.Host == "tweetdeck.twitter.com")
+                this.SetAutoRefresh();
 
             if ((uri.Host == "twitter.com" || uri.Host == "www.twitter.com") &&
                 (uri.AbsolutePath == "/login" || uri.AbsolutePath == "/login/error"))
@@ -328,7 +364,12 @@ namespace StreamingRespirator.Core
 
         private void StripRefresh_Click(object sender, EventArgs e)
         {
-            Task.Factory.StartNew(() => this.m_browser.Load("https://tweetdeck.twitter.com/"));
+            //Task.Factory.StartNew(this.RecreateBrowser);
+            //this.m_control.BeginInvoke(new Action(this.RecreateBrowser));
+            this.m_control.BeginInvoke(new Action(() =>
+            {
+                this.m_browser.Reload(true);
+            }));
         }
 
         private void StripExit_Click(object sender, EventArgs e)
@@ -341,7 +382,7 @@ namespace StreamingRespirator.Core
             bool b = false;
             foreach (var process in Process.GetProcessesByName("azurea"))
                 using (process)
-                    b |= Hook.HookWinInet(this.m_server.ProxyPort, process);
+                    b |= Hook.HookWinInet(RespiratorServer.ProxyPort, process);
 
             if (b)
             {
