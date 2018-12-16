@@ -192,7 +192,7 @@ namespace StreamingRespirator.Core
             if ((bool)this.m_control.Invoke(new Func<bool>(() => this.m_stripAutoRefresh.Checked)))
                 this.m_autoRefresh.Change(TimeSpan.FromHours(3), TimeSpan.FromMilliseconds(-1));
             else
-                this.m_autoRefresh.Change(0, 0);
+                this.m_autoRefresh.Change(TimeSpan.FromMilliseconds(-1), TimeSpan.FromMilliseconds(-1));
         }
 
         private async void Twitter_TweetdeckAuthorized(bool logined)
