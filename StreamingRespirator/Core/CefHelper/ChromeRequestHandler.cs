@@ -274,10 +274,10 @@ namespace StreamingRespirator.Core.CefHelper
 
             int read, totalRead = 0;
 
-            var len = Math.Min(dataIn.Length, dataOut.Length);
+            var len = (int)Math.Min(dataIn.Length, dataOut.Length);
             while (len > 0)
             {
-                read = dataIn.Read(this.m_buff, 0, BufferSize);
+                read = dataIn.Read(this.m_buff, 0, Math.Min(BufferSize, len));
 
                 if (read > 0)
                 {
