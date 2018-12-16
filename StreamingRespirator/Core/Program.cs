@@ -38,9 +38,11 @@ namespace StreamingRespirator.Core
             DefaultCefSetting.CefCommandLineArgs["disable-surfaces"] = "1";
 
             //DisableGpuAcceleration
+            DefaultCefSetting.DisableGpuAcceleration();
             DefaultCefSetting.CefCommandLineArgs["disable-gpu"] = "1";
 
             //SetOffScreenRenderingBestPerformanceArgs
+            DefaultCefSetting.SetOffScreenRenderingBestPerformanceArgs();
             DefaultCefSetting.CefCommandLineArgs["disable-gpu"                  ] = "1";
             DefaultCefSetting.CefCommandLineArgs["disable-gpu-compositing"      ] = "1";
             DefaultCefSetting.CefCommandLineArgs["enable-begin-frame-scheduling"] = "1";
