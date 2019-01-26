@@ -29,6 +29,8 @@ namespace StreamingRespirator.Core
                 Application.SetCompatibleTextRenderingDefault(false);
 
 #if !DEBUG
+                System.Net.WebRequest.DefaultWebProxy = null;
+
                 if (!CheckUpdate())
                     return;
 #endif
