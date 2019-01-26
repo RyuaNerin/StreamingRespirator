@@ -18,12 +18,9 @@ namespace StreamingRespirator.Utilities
 
         protected override void Dispose(bool disposing)
         {
-            base.Dispose(disposing);
-
             this.m_stream.Dispose();
 
             this.m_event.Set();
-
             this.m_event.Dispose();
         }
 
@@ -31,12 +28,11 @@ namespace StreamingRespirator.Utilities
         {
             try
             {
-                base.Close();
+                this.m_stream.Flush();
                 this.m_stream.Close();
             }
             catch (Exception ex)
             {
-                throw ex;
             }
             finally
             {

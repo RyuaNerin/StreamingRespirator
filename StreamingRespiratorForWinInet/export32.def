@@ -1,3 +1,0 @@
-LIBRARY hookwininet32
-EXPORTS
-	SetProxyPort   @1
