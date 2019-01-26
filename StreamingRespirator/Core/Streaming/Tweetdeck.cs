@@ -19,15 +19,38 @@ using Timer = System.Threading.Timer;
 
 namespace StreamingRespirator.Core.Streaming
 {
+    internal class Authorization
+    {
+        [JsonProperty("id")]
+        public long Id { get; set; }
+
+        [JsonProperty("screen_name")]
+        public string ScreenName { get; set; }
+
+        [JsonIgnore]
+        public CookieContainer Cookies { get; } = new CookieContainer();
+
+        [JsonProperty("cookies")]
+        [System.ComponentModel.Browsable(false)]
+        public Cookie[] JsonCookies
+        {
+            get => this.Cookies.GetCookies(TweetDeck.CookieUri).Cast<Cookie>().ToArray();
+            set
+            {
+                foreach (var cookie in value)
+                    this.Cookies.Add(TweetDeck.CookieUri, cookie);
+            }
+        }
+    }
+
     internal class TweetDeck : IDisposable
     {
         public static readonly Uri CookieUri = new Uri("https://twitter.com/");
 
-        private static readonly Dictionary<long, CookieContainer> CookieArchive = new Dictionary<long, CookieContainer>();
-        private static readonly Dictionary<long, TweetDeck      > Instances = new Dictionary<long, TweetDeck>();
+        public  static readonly Dictionary<long, Authorization> AuthArchive = new Dictionary<long, Authorization>();
+        private static readonly Dictionary<long, TweetDeck    > Instances   = new Dictionary<long, TweetDeck    >();
 
-        private readonly long               m_userId;
-        private readonly CookieContainer    m_cookie;
+        private readonly Authorization m_auth;
         private readonly HashSet<StreamingConnection> m_connections = new HashSet<StreamingConnection>();
         private readonly UserCache m_userCache = new UserCache();
 
@@ -40,10 +63,9 @@ namespace StreamingRespirator.Core.Streaming
             LoadCookie();
         }
 
-        private TweetDeck(long userId, CookieContainer cookie)
+        private TweetDeck(Authorization auth)
         {
-            this.m_userId = userId;
-            this.m_cookie = cookie;
+            this.m_auth = auth;
 
             this.m_timerHomeTimeLine    = new Timer(this.RefreshTimeline);
             this.m_timerActivity        = new Timer(this.RefresAboutMe);
@@ -77,6 +99,20 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
+        public static void ClearAuth()
+        {
+            lock (AuthArchive)
+            {
+                lock (Instances)
+                {
+                    foreach (var inst in Instances)
+                    {
+                        inst.Value.Dispose();
+                    }
+                }
+            }
+        }
+
 
         public static TweetDeck GetTweetDeck(long userId, Control invoker)
         {
@@ -87,16 +123,16 @@ namespace StreamingRespirator.Core.Streaming
                     td = Instances[userId];
                 else
                 {
-                    CookieContainer cc;
-                    lock (CookieArchive)
+                    Authorization auth;
+                    lock (AuthArchive)
                     {
-                        if (!CookieArchive.ContainsKey(userId))
-                            CookieArchive.Add(userId, new CookieContainer());
+                        if (!AuthArchive.ContainsKey(userId))
+                            AuthArchive.Add(userId, new Authorization() { Id = userId });
 
-                        cc = CookieArchive[userId];
+                        auth = AuthArchive[userId];
                     }
 
-                    td = new TweetDeck(userId, cc);
+                    td = new TweetDeck(auth);
                     Instances.Add(userId, td);
                 }
 
@@ -131,7 +167,7 @@ namespace StreamingRespirator.Core.Streaming
                             })))
                         {
                             Instances.Remove(userId);
-                            CookieArchive.Remove(userId);
+                            AuthArchive.Remove(userId);
 
                             return null;
                         }
@@ -198,7 +234,7 @@ namespace StreamingRespirator.Core.Streaming
         private void DisposeSelf()
         {
             lock (Instances)
-                Instances.Remove(this.m_userId);
+                Instances.Remove(this.m_auth.Id);
 
             this.m_timerHomeTimeLine .Change(Timeout.Infinite, Timeout.Infinite);
             this.m_timerActivity     .Change(Timeout.Infinite, Timeout.Infinite);
@@ -214,7 +250,7 @@ namespace StreamingRespirator.Core.Streaming
             {
                 try
                 {
-                    this.m_xCsrfToken = this.m_cookie.GetCookies(CookieUri).Cast<Cookie>().First(e => e.Name == "ct0").Value;
+                    this.m_xCsrfToken = this.m_auth.Cookies.GetCookies(CookieUri).Cast<Cookie>().First(e => e.Name == "ct0").Value;
                 }
                 catch
                 {
@@ -224,7 +260,7 @@ namespace StreamingRespirator.Core.Streaming
 
             var req = WebRequest.Create(uriStr) as HttpWebRequest;
             req.Method = method;
-            req.CookieContainer = this.m_cookie;
+            req.CookieContainer = this.m_auth.Cookies;
 
             if (method == "POST")
                 req.ContentType = "application/x-www-form-urlencoded";
@@ -239,7 +275,7 @@ namespace StreamingRespirator.Core.Streaming
 
         private void ClearCookie()
         {
-            foreach (var cookie in this.m_cookie.GetCookies(CookieUri).Cast<Cookie>())
+            foreach (var cookie in this.m_auth.Cookies.GetCookies(CookieUri).Cast<Cookie>())
                 cookie.Expires = DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
             this.m_xCsrfToken = null;
         }
@@ -251,7 +287,8 @@ namespace StreamingRespirator.Core.Streaming
             try
             {
                 using (var res = req.GetResponse() as HttpWebResponse)
-                    return ((int)res.StatusCode / 100) == 2;
+                    if (((int)res.StatusCode / 100) != 2)
+                        return false;
             }
             catch (WebException webEx)
             {
@@ -259,6 +296,35 @@ namespace StreamingRespirator.Core.Streaming
 
                 return false;
             }
+
+            req = this.CreateReqeust("GET", "https://api.twitter.com/1.1/account/verify_credentials.json");
+            try
+            {
+                using (var res = req.GetResponse() as HttpWebResponse)
+                {
+                    if (((int)res.StatusCode / 100) != 2)
+                        return false;
+
+                    using (var stream = res.GetResponseStream())
+                    {
+                        var reader = new StreamReader(stream, Encoding.UTF8);
+                        var user = JsonConvert.DeserializeObject<TwitterUser>(reader.ReadToEnd());
+                        this.m_auth.ScreenName = user.ScreenName;
+                    }
+                }
+            }
+            catch (WebException webEx)
+            {
+                webEx.Response?.Dispose();
+
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private long Login(string id, string pw, out string body)
@@ -336,7 +402,7 @@ namespace StreamingRespirator.Core.Streaming
 
             try
             {
-                return long.Parse(Regex.Match(this.m_cookie.GetCookies(CookieUri).Cast<Cookie>().First(e => e.Name == "twid").Value, "\"u=(\\d+)\"").Groups[1].Value);
+                return long.Parse(Regex.Match(this.m_auth.Cookies.GetCookies(CookieUri).Cast<Cookie>().First(e => e.Name == "twid").Value, "\"u=(\\d+)\"").Groups[1].Value);
             }
             catch
             {
@@ -387,13 +453,38 @@ namespace StreamingRespirator.Core.Streaming
                     if (int.TryParse(res.Headers.Get("x-rate-limit-remaining"), out int remaining) &&
                         int.TryParse(res.Headers.Get("x-rate-limit-reset"    ), out int reset    ))
                     {
-                        next = (int)((reset - (DateTime.UtcNow - ForTimeStamp).TotalSeconds) / remaining * 1000);
+                        next = Math.Min(1000, (int)((reset - (DateTime.UtcNow - ForTimeStamp).TotalSeconds) / remaining * 1000));
                     }
                 }
             }
             catch (WebException webEx)
             {
                 webEx.Response?.Dispose();
+            }
+
+            if (items != null && items.Count() > 0)
+            {
+                Task.Factory.StartNew(() =>
+                {
+                    var users = selectUsers(items);
+                    if (users != null)
+                    {
+                        foreach (var user in users)
+                            if (this.m_userCache.IsUpdated(user))
+                                this.UserUpdatedEvent(user);
+                    }
+                });
+            
+                Parallel.ForEach(this.GetConnections(),
+                    connection =>
+                    {
+                        var filtered = filterItem(connection, items);
+                        if (filtered == null)
+                            return;
+
+                        foreach (var item in filtered)
+                            connection.SendToStream(JsonConvert.SerializeObject(item, Jss));
+                    });
             }
 
             try
@@ -403,31 +494,6 @@ namespace StreamingRespirator.Core.Streaming
             catch
             {
             }
-
-            if (items == null || items.Count() == 0)
-                return;
-
-            Task.Factory.StartNew(() =>
-            {
-                var users = selectUsers(items);
-                if (users != null)
-                {
-                    foreach (var user in users)
-                        if (this.m_userCache.IsUpdated(user))
-                            this.UserUpdatedEvent(user);
-                }
-            });
-            
-            Parallel.ForEach(this.GetConnections(),
-                connection =>
-                {
-                    var filtered = filterItem(connection, items);
-                    if (filtered == null)
-                        return;
-
-                    foreach (var item in filtered)
-                        connection.SendToStream(JsonConvert.SerializeObject(item, Jss));
-                });
         }
         
         private long m_cursor_timeline = 0;
@@ -653,28 +719,20 @@ namespace StreamingRespirator.Core.Streaming
 
         private static void LoadCookie()
         {
-            var dic = new Dictionary<long, Cookie[]>();
-
             try
             {
-                using (var file = File.OpenRead(Program.CookiePath))
-                using (var gzip = new GZipStream(file, CompressionMode.Decompress))
-                using (var reader = new StreamReader(gzip, Encoding.ASCII))
+                lock (AuthArchive)
                 {
-                    var serializer = new JsonSerializer();
-                    serializer.Populate(reader, dic);
-                }
-
-                lock (CookieArchive)
-                {
-                    foreach (var st in dic)
+                    using (var file = File.OpenRead(Program.CookiePath))
+#if DEBUG
+                    using (var reader = new StreamReader(file, Encoding.ASCII))
+#else
+                    using (var gzip = new GZipStream(file, CompressionMode.Decompress))
+                    using (var reader = new StreamReader(gzip, Encoding.ASCII))
+#endif
                     {
-                        if (!CookieArchive.ContainsKey(st.Key))
-                            CookieArchive.Add(st.Key, new CookieContainer());
-
-                        var cc = CookieArchive[st.Key];
-                        foreach (var cookie in st.Value)
-                            cc.Add(TweetDeck.CookieUri, cookie);
+                        var serializer = new JsonSerializer();
+                        serializer.Populate(reader, AuthArchive);
                     }
                 }
             }
@@ -687,32 +745,19 @@ namespace StreamingRespirator.Core.Streaming
         {
             try
             {
-                var dic = new Dictionary<long, Cookie[]>();
-
-                lock (CookieArchive)
+                lock (AuthArchive)
                 {
-                    foreach (var st in CookieArchive)
+                    using (var file = File.OpenWrite(Program.CookiePath))
+#if DEBUG
+                    using (var writer = new StreamWriter(file, Encoding.ASCII) { AutoFlush = true })
+#else
+                    using (var gzip = new GZipStream(file, CompressionLevel.Optimal))
+                    using (var writer = new StreamWriter(gzip, Encoding.ASCII) { AutoFlush = true })
+#endif
                     {
-                        try
-                        {
-                            dic.Add(st.Key, st.Value.GetCookies(TweetDeck.CookieUri).Cast<Cookie>().ToArray());
-                        }
-                        catch
-                        {
-                        }
+                        var serializer = new JsonSerializer();
+                        serializer.Serialize(writer, AuthArchive);
                     }
-                }
-
-                using (var file = File.OpenWrite(Program.CookiePath))
-                using (var gzip = new GZipStream(file, CompressionLevel.Optimal))
-                using (var writer = new StreamWriter(gzip, Encoding.ASCII))
-                {
-                    var serializer = new JsonSerializer();
-                    serializer.Serialize(writer, dic);
-
-                    writer.Flush();
-                    gzip  .Flush();
-                    file  .Flush();
                 }
             }
             catch
