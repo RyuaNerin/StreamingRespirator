@@ -25,7 +25,7 @@ namespace StreamingRespirator.Core.Json.Tweetdeck
         public Td_dm_item_entry[] Entries { get; set; }
 
         [JsonProperty("users")]
-        public Dictionary<string, Td_dm_item_user> Users { get; set; }
+        public Dictionary<string, TwitterUser> Users { get; set; }
     }
 
     [DebuggerDisplay("{Message}")]
@@ -62,15 +62,5 @@ namespace StreamingRespirator.Core.Json.Tweetdeck
 
         [JsonProperty("text")]
         public string Text { get; set; }
-    }
-
-    [DebuggerDisplay("{Id} = {ScreenName}")]
-    internal class Td_dm_item_user : JExpendo
-    {
-        [JsonIgnore]
-        public long Id => (long)(this["id"] ?? 0);
-
-        [JsonIgnore]
-        public string ScreenName => this["screen_name"] as string;
     }
 }

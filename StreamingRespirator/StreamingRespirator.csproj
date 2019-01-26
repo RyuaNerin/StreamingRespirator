@@ -103,8 +103,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Json\Streaming\St_Event.cs" />
+    <Compile Include="Core\Json\TwitterUser.cs" />
     <Compile Include="Core\MainContext.cs" />
     <Compile Include="Core\Streaming\Tweetdeck.cs" />
+    <Compile Include="Core\Streaming\UserArchiver.cs" />
     <Compile Include="Core\Windows\LoginWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -116,7 +119,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Core\Json\JExpendo.cs" />
     <Compile Include="Core\Json\Streaming\St_dm.cs" />
     <Compile Include="Core\Json\Tweetdeck\Td_activity.cs" />
     <Compile Include="Core\Json\Tweetdeck\Td_dm.cs" />

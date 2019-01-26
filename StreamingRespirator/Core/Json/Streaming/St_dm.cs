@@ -1,15 +1,16 @@
 using System;
 using Newtonsoft.Json;
+using StreamingRespirator.Core.Json.Tweetdeck;
 
 namespace StreamingRespirator.Core.Json.Streaming
 {
-    public class St_dm
+    internal class St_dm
     {
         [JsonProperty("direct_message")]
         public St_dm_item Item { get; set; } = new St_dm_item();
     }
 
-    public class St_dm_item
+    internal class St_dm_item
     {
         [JsonProperty("id")]
         public long Id { get; set; }
@@ -22,18 +23,16 @@ namespace StreamingRespirator.Core.Json.Streaming
 
         [JsonProperty("created_at")]
         public DateTime CreatedAt { get; set; }
-
-
+        
         [JsonProperty("sender")]
-        public object Sender { get; set; }
+        public TwitterUser Sender { get; set; }
 
         [JsonProperty("sender_id")]
         public long SenderId { get; set; }
 
         [JsonProperty("sender_screen_name")]
         public string SenderScreenName { get; set; }
-
-
+        
         [JsonProperty("recipient")]
         public object Recipient { get; set; }
 

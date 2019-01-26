@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using StreamingRespirator.Core.Json;
 using StreamingRespirator.Core.Json.Streaming;
 using StreamingRespirator.Core.Json.Tweetdeck;
 using StreamingRespirator.Core.Windows;
@@ -29,6 +30,7 @@ namespace StreamingRespirator.Core.Streaming
         private readonly long               m_userId;
         private readonly CookieContainer    m_cookie;
         private readonly HashSet<StreamingConnection> m_connections = new HashSet<StreamingConnection>();
+        private readonly UserCache m_userCache = new UserCache();
 
         private readonly Timer m_timerHomeTimeLine;
         private readonly Timer m_timerActivity;
@@ -45,8 +47,8 @@ namespace StreamingRespirator.Core.Streaming
             this.m_cookie = cookie;
 
             this.m_timerHomeTimeLine    = new Timer(this.RefreshTimeline);
-            this.m_timerActivity        = new Timer(this.RefreshTimeline);
-            this.m_timerDirectMessage   = new Timer(this.RefreshTimeline);
+            this.m_timerActivity        = new Timer(this.RefresAboutMe);
+            this.m_timerDirectMessage   = new Timer(this.RefreshDirectMessage);
         }
 
         public static TweetDeck GetTweetDeck(long userId, Control invoker)
@@ -58,10 +60,17 @@ namespace StreamingRespirator.Core.Streaming
                     td = Instances[userId];
                 else
                 {
-                    td = new TweetDeck(userId, new CookieContainer());
-                    Instances.Add(userId, td);
+                    CookieContainer cc;
+                    lock (CookieArchive)
+                    {
+                        if (!CookieArchive.ContainsKey(userId))
+                            CookieArchive.Add(userId, new CookieContainer());
 
-                    CookieArchive.Add(userId, td.m_cookie);
+                        cc = CookieArchive[userId];
+                    }
+
+                    td = new TweetDeck(userId, cc);
+                    Instances.Add(userId, td);
                 }
 
                 if (!td.CheckAuthorize())
@@ -148,13 +157,31 @@ namespace StreamingRespirator.Core.Streaming
                 this.m_connections.Remove(connection);
                 
                 if (this.m_connections.Count == 0)
-                {
-                    this.StopRefresh();
-
-                    lock (Instances)
-                        Instances.Remove(this.m_userId);
-                }
+                    this.DisposeSelf();
             }
+        }
+
+        private void StartRefresh()
+        {
+            Task.Factory.StartNew(this.RefreshTimeline, null);
+            Task.Factory.StartNew(this.RefresAboutMe, null);
+            Task.Factory.StartNew(this.RefreshDirectMessage, null);
+        }
+
+        private void DisposeSelf()
+        {
+            lock (Instances)
+                Instances.Remove(this.m_userId);
+
+            this.m_timerHomeTimeLine .Change(Timeout.Infinite, Timeout.Infinite);
+            this.m_timerActivity     .Change(Timeout.Infinite, Timeout.Infinite);
+            this.m_timerDirectMessage.Change(Timeout.Infinite, Timeout.Infinite);
+
+            this.m_timerHomeTimeLine .Dispose();
+            this.m_timerActivity     .Dispose();
+            this.m_timerDirectMessage.Dispose();
+
+            this.m_userCache.Dispose();
         }
 
         private string m_xCsrfToken = null;
@@ -294,24 +321,6 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
-        private void StartRefresh()
-        {
-            Task.Factory.StartNew(this.RefreshTimeline      , null);
-            Task.Factory.StartNew(this.RefresAboutMe        , null);
-            Task.Factory.StartNew(this.RefreshDirectMessage , null);
-        }
-
-        private void StopRefresh()
-        {
-            this.m_timerHomeTimeLine    .Change(Timeout.Infinite, Timeout.Infinite);
-            this.m_timerActivity        .Change(Timeout.Infinite, Timeout.Infinite);
-            this.m_timerDirectMessage   .Change(Timeout.Infinite, Timeout.Infinite);
-
-            this.m_timerHomeTimeLine    .Dispose();
-            this.m_timerActivity        .Dispose();
-            this.m_timerDirectMessage   .Dispose();
-        }
-
         private StreamingConnection[] GetConnections()
         {
             lock (this.m_connections)
@@ -331,7 +340,8 @@ namespace StreamingRespirator.Core.Streaming
             string method,
             string url,
             Func<string, IEnumerable<Ttem>> parseHtml,
-            Func<StreamingConnection, IEnumerable<Ttem>, IEnumerable<Ttem>> FilterItem)
+            Func<IEnumerable<Ttem>, IEnumerable<TwitterUser>> selectUsers,
+            Func<StreamingConnection, IEnumerable<Ttem>, IEnumerable<Ttem>> filterItem)
         {
             var next = 0;
 
@@ -363,15 +373,32 @@ namespace StreamingRespirator.Core.Streaming
                 webEx.Response?.Dispose();
             }
 
-            timer.Change(next > 0 ? next : 15 * 1000, Timeout.Infinite);
+            try
+            {
+                timer.Change(next > 0 ? next : 15 * 1000, Timeout.Infinite);
+            }
+            catch
+            {
+            }
 
             if (items == null || items.Count() == 0)
                 return;
+
+            Task.Factory.StartNew(() =>
+            {
+                var users = selectUsers(items);
+                if (users != null)
+                {
+                    foreach (var user in users)
+                        if (this.m_userCache.IsUpdated(user))
+                            this.UserUpdatedEvent(user);
+                }
+            });
             
             Parallel.ForEach(this.GetConnections(),
                 connection =>
                 {
-                    var filtered = FilterItem(connection, items);
+                    var filtered = filterItem(connection, items);
                     if (filtered == null)
                         return;
 
@@ -380,7 +407,6 @@ namespace StreamingRespirator.Core.Streaming
                 });
         }
         
-
         private long m_cursor_timeline = 0;
         private void RefreshTimeline(object state)
         {
@@ -423,7 +449,8 @@ namespace StreamingRespirator.Core.Streaming
 
                     return items;
                 },
-                FilterItem    : (conn, items) =>
+                selectUsers   : items => items.Select(e => e.User),
+                filterItem    : (conn, items) =>
                 {
                     var lid = conn.LastDirectMessage;
                     conn.LastDirectMessage = items.Max(e => e.Id);
@@ -480,7 +507,8 @@ namespace StreamingRespirator.Core.Streaming
                     return items.SelectMany(e => e.Targets)
                                 .OrderBy(e => e.Id);
                 },
-                FilterItem : (conn, items) =>
+                selectUsers: items =>items.Select(e => e.User),
+                filterItem : (conn, items) =>
                 {
                     var lid = conn.LastActivity;
                     conn.LastActivity = items.Max(e => e.Id);
@@ -516,7 +544,7 @@ namespace StreamingRespirator.Core.Streaming
                 url += "&cursor=" + this.m_cursor_DirectMessgae;
 
             this.Request(
-                timer: this.m_timerActivity,
+                timer: this.m_timerDirectMessage,
                 method: "GET",
                 url: url,
                 parseHtml: body =>
@@ -557,7 +585,8 @@ namespace StreamingRespirator.Core.Streaming
                                      return dm;
                                  });
                 },
-                FilterItem: (conn, items) =>
+                selectUsers: items => items.Select(e => e.Item.Sender),
+                filterItem: (conn, items) =>
                 {
                     var lid = conn.LastDirectMessage;
                     conn.LastActivity = items.Max(e => e.Item.Id);
@@ -569,6 +598,20 @@ namespace StreamingRespirator.Core.Streaming
 
                 }
             );
+        }
+
+        private void UserUpdatedEvent(TwitterUser user)
+        {
+            var data = JsonConvert.SerializeObject(
+                new St_Event()
+                {
+                    Target = user,
+                    Source = user,
+                    Event  = "user_update"
+                },
+                Jss);
+            
+            Parallel.ForEach(this.GetConnections(), connection => connection.SendToStream(data));
         }
 
         public static byte[] ToPostData(Dictionary<string, string> dic)
