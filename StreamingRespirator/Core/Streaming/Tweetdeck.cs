@@ -587,6 +587,7 @@ namespace StreamingRespirator.Core.Streaming
 
                     return dmJson.Item
                                  .Entries
+                                 .Where(e => e.Message != null)
                                  .Select(e =>
                                  {
                                      var dm = new St_dm();

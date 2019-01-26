@@ -8,8 +8,14 @@ namespace StreamingRespirator.Core.Json.Tweetdeck
     [DebuggerDisplay("Item")]
     internal class Td_dm
     {
+        [JsonProperty("user_inbox")]
+        public Td_dm_item UserInbox { get; set; }
+
         [JsonProperty("user_events")]
-        public Td_dm_item Item { get; set; }
+        public Td_dm_item UserEvents { get; set; }
+
+        [JsonIgnore]
+        public Td_dm_item Item => this.UserEvents ?? this.UserInbox;
     }
 
     [DebuggerDisplay("Entries : {Entries?.Length}")]
@@ -21,7 +27,7 @@ namespace StreamingRespirator.Core.Json.Tweetdeck
         [JsonProperty("cursor")]
         public string Cursor { get; set; }
 
-        [JsonProperty("Entries")]
+        [JsonProperty("entries")]
         public Td_dm_item_entry[] Entries { get; set; }
 
         [JsonProperty("users")]
