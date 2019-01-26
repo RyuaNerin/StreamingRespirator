@@ -31,7 +31,7 @@ namespace StreamingRespirator.Utilities
                 this.m_stream.Flush();
                 this.m_stream.Close();
             }
-            catch (Exception ex)
+            catch
             {
             }
             finally
