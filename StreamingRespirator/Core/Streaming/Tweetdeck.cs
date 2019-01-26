@@ -471,7 +471,7 @@ namespace StreamingRespirator.Core.Streaming
                     if (curCursor == 0)
                         return null;
 
-                    return items;
+                    return items.ToArray();
                 },
                 selectUsers   : items => items.Select(e => e.User),
                 filterItem    : (conn, items) =>
@@ -529,7 +529,8 @@ namespace StreamingRespirator.Core.Streaming
                         return null;
 
                     return items.SelectMany(e => e.Targets)
-                                .OrderBy(e => e.Id);
+                                .OrderBy(e => e.Id)
+                                .ToArray();
                 },
                 selectUsers: items =>items.Select(e => e.User),
                 filterItem : (conn, items) =>
@@ -608,7 +609,8 @@ namespace StreamingRespirator.Core.Streaming
                                      dm.Item.RecipientScreenName = recipient.ScreenName;
 
                                      return dm;
-                                 });
+                                 })
+                                 .ToArray();
                 },
                 selectUsers: items => items.Select(e => e.Item.Sender),
                 filterItem: (conn, items) =>
