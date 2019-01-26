@@ -48,7 +48,7 @@ namespace StreamingRespirator.Core.Json.Tweetdeck
         public Td_dm_item_entry_data Data { get; set; }
     }
 
-    [DebuggerDisplay("{Sender_ID} > {Recipiend_Id} : {Id} / {Text}")]
+    [DebuggerDisplay("{Sender_Id} > {Recipiend_Id} : {Id} / {Text}")]
     internal class Td_dm_item_entry_data
     {
         [JsonProperty("id")]
