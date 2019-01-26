@@ -463,7 +463,7 @@ namespace StreamingRespirator.Core.Streaming
 
             if (items != null && items.Count() > 0)
             {
-                Task.Factory.StartNew(() =>
+                var task = Task.Factory.StartNew(() =>
                 {
                     var users = selectUsers(items);
                     if (users != null)
@@ -473,7 +473,7 @@ namespace StreamingRespirator.Core.Streaming
                                 this.UserUpdatedEvent(user);
                     }
                 });
-            
+
                 Parallel.ForEach(this.GetConnections(),
                     connection =>
                     {
@@ -484,6 +484,8 @@ namespace StreamingRespirator.Core.Streaming
                         foreach (var item in filtered)
                             connection.SendToStream(JsonConvert.SerializeObject(item, Jss));
                     });
+
+                task.Wait();
             }
 
             try
