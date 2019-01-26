@@ -36,7 +36,7 @@ namespace StreamingRespirator.Core.Streaming
 
         public RespiratorServer()
         {
-            this.m_proxyEndPoint = new ExplicitProxyEndPoint(IPAddress.Loopback, ProxyPort, true);
+            this.m_proxyEndPoint = new ExplicitProxyEndPoint(IPAddress.Loopback, ProxyPort);
             this.m_proxyEndPoint.BeforeTunnelConnectRequest += this.EntPoint_BeforeTunnelConnectRequest;
 
             this.m_proxy = new ProxyServer();
