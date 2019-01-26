@@ -452,8 +452,8 @@ namespace StreamingRespirator.Core.Streaming
                 selectUsers   : items => items.Select(e => e.User),
                 filterItem    : (conn, items) =>
                 {
-                    var lid = conn.LastDirectMessage;
-                    conn.LastDirectMessage = items.Max(e => e.Id);
+                    var lid = conn.LastStatus;
+                    conn.LastStatus = items.Max(e => e.Id);
 
                     if (lid == 0)
                         return null;
@@ -589,7 +589,7 @@ namespace StreamingRespirator.Core.Streaming
                 filterItem: (conn, items) =>
                 {
                     var lid = conn.LastDirectMessage;
-                    conn.LastActivity = items.Max(e => e.Item.Id);
+                    conn.LastDirectMessage = items.Max(e => e.Item.Id);
 
                     if (lid == 0)
                         return null;
