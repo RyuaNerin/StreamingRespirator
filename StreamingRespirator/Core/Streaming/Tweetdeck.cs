@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -32,13 +31,13 @@ namespace StreamingRespirator.Core.Streaming
 
         [JsonProperty("cookies")]
         [System.ComponentModel.Browsable(false)]
-        public Cookie[] JsonCookies
+        public IDictionary<string, string> JsonCookies
         {
-            get => this.Cookies.GetCookies(TweetDeck.CookieUri).Cast<Cookie>().ToArray();
+            get => this.Cookies.GetCookies(TweetDeck.CookieUri).Cast<Cookie>().ToDictionary(e => e.Name, e => e.Value);
             set
             {
-                foreach (var cookie in value)
-                    this.Cookies.Add(TweetDeck.CookieUri, cookie);
+                foreach (var kv in value)
+                    this.Cookies.Add(TweetDeck.CookieUri, new Cookie(kv.Key, kv.Value));
             }
         }
     }
@@ -724,17 +723,14 @@ namespace StreamingRespirator.Core.Streaming
                 lock (AuthArchive)
                 {
                     using (var file = File.OpenRead(Program.CookiePath))
-#if DEBUG
                     using (var reader = new StreamReader(file, Encoding.ASCII))
-#else
-                    using (var gzip = new GZipStream(file, CompressionMode.Decompress))
-                    using (var reader = new StreamReader(gzip, Encoding.ASCII))
-#endif
                     {
                         var serializer = new JsonSerializer();
                         serializer.Populate(reader, AuthArchive);
                     }
                 }
+
+                File.Encrypt(Program.CookiePath);
             }
             catch
             {
@@ -748,12 +744,7 @@ namespace StreamingRespirator.Core.Streaming
                 lock (AuthArchive)
                 {
                     using (var file = File.OpenWrite(Program.CookiePath))
-#if DEBUG
                     using (var writer = new StreamWriter(file, Encoding.ASCII) { AutoFlush = true })
-#else
-                    using (var gzip = new GZipStream(file, CompressionLevel.Optimal))
-                    using (var writer = new StreamWriter(gzip, Encoding.ASCII) { AutoFlush = true })
-#endif
                     {
                         var serializer = new JsonSerializer();
                         serializer.Serialize(writer, AuthArchive);
