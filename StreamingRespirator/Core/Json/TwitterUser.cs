@@ -22,5 +22,8 @@ namespace StreamingRespirator.Core.Json.Tweetdeck
 
         [JsonExtensionData]
         public IDictionary<string, JToken> AdditionalData { get; set; }
+
+        public override string ToString()
+            => $"{this.Id} | {this.ScreenName}";
     }
 }

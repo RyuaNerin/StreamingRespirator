@@ -23,7 +23,7 @@ namespace StreamingRespirator.Core.Json.Tweetdeck
         public Td_activity_item_targets[] Targets { get; set; }
     }
 
-    [DebuggerDisplay("{Id} / {Text}")]
+    [DebuggerDisplay("{Id} | @{User.ScreenName}: {Text}")]
     internal class Td_activity_item_targets
     {
         [JsonProperty("id")]
@@ -37,5 +37,8 @@ namespace StreamingRespirator.Core.Json.Tweetdeck
 
         [JsonExtensionData]
         public IDictionary<string, JToken> AdditionalData { get; set; }
+
+        public override string ToString()
+            => $"{this.Id} | @{this.User.ScreenName}: {this.Text}";
     }
 }

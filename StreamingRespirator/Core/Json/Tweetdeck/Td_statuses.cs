@@ -10,7 +10,7 @@ namespace StreamingRespirator.Core.Json.Tweetdeck
     {
     }
 
-    [DebuggerDisplay("{Id} / {Text}")]
+    [DebuggerDisplay("{Id} | @{User.ScreenName}: {Text}")]
     internal class Td_statuses_status
     {
         [JsonProperty("id")]
@@ -24,5 +24,8 @@ namespace StreamingRespirator.Core.Json.Tweetdeck
 
         [JsonExtensionData]
         public IDictionary<string, JToken> AdditionalData { get; set; }
+
+        public override string ToString()
+            => $"{this.Id} | @{this.User.ScreenName}: {this.Text}";
     }
 }

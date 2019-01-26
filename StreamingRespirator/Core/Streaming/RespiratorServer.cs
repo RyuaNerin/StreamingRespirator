@@ -142,8 +142,6 @@ namespace StreamingRespirator.Core.Streaming
         {
             var uri = e.HttpClient.Request.RequestUri;
 
-            Debug.WriteLine($"reqeust : {uri.AbsoluteUri}");
-
             if (uri.Host == "userstream.twitter.com" &&
                 uri.AbsolutePath == "/1.1/user.json")
             {
