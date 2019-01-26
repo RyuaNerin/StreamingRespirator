@@ -46,16 +46,17 @@ namespace StreamingRespirator.Core.Streaming
     {
         public static readonly Uri CookieUri = new Uri("https://twitter.com/");
 
-        public  static readonly Dictionary<long, Authorization> AuthArchive = new Dictionary<long, Authorization>();
+        private static readonly Dictionary<long, Authorization> AuthArchive = new Dictionary<long, Authorization>();
         private static readonly Dictionary<long, TweetDeck    > Instances   = new Dictionary<long, TweetDeck    >();
 
-        private readonly Authorization m_auth;
         private readonly HashSet<StreamingConnection> m_connections = new HashSet<StreamingConnection>();
         private readonly UserCache m_userCache = new UserCache();
 
         private readonly Timer m_timerHomeTimeLine;
         private readonly Timer m_timerActivity;
         private readonly Timer m_timerDirectMessage;
+
+        public Authorization Auth { get; }
 
         static TweetDeck()
         {
@@ -64,7 +65,7 @@ namespace StreamingRespirator.Core.Streaming
 
         private TweetDeck(Authorization auth)
         {
-            this.m_auth = auth;
+            this.Auth = auth;
 
             this.m_timerHomeTimeLine    = new Timer(this.RefreshTimeline);
             this.m_timerActivity        = new Timer(this.RefresAboutMe);
@@ -233,7 +234,7 @@ namespace StreamingRespirator.Core.Streaming
         private void DisposeSelf()
         {
             lock (Instances)
-                Instances.Remove(this.m_auth.Id);
+                Instances.Remove(this.Auth.Id);
 
             this.m_timerHomeTimeLine .Change(Timeout.Infinite, Timeout.Infinite);
             this.m_timerActivity     .Change(Timeout.Infinite, Timeout.Infinite);
@@ -249,7 +250,7 @@ namespace StreamingRespirator.Core.Streaming
             {
                 try
                 {
-                    this.m_xCsrfToken = this.m_auth.Cookies.GetCookies(CookieUri).Cast<Cookie>().First(e => e.Name == "ct0").Value;
+                    this.m_xCsrfToken = this.Auth.Cookies.GetCookies(CookieUri).Cast<Cookie>().First(e => e.Name == "ct0").Value;
                 }
                 catch
                 {
@@ -259,7 +260,7 @@ namespace StreamingRespirator.Core.Streaming
 
             var req = WebRequest.Create(uriStr) as HttpWebRequest;
             req.Method = method;
-            req.CookieContainer = this.m_auth.Cookies;
+            req.CookieContainer = this.Auth.Cookies;
 
             if (method == "POST")
                 req.ContentType = "application/x-www-form-urlencoded";
@@ -274,7 +275,7 @@ namespace StreamingRespirator.Core.Streaming
 
         private void ClearCookie()
         {
-            foreach (var cookie in this.m_auth.Cookies.GetCookies(CookieUri).Cast<Cookie>())
+            foreach (var cookie in this.Auth.Cookies.GetCookies(CookieUri).Cast<Cookie>())
                 cookie.Expires = DateTime.UtcNow.Subtract(TimeSpan.FromDays(1));
             this.m_xCsrfToken = null;
         }
@@ -308,7 +309,7 @@ namespace StreamingRespirator.Core.Streaming
                     {
                         var reader = new StreamReader(stream, Encoding.UTF8);
                         var user = JsonConvert.DeserializeObject<TwitterUser>(reader.ReadToEnd());
-                        this.m_auth.ScreenName = user.ScreenName;
+                        this.Auth.ScreenName = user.ScreenName;
                     }
                 }
             }
@@ -401,7 +402,7 @@ namespace StreamingRespirator.Core.Streaming
 
             try
             {
-                return long.Parse(Regex.Match(this.m_auth.Cookies.GetCookies(CookieUri).Cast<Cookie>().First(e => e.Name == "twid").Value, "\"u=(\\d+)\"").Groups[1].Value);
+                return long.Parse(Regex.Match(this.Auth.Cookies.GetCookies(CookieUri).Cast<Cookie>().First(e => e.Name == "twid").Value, "\"u=(\\d+)\"").Groups[1].Value);
             }
             catch
             {

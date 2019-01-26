@@ -6,6 +6,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using StreamingRespirator.Utilities;
 using Titanium.Web.Proxy;
 using Titanium.Web.Proxy.EventArguments;
@@ -27,15 +28,22 @@ namespace StreamingRespirator.Core.Streaming
         private readonly ProxyServer m_proxy;
         private readonly ExplicitProxyEndPoint m_proxyEndPoint;
 
+        private readonly Control m_invoker;
+
         private readonly HttpListener m_httpStreamingListener;
         private string m_streamingUrl;
 
         private readonly HashSet<StreamingConnection> m_connections = new HashSet<StreamingConnection>();
 
+        public event Action<long, string> NewConnection;
+        public event Action<long>         LostConnection;
+
         public bool IsRunning { get; private set; }
 
-        public RespiratorServer()
+        public RespiratorServer(Control invoker)
         {
+            this.m_invoker = invoker;
+
             this.m_proxyEndPoint = new ExplicitProxyEndPoint(IPAddress.Loopback, ProxyPort);
             this.m_proxyEndPoint.BeforeTunnelConnectRequest += this.EntPoint_BeforeTunnelConnectRequest;
 
@@ -209,7 +217,7 @@ namespace StreamingRespirator.Core.Streaming
 
                     //////////////////////////////////////////////////
 
-                    var td = TweetDeck.GetTweetDeck(ownerId, MainContext.Invoker);
+                    var td = TweetDeck.GetTweetDeck(ownerId, this.m_invoker);
 
                     if (td == null)
                     {
@@ -219,10 +227,12 @@ namespace StreamingRespirator.Core.Streaming
                     else
                     {
                         td.AddConnection(sc);
+                        this.NewConnection?.Invoke(ownerId, td.Auth.ScreenName);
 
                         sc.Stream.WaitHandle.WaitOne();
 
                         td.RemoveStream(sc);
+                        this.LostConnection?.Invoke(ownerId);
                     }
 
                     lock (this.m_connections)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Windows.Forms;
 using StreamingRespirator.Core.Streaming;
@@ -7,23 +8,28 @@ namespace StreamingRespirator.Core
 {
     internal class MainContext : ApplicationContext
     {
-        private readonly RespiratorServer m_server = new RespiratorServer();
-
-        public static Control Invoker { get; private set; }
         private readonly Control m_control;
+
+        private readonly RespiratorServer m_server;
 
         private NotifyIcon         m_notifyIcon;
         private ContextMenuStrip   m_contextMenuStrip;
         private ToolStripMenuItem  m_stripAbout;
         private ToolStripSeparator m_stripSep0;
+        private ToolStripLabel     m_stripConnected;
+        private ToolStripSeparator m_stripSep1;
         private ToolStripMenuItem  m_stripExit;
+
+        private readonly Dictionary<long, ToolStripLabel> m_connected = new Dictionary<long, ToolStripLabel>();
 
         public MainContext()
         {
             this.m_control = new Control();
             this.m_control.CreateControl();
 
-            Invoker = this.m_control;
+            this.m_server = new RespiratorServer(this.m_control);
+            this.m_server.NewConnection  += this.Server_NewConnection;
+            this.m_server.LostConnection += this.Server_LostConnection;
 
             this.InitializeComponent();
         }
@@ -35,8 +41,13 @@ namespace StreamingRespirator.Core
 
             this.m_stripSep0 = new ToolStripSeparator();
 
+            this.m_stripConnected = new ToolStripLabel("연결된 스트리밍");
+
+            this.m_stripSep1 = new ToolStripSeparator();
+
             this.m_stripExit = new ToolStripMenuItem("종료");
             this.m_stripExit.Click += this.StripExit_Click;
+
 
             this.m_contextMenuStrip = new ContextMenuStrip
             {
@@ -45,6 +56,8 @@ namespace StreamingRespirator.Core
                 {
                     this.m_stripAbout,
                     this.m_stripSep0,
+                    this.m_stripConnected,
+                    this.m_stripSep1,
                     this.m_stripExit,
                 },
             };
@@ -59,6 +72,47 @@ namespace StreamingRespirator.Core
             if (!this.StartProxy())
             {
                 Application.Exit();
+            }
+        }
+
+        private void Server_NewConnection(long id, string screenName)
+        {
+            if (this.m_control.InvokeRequired)
+            {
+                this.m_control.Invoke(new Action<long, string>(this.Server_NewConnection), id, screenName);
+            }
+            else
+            {
+                lock (this.m_connected)
+                {
+                    if (this.m_connected.ContainsKey(id))
+                        return;
+
+                    var item = new ToolStripLabel(screenName);
+                    this.m_connected.Add(id, item);
+
+                    this.m_contextMenuStrip.Items.Insert(this.m_contextMenuStrip.Items.Count - 2, item);
+                }
+            }
+        }
+
+        private void Server_LostConnection(long id)
+        {
+            if (this.m_control.InvokeRequired)
+            {
+                this.m_control.Invoke(new Action<long>(this.Server_LostConnection), id);
+            }
+            else
+            {
+                lock (this.m_connected)
+                {
+                    if (!this.m_connected.ContainsKey(id))
+                        return;
+
+                    var item = this.m_connected[id];
+                    this.m_contextMenuStrip.Items.Remove(item);
+                    this.m_connected.Remove(id);
+                }
             }
         }
 
