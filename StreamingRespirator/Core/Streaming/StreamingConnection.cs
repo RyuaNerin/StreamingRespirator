@@ -9,6 +9,14 @@ namespace StreamingRespirator.Core.Streaming
     {
         private readonly Timer m_keepAlive;
 
+        public WaitableStream Stream      { get; }
+        public string         Description { get; }
+        public long           OwnerId     { get; }
+
+        public long LastStatus        { get; set; }
+        public long LastActivity      { get; set; }
+        public long LastDirectMessage { get; set; }
+
         public StreamingConnection(WaitableStream item, long ownerId, string description)
         {
             this.Stream      = item;
@@ -38,16 +46,9 @@ namespace StreamingRespirator.Core.Streaming
             if (disposing)
             {
                 this.m_keepAlive.Dispose();
+                this.Stream     .Dispose();
             }
         }
-
-        public WaitableStream Stream      { get; }
-        public string         Description { get; }
-        public long           OwnerId     { get; }
-
-        public long LastStatus        { get; set; }
-        public long LastActivity      { get; set; }
-        public long LastDirectMessage { get; set; }
         
         private static readonly byte[] KeepAlivePacket = Encoding.UTF8.GetBytes("\r\n");
         private void SendKeepAlive(object sender)

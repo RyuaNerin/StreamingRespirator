@@ -18,10 +18,13 @@ namespace StreamingRespirator.Utilities
 
         protected override void Dispose(bool disposing)
         {
-            this.m_stream.Dispose();
+            if (disposing)
+            {
+                this.m_stream.Dispose();
 
-            this.m_event.Set();
-            this.m_event.Dispose();
+                this.m_event.Set();
+                this.m_event.Dispose();
+            }
         }
 
         public override void Close()

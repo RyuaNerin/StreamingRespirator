@@ -20,7 +20,7 @@ using Timer = System.Threading.Timer;
 
 namespace StreamingRespirator.Core.Streaming
 {
-    internal class TweetDeck
+    internal class TweetDeck : IDisposable
     {
         public static readonly Uri CookieUri = new Uri("https://twitter.com/");
 
@@ -50,6 +50,34 @@ namespace StreamingRespirator.Core.Streaming
             this.m_timerActivity        = new Timer(this.RefresAboutMe);
             this.m_timerDirectMessage   = new Timer(this.RefreshDirectMessage);
         }
+
+        ~TweetDeck()
+        {
+            this.Dispose(false);
+        }
+
+        public void Dispose()
+        {
+            this.Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        private bool m_disposed;
+        private void Dispose(bool disposing)
+        {
+            if (this.m_disposed) return;
+            this.m_disposed = true;
+
+            if (disposing)
+            {
+                this.m_timerHomeTimeLine .Dispose();
+                this.m_timerActivity     .Dispose();
+                this.m_timerDirectMessage.Dispose();
+
+                this.m_userCache.Dispose();
+            }
+        }
+
 
         public static TweetDeck GetTweetDeck(long userId, Control invoker)
         {
@@ -177,11 +205,7 @@ namespace StreamingRespirator.Core.Streaming
             this.m_timerActivity     .Change(Timeout.Infinite, Timeout.Infinite);
             this.m_timerDirectMessage.Change(Timeout.Infinite, Timeout.Infinite);
 
-            this.m_timerHomeTimeLine .Dispose();
-            this.m_timerActivity     .Dispose();
-            this.m_timerDirectMessage.Dispose();
-
-            this.m_userCache.Dispose();
+            this.Dispose();
         }
 
         private string m_xCsrfToken = null;

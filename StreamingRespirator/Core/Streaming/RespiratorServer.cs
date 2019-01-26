@@ -195,37 +195,36 @@ namespace StreamingRespirator.Core.Streaming
 
             if (ownerId != 0)
             {
-                var sc = new StreamingConnection(new WaitableStream(cnt.Response.OutputStream), ownerId, desc);
-
-                lock (this.m_connections)
-                    this.m_connections.Add(sc);
-
-                cnt.Response.AppendHeader("Content-type", "application/json; charset=utf-8");
-                cnt.Response.AppendHeader("Connection", "close");
-                cnt.Response.SendChunked = true;
-
-                //////////////////////////////////////////////////
-
-                var td = TweetDeck.GetTweetDeck(ownerId, MainContext.Invoker);
-
-                if (td == null)
+                using (var sc = new StreamingConnection(new WaitableStream(cnt.Response.OutputStream), ownerId, desc))
                 {
-                    cnt.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-                    sc.Stream.Close();
+                    lock (this.m_connections)
+                        this.m_connections.Add(sc);
+
+                    cnt.Response.AppendHeader("Content-type", "application/json; charset=utf-8");
+                    cnt.Response.AppendHeader("Connection", "close");
+                    cnt.Response.SendChunked = true;
+
+                    //////////////////////////////////////////////////
+
+                    var td = TweetDeck.GetTweetDeck(ownerId, MainContext.Invoker);
+
+                    if (td == null)
+                    {
+                        cnt.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                        sc.Stream.Close();
+                    }
+                    else
+                    {
+                        td.AddConnection(sc);
+
+                        sc.Stream.WaitHandle.WaitOne();
+
+                        td.RemoveStream(sc);
+                    }
+
+                    lock (this.m_connections)
+                        this.m_connections.Remove(sc);
                 }
-                else
-                {
-                    td.AddConnection(sc);
-
-                    sc.Stream.WaitHandle.WaitOne();
-
-                    td.RemoveStream(sc);
-                }
-
-                lock (this.m_connections)
-                    this.m_connections.Remove(sc);
-
-                sc.Stream.Dispose();
 
                 //////////////////////////////////////////////////
             }
