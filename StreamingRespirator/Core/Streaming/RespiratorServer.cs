@@ -108,9 +108,15 @@ namespace StreamingRespirator.Core.Streaming
 
         private Task EntPoint_BeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
         {
-            e.DecryptSsl = e.WebSession.Request.RequestUri.Host == "userstream.twitter.com";
-
-            return Task.FromResult(true);
+            if (e.HttpClient.Request.RequestUri.Host == "userstream.twitter.com")
+            {
+                e.DecryptSsl = true;
+                return Task.FromResult(true);
+            }
+            else
+            {
+                return Task.FromResult(false);
+            }
         }
 
         private static long ParseOwnerId(string authorizationHeader)
@@ -123,7 +129,7 @@ namespace StreamingRespirator.Core.Streaming
 
         private Task Proxy_BeforeRequest(object sender, SessionEventArgs e)
         {
-            var uri = e.WebSession.Request.RequestUri;
+            var uri = e.HttpClient.Request.RequestUri;
 
             Debug.WriteLine($"reqeust : {uri.AbsoluteUri}");
 
@@ -132,12 +138,12 @@ namespace StreamingRespirator.Core.Streaming
             {
                 var res = new Response(new byte[0])
                 {
-                    HttpVersion = e.WebSession.Request.HttpVersion,
+                    HttpVersion = e.HttpClient.Request.HttpVersion,
                     StatusCode = (int)HttpStatusCode.Unauthorized,
                     StatusDescription = "Unauthorized",
                 };
 
-                if (e.WebSession.Request.Headers.Headers.TryGetValue("Authorization", out var authHeader))
+                if (e.HttpClient.Request.Headers.Headers.TryGetValue("Authorization", out var authHeader))
                 {
                     var ownerId = ParseOwnerId(authHeader.Value);
                     if (ownerId != 0)

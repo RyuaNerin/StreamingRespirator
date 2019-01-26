@@ -68,6 +68,9 @@
     <Reference Include="BouncyCastle.Crypto, Version=1.8.4.0, Culture=neutral, PublicKeyToken=0e99375e54769942, processorArchitecture=MSIL">
       <HintPath>..\packages\Portable.BouncyCastle.1.8.4\lib\net40\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
+    <Reference Include="BrotliSharpLib, Version=0.3.2.0, Culture=neutral, PublicKeyToken=3f4e2a1cd615fcb7, processorArchitecture=MSIL">
+      <HintPath>..\packages\BrotliSharpLib.0.3.2\lib\net462\BrotliSharpLib.dll</HintPath>
+    </Reference>
     <Reference Include="Costura, Version=3.3.1.0, Culture=neutral, PublicKeyToken=9919ef960d84173d, processorArchitecture=MSIL">
       <HintPath>..\packages\Costura.Fody.3.3.1\lib\net40\Costura.dll</HintPath>
     </Reference>
@@ -95,8 +98,8 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="Titanium.Web.Proxy, Version=3.0.684.0, Culture=neutral, PublicKeyToken=8e41e1f1c790d7cf, processorArchitecture=MSIL">
-      <HintPath>..\packages\Titanium.Web.Proxy.3.0.684\lib\net45\Titanium.Web.Proxy.dll</HintPath>
+    <Reference Include="Titanium.Web.Proxy, Version=3.0.878.0, Culture=neutral, PublicKeyToken=8e41e1f1c790d7cf, processorArchitecture=MSIL">
+      <HintPath>..\packages\Titanium.Web.Proxy.3.0.878\lib\net45\Titanium.Web.Proxy.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
