@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
-using StreamingRespirator.Core.Json;
 using StreamingRespirator.Core.Json.Streaming;
 using StreamingRespirator.Core.Json.Tweetdeck;
 using StreamingRespirator.Core.Windows;
