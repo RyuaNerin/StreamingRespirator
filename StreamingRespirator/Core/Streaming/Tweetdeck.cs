@@ -226,9 +226,9 @@ namespace StreamingRespirator.Core.Streaming
 
         private void StartRefresh()
         {
-            Task.Factory.StartNew(this.RefreshTimeline, null);
-            Task.Factory.StartNew(this.RefresAboutMe, null);
-            Task.Factory.StartNew(this.RefreshDirectMessage, null);
+            this.m_timerHomeTimeLine .Change(0, Timeout.Infinite);
+            this.m_timerActivity     .Change(0, Timeout.Infinite);
+            this.m_timerDirectMessage.Change(0, Timeout.Infinite);
         }
 
         private void DisposeSelf()
@@ -464,6 +464,11 @@ namespace StreamingRespirator.Core.Streaming
 
             if (items != null && items.Count() > 0)
             {
+#if DEBUG
+                foreach (var item in items)
+                    System.Diagnostics.Debug.WriteLine(item);
+#endif
+
                 var task = Task.Factory.StartNew(() =>
                 {
                     var users = selectUsers(items);
