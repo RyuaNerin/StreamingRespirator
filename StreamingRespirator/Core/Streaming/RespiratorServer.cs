@@ -17,8 +17,6 @@ namespace StreamingRespirator.Core.Streaming
 {
     internal class RespiratorServer
     {
-        private const int KeepAlivePeriod = 5 * 1000;
-        
         public const int ProxyPort = 8811;
 
         private const int StreamingPortMin     =  1000;
@@ -209,10 +207,6 @@ namespace StreamingRespirator.Core.Streaming
                     lock (this.m_connections)
                         this.m_connections.Add(sc);
 
-                    cnt.Response.AppendHeader("Content-type", "application/json; charset=utf-8");
-                    cnt.Response.AppendHeader("Connection", "close");
-                    cnt.Response.SendChunked = true;
-
                     //////////////////////////////////////////////////
 
                     var td = TweetDeck.GetTweetDeck(ownerId, this.m_invoker);
@@ -220,10 +214,17 @@ namespace StreamingRespirator.Core.Streaming
                     if (td == null)
                     {
                         cnt.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+
                         sc.Stream.Close();
                     }
                     else
                     {
+                        cnt.Response.AppendHeader("Content-type", "application/json; charset=utf-8");
+                        cnt.Response.AppendHeader("Connection", "close");
+                        cnt.Response.SendChunked = true;
+
+                        sc.SendKeepAlive();
+
                         td.AddConnection(sc);
                         this.NewConnection?.Invoke(ownerId, td.Auth.ScreenName);
 

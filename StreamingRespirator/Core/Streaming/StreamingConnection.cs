@@ -7,6 +7,8 @@ namespace StreamingRespirator.Core.Streaming
 {
     internal class StreamingConnection : IDisposable
     {
+        private const int KeepAlivePeriod = 5 * 1000;
+
         private readonly Timer m_keepAlive;
 
         public WaitableStream Stream      { get; }
@@ -23,7 +25,7 @@ namespace StreamingRespirator.Core.Streaming
             this.OwnerId     = ownerId;
             this.Description = description;
 
-            this.m_keepAlive = new Timer(this.SendKeepAlive, null, TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+            this.m_keepAlive = new Timer(this.SendKeepAlive, null, KeepAlivePeriod, KeepAlivePeriod);
         }
 
         ~StreamingConnection()
@@ -56,11 +58,16 @@ namespace StreamingRespirator.Core.Streaming
             this.SendToStream(KeepAlivePacket);
         }
 
+        public void SendKeepAlive()
+        {
+            this.SendToStream(KeepAlivePacket);
+        }
+
         public void SendToStream(string data)
         {
             this.SendToStream(Encoding.UTF8.GetBytes(data + "\r\n"));
 
-            this.m_keepAlive.Change(TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
+            this.m_keepAlive.Change(KeepAlivePeriod, KeepAlivePeriod);
         }
 
         private void SendToStream(byte[] data)
