@@ -104,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Json\Streaming\St_Event.cs" />
+    <Compile Include="Core\Json\Streaming\St_Friends.cs" />
     <Compile Include="Core\Json\TwitterUser.cs" />
     <Compile Include="Core\MainContext.cs" />
     <Compile Include="Core\Streaming\Tweetdeck.cs" />

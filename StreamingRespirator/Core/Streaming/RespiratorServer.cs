@@ -7,6 +7,8 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Newtonsoft.Json;
+using StreamingRespirator.Core.Json.Streaming;
 using StreamingRespirator.Utilities;
 using Titanium.Web.Proxy;
 using Titanium.Web.Proxy.EventArguments;
@@ -221,7 +223,7 @@ namespace StreamingRespirator.Core.Streaming
                         lock (this.m_connections)
                             this.m_connections.Add(sc);
                         
-                        sc.SendKeepAlive();
+                        sc.SendToStream(JsonConvert.SerializeObject(new St_Friends() { Friends = td.GetFriends() }));
 
                         td.AddConnection(sc);
                         this.NewConnection?.Invoke(ownerId, td.Auth.ScreenName);

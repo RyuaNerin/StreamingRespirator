@@ -398,6 +398,38 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
+        private class FriendsCursor
+        {
+            [JsonProperty("ids")]
+            public long[] Ids { get; set; }
+        }
+        public long[] GetFriends()
+        {
+            /*
+            count   | 5000
+            user_id | ///
+            */
+            var req = this.CreateReqeust("GET", $"https://api.twitter.com/1.1/friends/ids.json?count=5000user_id={this.Auth.Id}");
+
+            try
+            {
+                using (var res = req.GetResponse() as HttpWebResponse)
+                {
+                    using (var stream = res.GetResponseStream())
+                    using (var reader = new StreamReader(stream))
+                    {
+                        return JsonConvert.DeserializeObject<FriendsCursor>(reader.ReadToEnd()).Ids;
+                    }
+                }
+            }
+            catch (WebException webEx)
+            {
+                webEx.Response?.Dispose();
+            }
+
+            return null;
+        }
+
         private StreamingConnection[] GetConnections()
         {
             lock (this.m_connections)
