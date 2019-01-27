@@ -262,6 +262,8 @@ namespace StreamingRespirator.Core.Streaming
             req.Method = method;
             req.CookieContainer = this.Auth.Cookies;
 
+            req.UserAgent = "Streaming Respirator";
+
             if (method == "POST")
                 req.ContentType = "application/x-www-form-urlencoded";
 
