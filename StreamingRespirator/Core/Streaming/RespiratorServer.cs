@@ -169,6 +169,7 @@ namespace StreamingRespirator.Core.Streaming
             }
             catch
             {
+                return;
             }
 
             this.m_httpStreamingListener.BeginGetContext(this.Listener_GetHttpContext, null);
