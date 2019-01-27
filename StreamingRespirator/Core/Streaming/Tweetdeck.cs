@@ -5,16 +5,13 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
-using StreamingRespirator.Core.Json.Streaming;
-using StreamingRespirator.Core.Json.Tweetdeck;
+using StreamingRespirator.Core.Json;
+using StreamingRespirator.Core.Streaming.TimeLines;
 using StreamingRespirator.Core.Windows;
 
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
-using Timer = System.Threading.Timer;
 
 namespace StreamingRespirator.Core.Streaming
 {
@@ -50,13 +47,14 @@ namespace StreamingRespirator.Core.Streaming
         private static readonly Dictionary<long, TweetDeck    > Instances   = new Dictionary<long, TweetDeck    >();
 
         private readonly HashSet<StreamingConnection> m_connections = new HashSet<StreamingConnection>();
-        private readonly UserCache m_userCache = new UserCache();
 
-        private readonly Timer m_timerHomeTimeLine;
-        private readonly Timer m_timerActivity;
-        private readonly Timer m_timerDirectMessage;
+        private readonly ITimeLine m_tlHome;
+        private readonly ITimeLine m_tlAboutMe;
+        private readonly ITimeLine m_tlDm;
 
-        public Authorization Auth { get; }
+        public Authorization Auth      { get; }
+        public UserCache     UserCache { get; } = new UserCache();
+
 
         static TweetDeck()
         {
@@ -67,9 +65,9 @@ namespace StreamingRespirator.Core.Streaming
         {
             this.Auth = auth;
 
-            this.m_timerHomeTimeLine    = new Timer(this.RefreshTimeline);
-            this.m_timerActivity        = new Timer(this.RefresAboutMe);
-            this.m_timerDirectMessage   = new Timer(this.RefreshDirectMessage);
+            this.m_tlHome    = new HomeTimeLine   (this);
+            this.m_tlAboutMe = new ActivityAboutMe(this);
+            this.m_tlDm      = new DirectMessage  (this);
         }
 
         ~TweetDeck()
@@ -91,11 +89,11 @@ namespace StreamingRespirator.Core.Streaming
 
             if (disposing)
             {
-                this.m_timerHomeTimeLine .Dispose();
-                this.m_timerActivity     .Dispose();
-                this.m_timerDirectMessage.Dispose();
+                this.m_tlHome   .Dispose();
+                this.m_tlAboutMe.Dispose();
+                this.m_tlDm     .Dispose();
 
-                this.m_userCache.Dispose();
+                this.UserCache.Dispose();
             }
         }
 
@@ -226,9 +224,9 @@ namespace StreamingRespirator.Core.Streaming
 
         private void StartRefresh()
         {
-            this.m_timerHomeTimeLine .Change(0, Timeout.Infinite);
-            this.m_timerActivity     .Change(0, Timeout.Infinite);
-            this.m_timerDirectMessage.Change(0, Timeout.Infinite);
+            this.m_tlHome   .Start();
+            this.m_tlAboutMe.Start();
+            this.m_tlDm     .Start();
         }
 
         private void DisposeSelf()
@@ -236,15 +234,15 @@ namespace StreamingRespirator.Core.Streaming
             lock (Instances)
                 Instances.Remove(this.Auth.Id);
 
-            this.m_timerHomeTimeLine .Change(Timeout.Infinite, Timeout.Infinite);
-            this.m_timerActivity     .Change(Timeout.Infinite, Timeout.Infinite);
-            this.m_timerDirectMessage.Change(Timeout.Infinite, Timeout.Infinite);
+            this.m_tlHome   .Stop();
+            this.m_tlAboutMe.Stop();
+            this.m_tlDm     .Stop();
 
             this.Dispose();
         }
 
         private string m_xCsrfToken = null;
-        private HttpWebRequest CreateReqeust(string method, string uriStr)
+        public HttpWebRequest CreateReqeust(string method, string uriStr)
         {
             if (this.m_xCsrfToken == null)
             {
@@ -430,296 +428,12 @@ namespace StreamingRespirator.Core.Streaming
             return null;
         }
 
-        private StreamingConnection[] GetConnections()
+        public StreamingConnection[] GetConnections()
         {
             lock (this.m_connections)
                 return this.m_connections.ToArray();
         }
-
-        private static readonly DateTime ForTimeStamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
-        private void Request<Ttem>(
-            Timer timer,
-            string method,
-            string url,
-            Func<string, IEnumerable<Ttem>> parseHtml,
-            Func<IEnumerable<Ttem>, IEnumerable<TwitterUser>> selectUsers,
-            Func<StreamingConnection, IEnumerable<Ttem>, IEnumerable<Ttem>> filterItem)
-        {
-            var next = 0;
-
-            var req = this.CreateReqeust("GET", url);
-            IEnumerable<Ttem> items = null;
-            try
-            {
-                using (var res = req.GetResponse() as HttpWebResponse)
-                {
-                    using (var stream = res.GetResponseStream())
-                    using (var reader = new StreamReader(stream, Encoding.UTF8))
-                        items = parseHtml(reader.ReadToEnd());
-
-                    /*
-                    x-rate-limit-limit      : 225
-                    x-rate-limit-remaining  : 9
-                    x-rate-limit-reset      : 1548385894
-                    */
-
-                    if (int.TryParse(res.Headers.Get("x-rate-limit-remaining"), out int remaining) &&
-                        int.TryParse(res.Headers.Get("x-rate-limit-reset"    ), out int reset    ))
-                    {
-                        next = Math.Min(1000, (int)((reset - (DateTime.UtcNow - ForTimeStamp).TotalSeconds) / remaining * 1000));
-                    }
-                }
-            }
-            catch (WebException webEx)
-            {
-                webEx.Response?.Dispose();
-            }
-
-            if (items != null && items.Count() > 0)
-            {
-                var task = Task.Factory.StartNew(() =>
-                {
-                    var users = selectUsers(items);
-                    if (users != null)
-                    {
-                        foreach (var user in users)
-                            if (this.m_userCache.IsUpdated(user))
-                                this.UserUpdatedEvent(user);
-                    }
-                });
-
-                Parallel.ForEach(this.GetConnections(),
-                    connection =>
-                    {
-                        var filtered = filterItem(connection, items);
-                        if (filtered == null)
-                            return;
-
-                        foreach (var item in filtered)
-                            connection.SendToStream(item);
-                    });
-
-                task.Wait();
-            }
-
-            try
-            {
-                timer.Change(next > 0 ? next : 15 * 1000, Timeout.Infinite);
-            }
-            catch
-            {
-            }
-        }
         
-        private long m_cursor_timeline = 0;
-        private void RefreshTimeline(object state)
-        {
-            /*
-            since_id                | /////
-            count                   | 200
-            include_my_retweet      | 1
-            cards_platform          | Web-13
-            include_entities        | 1
-            include_user_entities   | 1
-            include_cards           | 1
-            send_error_codes        | 1
-            tweet_mode              | extended
-            include_ext_alt_text    | true
-            include_reply_count	    | true
-            */
-            var url = "https://api.twitter.com/1.1/statuses/home_timeline.json?count=200&include_my_retweet=1&cards_platform=Web-13&include_entities=1&include_user_entities=1&include_cards=1&send_error_codes=1&tweet_mode=extended&include_ext_alt_text=true&include_reply_count=true";
-
-            if (this.m_cursor_timeline > 0)
-                url += "&since_id=" + this.m_cursor_timeline;
-
-            this.Request(
-                timer         : this.m_timerHomeTimeLine,
-                method        : "GET",
-                url           : url,
-                parseHtml     : body =>
-                {
-                    var items = JsonConvert.DeserializeObject<Td_statuses>(body)
-                                           .OrderBy(e => e.Id);
-
-                    if (items.Count() == 0)
-                        return null;
-
-                    var newCursor = items.Max(e => e.Id);
-                    var curCursor = this.m_cursor_timeline;
-                    this.m_cursor_timeline = newCursor;
-
-                    if (curCursor == 0)
-                        return null;
-
-                    return items.ToArray();
-                },
-                selectUsers   : items => items.Select(e => e.User),
-                filterItem    : (conn, items) =>
-                {
-                    var lid = conn.LastStatus;
-                    conn.LastStatus = items.Max(e => e.Id);
-
-                    if (lid == 0)
-                        return null;
-
-                    return items.Where(e => e.Id > lid).OrderBy(e => e.Id);
-                }
-            );
-        }
-
-        private long m_cursor_activity_aboutMe = 0;
-        private void RefresAboutMe(object state)
-        {
-            /*
-            since_id                | /////
-            model_version           | 7
-            count                   | 200
-            skip_aggregation        | true
-            cards_platform          | Web-13
-            include_entities        | 1
-            include_user_entities   | 1
-            include_cards           | 1
-            send_error_codes        | 1
-            tweet_mode              | extended
-            include_ext_alt_text    | true
-            include_reply_count     | true
-            */
-            var url = "https://api.twitter.com/1.1/activity/about_me.json?model_version=7&count=200&skip_aggregation=true&cards_platform=Web-13&include_entities=1&include_user_entities=1&include_cards=1&send_error_codes=1&tweet_mode=extended&include_ext_alt_text=true&include_reply_count=true";
-
-            if (this.m_cursor_activity_aboutMe > 0)
-                url += "&since_id=" + this.m_cursor_activity_aboutMe;            
-
-            this.Request(
-                timer      : this.m_timerActivity,
-                method     : "GET",
-                url        : url,
-                parseHtml  : body =>
-                {
-                    var items = JsonConvert.DeserializeObject<Td_activity>(body)
-                                           .Where(e => e.Action == "retweet" || e.Action == "reply");
-
-                    if (items.Count() == 0)
-                        return null;
-
-                    var newCursor = items.Max(e => e.MaxPosition);
-                    var curCursor = this.m_cursor_activity_aboutMe;
-                    this.m_cursor_activity_aboutMe = newCursor;
-
-                    if (curCursor == 0)
-                        return null;
-
-                    return items.SelectMany(e => e.Targets)
-                                .OrderBy(e => e.Id)
-                                .ToArray();
-                },
-                selectUsers: items =>items.Select(e => e.User),
-                filterItem : (conn, items) =>
-                {
-                    var lid = conn.LastActivity;
-                    conn.LastActivity = items.Max(e => e.Id);
-
-                    if (lid == 0)
-                        return null;
-
-                    return items.Where(e => e.Id > lid).OrderBy(e => e.Id);
-
-                }
-            );
-        }
-
-        private string m_cursor_DirectMessgae = null;
-        private void RefreshDirectMessage(object state)
-        {
-            /*
-            cursor                  | /////
-            include_groups          | true
-            ext                     | altText
-            cards_platform          | Web-13
-            include_entities        | 1
-            include_user_entities   | 1
-            include_cards           | 1
-            send_error_codes        | 1
-            tweet_mode              | extended
-            include_ext_alt_text    | true
-            include_reply_count	    | true
-            */
-            var url = "https://api.twitter.com/1.1/dm/user_updates.json?include_groups=true&ext=altText&cards_platform=Web-13&include_entities=1&include_user_entities=1&include_cards=1&send_error_codes=1&tweet_mode=extended&include_ext_alt_text=true&include_reply_count=true ";
-
-            if (this.m_cursor_DirectMessgae != null)
-                url += "&cursor=" + this.m_cursor_DirectMessgae;
-
-            this.Request(
-                timer: this.m_timerDirectMessage,
-                method: "GET",
-                url: url,
-                parseHtml: body =>
-                {
-                    var dmJson = JsonConvert.DeserializeObject<Td_dm>(body);
-
-                    if (!(dmJson?.Item?.Entries?.Length > 0))
-                        return null;
-
-                    var newCursor = dmJson.Item.Cursor;
-                    var curCursor = this.m_cursor_DirectMessgae;
-                    this.m_cursor_DirectMessgae = newCursor;
-
-                    if (curCursor == null)
-                        return null;
-
-                    return dmJson.Item
-                                 .Entries
-                                 .Where(e => e.Message != null)
-                                 .Select(e =>
-                                 {
-                                     var dm = new St_dm();
-
-                                     dm.Item.Id = e.Message.Data.Id;
-                                     dm.Item.IdStr = e.Message.Data.Id.ToString();
-                                     dm.Item.Text = e.Message.Data.Text;
-                                     dm.Item.CreatedAt = e.Message.Data.CreatedAt;
-
-                                     var sender = dmJson.Item.Users[e.Message.Data.Sender_Id];
-                                     dm.Item.Sender = sender;
-                                     dm.Item.SenderId = sender.Id;
-                                     dm.Item.SenderScreenName = sender.ScreenName;
-
-                                     var recipient = dmJson.Item.Users[e.Message.Data.Recipiend_Id];
-                                     dm.Item.Recipient = recipient;
-                                     dm.Item.RecipientId = recipient.Id;
-                                     dm.Item.RecipientScreenName = recipient.ScreenName;
-
-                                     return dm;
-                                 })
-                                 .ToArray();
-                },
-                selectUsers: items => items.Select(e => e.Item.Sender),
-                filterItem: (conn, items) =>
-                {
-                    var lid = conn.LastDirectMessage;
-                    conn.LastDirectMessage = items.Max(e => e.Item.Id);
-
-                    if (lid == 0)
-                        return null;
-
-                    return items.Where(e => e.Item.Id > lid).OrderBy(e => e.Item.Id);
-
-                }
-            );
-        }
-
-        private void UserUpdatedEvent(TwitterUser user)
-        {
-            var data = new St_Event()
-            {
-                Target = user,
-                Source = user,
-                Event  = "user_update"
-            };
-            
-            Parallel.ForEach(this.GetConnections(), connection => connection.SendToStream(data));
-        }
-
         public static byte[] ToPostData(Dictionary<string, string> dic)
         {
             var sb = new StringBuilder();

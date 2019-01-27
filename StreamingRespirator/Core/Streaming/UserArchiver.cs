@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using StreamingRespirator.Core.Json;
-using StreamingRespirator.Core.Json.Tweetdeck;
 
 namespace StreamingRespirator.Core.Streaming
 {
