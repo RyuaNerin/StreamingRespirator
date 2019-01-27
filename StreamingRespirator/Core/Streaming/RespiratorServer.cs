@@ -202,27 +202,25 @@ namespace StreamingRespirator.Core.Streaming
 
             if (ownerId != 0)
             {
-                using (var sc = new StreamingConnection(new WaitableStream(cnt.Response.OutputStream), ownerId, desc))
+                var td = TweetDeck.GetTweetDeck(ownerId, this.m_invoker);
+
+                if (td == null)
                 {
-                    lock (this.m_connections)
-                        this.m_connections.Add(sc);
+                    cnt.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
 
-                    //////////////////////////////////////////////////
+                    cnt.Response.Close();
+                }
+                else
+                {
+                    cnt.Response.AppendHeader("Content-type", "application/json; charset=utf-8");
+                    cnt.Response.AppendHeader("Connection", "close");
+                    cnt.Response.SendChunked = true;
 
-                    var td = TweetDeck.GetTweetDeck(ownerId, this.m_invoker);
-
-                    if (td == null)
+                    using (var sc = new StreamingConnection(new WaitableStream(cnt.Response.OutputStream), ownerId, desc))
                     {
-                        cnt.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-
-                        sc.Stream.Close();
-                    }
-                    else
-                    {
-                        cnt.Response.AppendHeader("Content-type", "application/json; charset=utf-8");
-                        cnt.Response.AppendHeader("Connection", "close");
-                        cnt.Response.SendChunked = true;
-
+                        lock (this.m_connections)
+                            this.m_connections.Add(sc);
+                        
                         sc.SendKeepAlive();
 
                         td.AddConnection(sc);
@@ -230,12 +228,12 @@ namespace StreamingRespirator.Core.Streaming
 
                         sc.Stream.WaitHandle.WaitOne();
 
+                        lock (this.m_connections)
+                            this.m_connections.Remove(sc);
+
                         td.RemoveStream(sc);
                         this.LostConnection?.Invoke(ownerId);
                     }
-
-                    lock (this.m_connections)
-                        this.m_connections.Remove(sc);
                 }
 
                 //////////////////////////////////////////////////
