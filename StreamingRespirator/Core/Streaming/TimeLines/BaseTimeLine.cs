@@ -6,8 +6,8 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using StreamingRespirator.Core.Twitter;
-using StreamingRespirator.Core.Twitter.Streaming;
+using StreamingRespirator.Core.Streaming.Twitter;
+using StreamingRespirator.Core.Streaming.Twitter.Packet;
 
 namespace StreamingRespirator.Core.Streaming.TimeLines
 {
@@ -18,7 +18,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
     }
 
     internal abstract class BaseTimeLine<T> : ITimeLine, IDisposable
-        where T: IStreamingData
+        where T: IPacket
     {
         private readonly TweetDeck m_tweetDeck;
         private readonly Timer m_timer;
@@ -144,9 +144,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
         private void UserUpdatedEvent(TwitterUser user)
         {
-            var data = new StreamingEvent()
+            var data = new PacketUserUpdated()
             {
-                Event  = "user_update",
                 Source = user,
                 Target = user,
             };

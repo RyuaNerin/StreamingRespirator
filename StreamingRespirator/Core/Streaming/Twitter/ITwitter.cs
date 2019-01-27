@@ -1,3 +1,0 @@
-namespace StreamingRespirator.Core.Streaming
-{
-}

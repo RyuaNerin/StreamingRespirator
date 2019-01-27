@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using StreamingRespirator.Core.Twitter;
+using StreamingRespirator.Core.Streaming.Twitter;
 
 namespace StreamingRespirator.Core.Streaming.TimeLines
 {
-    internal class ActivityAboutMe : BaseTimeLine<TwitterStatus>
+    internal class TlAboutMe : BaseTimeLine<TwitterStatus>
     {
-        public ActivityAboutMe(TweetDeck tweetDeck)
+        public TlAboutMe(TweetDeck tweetDeck)
             : base(tweetDeck)
         {
         }

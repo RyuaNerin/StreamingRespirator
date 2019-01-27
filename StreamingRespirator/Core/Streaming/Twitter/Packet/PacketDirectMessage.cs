@@ -1,21 +1,20 @@
 using System;
 using System.Diagnostics;
 using Newtonsoft.Json;
-using StreamingRespirator.Core.Streaming;
 
-namespace StreamingRespirator.Core.Twitter.Streaming
+namespace StreamingRespirator.Core.Streaming.Twitter.Packet
 {
     [DebuggerDisplay("{Item.Sender.ScreenName} -> {Item.Recipient.ScreenName} : {Item.Text}")]
-    internal class StreamingDirectMessage : IStreamingData
+    internal class PacketDirectMessage : IPacket
     {
         [JsonProperty("direct_message")]
-        public StreamingDirectMessageItem Item { get; set; } = new StreamingDirectMessageItem();
+        public PacketDirectMessageItem Item { get; set; } = new PacketDirectMessageItem();
 
         public override string ToString()
             => $"{this.Item.Sender.ScreenName} -> {this.Item.Recipient.ScreenName} : {this.Item.Text}";
     }
 
-    internal class StreamingDirectMessageItem
+    internal class PacketDirectMessageItem
     {
         [JsonProperty("id")]
         public long Id { get; set; }

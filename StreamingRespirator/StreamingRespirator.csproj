@@ -103,18 +103,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Streaming\Twitter\ITwitter.cs" />
-    <Compile Include="Core\Streaming\Twitter\Streaming\StreamingEvent.cs" />
-    <Compile Include="Core\Streaming\Twitter\Streaming\StreamingFriends.cs" />
+    <Compile Include="Core\Streaming\Twitter\Packet\PacketEvent.cs" />
+    <Compile Include="Core\Streaming\Twitter\Packet\PacketFriends.cs" />
     <Compile Include="Core\Streaming\Twitter\TwitterStatus.cs" />
     <Compile Include="Core\Streaming\Twitter\TwitterUser.cs" />
     <Compile Include="Core\MainContext.cs" />
-    <Compile Include="Core\Streaming\TimeLines\ActivityAboutMe.cs" />
+    <Compile Include="Core\Streaming\TimeLines\TlAboutMe.cs" />
     <Compile Include="Core\Streaming\TimeLines\BaseTimeLine.cs" />
-    <Compile Include="Core\Streaming\TimeLines\DirectMessage.cs" />
-    <Compile Include="Core\Streaming\TimeLines\HomeTimeLine.cs" />
+    <Compile Include="Core\Streaming\TimeLines\TlDirectMessage.cs" />
+    <Compile Include="Core\Streaming\TimeLines\TlHome.cs" />
     <Compile Include="Core\Streaming\Tweetdeck.cs" />
-    <Compile Include="Core\Streaming\UserArchiver.cs" />
+    <Compile Include="Core\Streaming\UserCache.cs" />
     <Compile Include="Core\Windows\LoginWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -126,7 +125,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Core\Streaming\Twitter\Streaming\StreamingDirectMessage.cs" />
+    <Compile Include="Core\Streaming\Twitter\Packet\PacketDirectMessage.cs" />
     <Compile Include="Core\Streaming\Twitter\Activity.cs" />
     <Compile Include="Core\Streaming\Twitter\DirectMessage.cs" />
     <Compile Include="Core\LastRelease.cs" />

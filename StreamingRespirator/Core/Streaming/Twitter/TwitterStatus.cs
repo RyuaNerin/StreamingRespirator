@@ -2,9 +2,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using StreamingRespirator.Core.Streaming;
 
-namespace StreamingRespirator.Core.Twitter
+namespace StreamingRespirator.Core.Streaming.Twitter
 {
     [DebuggerDisplay("{Count}")]
     internal class TwitterStatusList : List<TwitterStatus>
@@ -12,7 +11,7 @@ namespace StreamingRespirator.Core.Twitter
     }
 
     [DebuggerDisplay("{Id} | @{User.ScreenName}: {Text}")]
-    internal class TwitterStatus : IStreamingData
+    internal class TwitterStatus : IPacket
     {
         public TwitterStatus()
         {

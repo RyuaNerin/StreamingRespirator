@@ -7,7 +7,7 @@ using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core.Streaming
 {
-    internal interface IStreamingData
+    internal interface IPacket
     {
     }
 
@@ -75,7 +75,7 @@ namespace StreamingRespirator.Core.Streaming
             Formatting = Formatting.None,
             DateFormatString = "ddd MMM dd HH:mm:ss +ffff yyyy"
         };
-        public void SendToStream(IStreamingData data)
+        public void SendToStream(IPacket data)
         {
             Debug.WriteLine(data);
 

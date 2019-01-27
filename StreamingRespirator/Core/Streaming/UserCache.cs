@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using StreamingRespirator.Core.Twitter;
+using StreamingRespirator.Core.Streaming.Twitter;
 
 namespace StreamingRespirator.Core.Streaming
 {
@@ -27,11 +27,28 @@ namespace StreamingRespirator.Core.Streaming
             this.timerCleaner = new Timer(this.CleanCache, null, TimeSpan.FromMinutes(1), TimeSpan.FromMinutes(1));
         }
 
+        ~UserCache()
+        {
+            this.Dispose(false);
+        }
+
         public void Dispose()
         {
-            this.timerCleaner.Change(Timeout.Infinite, Timeout.Infinite);
-            this.timerCleaner.Dispose();
+            this.Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        private bool m_disposing;
+        protected void Dispose(bool disposing)
+        {
+            if (this.m_disposing) return;
+            this.m_disposing = true;
+
+            if (disposing)
+            {
+                this.timerCleaner.Change(Timeout.Infinite, Timeout.Infinite);
+                this.timerCleaner.Dispose();
+            }
         }
 
         private void CleanCache(object state)

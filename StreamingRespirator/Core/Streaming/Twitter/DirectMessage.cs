@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json;
 
-namespace StreamingRespirator.Core.Twitter.Tweetdeck
+namespace StreamingRespirator.Core.Streaming.Twitter
 {
     [DebuggerDisplay("Item")]
     internal class DirectMessage

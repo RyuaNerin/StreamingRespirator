@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json;
 
-namespace StreamingRespirator.Core.Twitter
+namespace StreamingRespirator.Core.Streaming.Twitter
 {
     [DebuggerDisplay("{Count}")]
     internal class ActivityList : List<Activity>

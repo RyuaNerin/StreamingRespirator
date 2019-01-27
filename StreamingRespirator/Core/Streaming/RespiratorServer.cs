@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using StreamingRespirator.Core.Twitter.Streaming;
+using StreamingRespirator.Core.Streaming.Twitter.Packet;
 using StreamingRespirator.Utilities;
 using Titanium.Web.Proxy;
 using Titanium.Web.Proxy.EventArguments;
@@ -222,7 +222,7 @@ namespace StreamingRespirator.Core.Streaming
                         lock (this.m_connections)
                             this.m_connections.Add(sc);
                         
-                        sc.SendToStream(new StreamingFriends() { Friends = td.GetFriends() });
+                        sc.SendToStream(new PacketFriends() { Friends = td.GetFriends() });
 
                         td.AddConnection(sc);
                         this.NewConnection?.Invoke(ownerId, td.Auth.ScreenName);

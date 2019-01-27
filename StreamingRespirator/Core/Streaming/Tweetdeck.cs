@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using StreamingRespirator.Core.Streaming.TimeLines;
-using StreamingRespirator.Core.Twitter;
+using StreamingRespirator.Core.Streaming.Twitter;
 using StreamingRespirator.Core.Windows;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
@@ -64,9 +64,9 @@ namespace StreamingRespirator.Core.Streaming
         {
             this.Auth = auth;
 
-            this.m_tlHome    = new HomeTimeLine   (this);
-            this.m_tlAboutMe = new ActivityAboutMe(this);
-            this.m_tlDm      = new DirectMessage  (this);
+            this.m_tlHome    = new TlHome   (this);
+            this.m_tlAboutMe = new TlAboutMe(this);
+            this.m_tlDm      = new TlDirectMessage  (this);
         }
 
         ~TweetDeck()
