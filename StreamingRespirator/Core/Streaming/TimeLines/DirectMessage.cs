@@ -3,7 +3,6 @@ using System.Linq;
 using Newtonsoft.Json;
 using StreamingRespirator.Core.Twitter;
 using StreamingRespirator.Core.Twitter.Streaming;
-using StreamingRespirator.Core.Twitter.Tweetdeck;
 
 namespace StreamingRespirator.Core.Streaming.TimeLines
 {

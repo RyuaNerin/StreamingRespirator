@@ -7,6 +7,10 @@ using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core.Streaming
 {
+    internal interface IStreamingData
+    {
+    }
+
     internal class StreamingConnection : IDisposable
     {
         private const int KeepAlivePeriod = 5 * 1000;
@@ -71,7 +75,7 @@ namespace StreamingRespirator.Core.Streaming
             Formatting = Formatting.None,
             DateFormatString = "ddd MMM dd HH:mm:ss +ffff yyyy"
         };
-        public void SendToStream(object data)
+        public void SendToStream(IStreamingData data)
         {
             Debug.WriteLine(data);
 

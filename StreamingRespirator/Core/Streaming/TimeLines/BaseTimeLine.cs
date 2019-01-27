@@ -18,6 +18,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
     }
 
     internal abstract class BaseTimeLine<T> : ITimeLine, IDisposable
+        where T: IStreamingData
     {
         private readonly TweetDeck m_tweetDeck;
         private readonly Timer m_timer;

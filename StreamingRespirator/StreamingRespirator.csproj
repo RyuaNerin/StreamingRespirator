@@ -103,6 +103,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Streaming\Twitter\ITwitter.cs" />
     <Compile Include="Core\Streaming\Twitter\Streaming\StreamingEvent.cs" />
     <Compile Include="Core\Streaming\Twitter\Streaming\StreamingFriends.cs" />
     <Compile Include="Core\Streaming\Twitter\TwitterStatus.cs" />
@@ -128,7 +129,6 @@
     <Compile Include="Core\Streaming\Twitter\Streaming\StreamingDirectMessage.cs" />
     <Compile Include="Core\Streaming\Twitter\Activity.cs" />
     <Compile Include="Core\Streaming\Twitter\DirectMessage.cs" />
-    <Compile Include="Core\Streaming\Twitter\TwitterStatusList.cs" />
     <Compile Include="Core\LastRelease.cs" />
     <Compile Include="Core\Streaming\StreamingConnection.cs" />
     <Compile Include="Core\Program.cs" />

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using StreamingRespirator.Core.Streaming;
 
 namespace StreamingRespirator.Core.Twitter
 {
@@ -11,8 +12,12 @@ namespace StreamingRespirator.Core.Twitter
     }
 
     [DebuggerDisplay("{Id} | @{User.ScreenName}: {Text}")]
-    internal class TwitterStatus
+    internal class TwitterStatus : IStreamingData
     {
+        public TwitterStatus()
+        {
+        }
+
         [JsonProperty("id")]
         public long Id { get; set; }
 

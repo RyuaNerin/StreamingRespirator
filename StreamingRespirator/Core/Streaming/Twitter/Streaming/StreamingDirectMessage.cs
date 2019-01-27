@@ -1,12 +1,12 @@
 using System;
 using System.Diagnostics;
 using Newtonsoft.Json;
-using StreamingRespirator.Core.Twitter.Tweetdeck;
+using StreamingRespirator.Core.Streaming;
 
 namespace StreamingRespirator.Core.Twitter.Streaming
 {
     [DebuggerDisplay("{Item.Sender.ScreenName} -> {Item.Recipient.ScreenName} : {Item.Text}")]
-    internal class StreamingDirectMessage
+    internal class StreamingDirectMessage : IStreamingData
     {
         [JsonProperty("direct_message")]
         public StreamingDirectMessageItem Item { get; set; } = new StreamingDirectMessageItem();
