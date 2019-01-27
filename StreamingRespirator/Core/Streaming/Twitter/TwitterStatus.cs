@@ -5,6 +5,11 @@ using Newtonsoft.Json.Linq;
 
 namespace StreamingRespirator.Core.Twitter
 {
+    [DebuggerDisplay("{Count}")]
+    internal class TwitterStatusList : List<TwitterStatus>
+    {
+    }
+
     [DebuggerDisplay("{Id} | @{User.ScreenName}: {Text}")]
     internal class TwitterStatus
     {
