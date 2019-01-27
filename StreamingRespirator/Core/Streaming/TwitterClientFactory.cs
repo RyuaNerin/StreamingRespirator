@@ -50,10 +50,7 @@ namespace StreamingRespirator.Core.Streaming
                             string.IsNullOrWhiteSpace(st.Value.ScreenName))
                             continue;
 
-                        var tc = new TwitterClient(st.Value);
-                        Instances.Add(st.Key, tc);
-
-                        ClientAdded?.Invoke(st.Key, st.Value.ScreenName);
+                        AddClient(st.Value);
                     }
                 }
             }
@@ -117,6 +114,23 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
+        private static void AddClient(TwitterCredential twitCred)
+        {
+            lock (Instances)
+            {
+                var twitClient = new TwitterClient(twitCred);
+
+                twitClient.StreamingStarted += StreamingStarted;
+                twitClient.StreamingStoped  += StreamingStoped;
+
+                Instances.Add(twitCred.Id, twitClient);
+
+                ClientAdded?.Invoke(twitCred.Id, twitCred.ScreenName);
+
+                SaveCookie();
+            }
+        }
+
         public static void AddClient(Control invoker)
         {
             string id = null;
@@ -148,20 +162,7 @@ namespace StreamingRespirator.Core.Streaming
             {
                 invoker.Invoke(new Action(() => MessageBox.Show(twitCred.ScreenName + "가 추가되었습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)));
 
-                lock (Instances)
-                {
-                    var twitClient = new TwitterClient(twitCred);
-                    twitClient.StreamingStarted += StreamingStarted;
-                    twitClient.StreamingStoped  += StreamingStoped;
-
-                    Instances.Add(twitCred.Id, twitClient);
-
-                    ClientAdded?.Invoke(twitCred.Id, twitCred.ScreenName);
-
-                    SaveCookie();
-                }
-
-                return;
+                AddClient(twitCred);
             }
             else if (!string.IsNullOrWhiteSpace(errorMessage))
             {
@@ -170,8 +171,6 @@ namespace StreamingRespirator.Core.Streaming
             else
             {
             }
-
-            return;
         }
 
         private static TwitterCredential Login(string id, string pw, out string body)
