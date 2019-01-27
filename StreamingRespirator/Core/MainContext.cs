@@ -8,7 +8,7 @@ namespace StreamingRespirator.Core
 {
     internal class MainContext : ApplicationContext
     {
-        private readonly Control m_control;
+        private readonly Control m_invoker;
 
         private readonly RespiratorServer m_server;
 
@@ -24,14 +24,17 @@ namespace StreamingRespirator.Core
 
         public MainContext()
         {
-            this.m_control = new Control();
-            this.m_control.CreateControl();
+            this.m_invoker = new Control();
+            this.m_invoker.CreateControl();
 
-            this.m_server = new RespiratorServer(this.m_control);
+            this.m_server = new RespiratorServer(this.m_invoker);
             this.m_server.NewConnection  += this.Server_NewConnection;
             this.m_server.LostConnection += this.Server_LostConnection;
 
             this.InitializeComponent();
+
+            if (!this.StartProxy())
+                Application.Exit();
         }
 
         private void InitializeComponent()
@@ -47,7 +50,6 @@ namespace StreamingRespirator.Core
 
             this.m_stripExit = new ToolStripMenuItem("종료");
             this.m_stripExit.Click += this.StripExit_Click;
-
 
             this.m_contextMenuStrip = new ContextMenuStrip
             {
@@ -68,18 +70,13 @@ namespace StreamingRespirator.Core
                 ContextMenuStrip = this.m_contextMenuStrip,
                 Visible          = true,
             };
-
-            if (!this.StartProxy())
-            {
-                Application.Exit();
-            }
         }
 
         private void Server_NewConnection(long id, string screenName)
         {
-            if (this.m_control.InvokeRequired)
+            if (this.m_invoker.InvokeRequired)
             {
-                this.m_control.Invoke(new Action<long, string>(this.Server_NewConnection), id, screenName);
+                this.m_invoker.Invoke(new Action<long, string>(this.Server_NewConnection), id, screenName);
             }
             else
             {
@@ -98,9 +95,9 @@ namespace StreamingRespirator.Core
 
         private void Server_LostConnection(long id)
         {
-            if (this.m_control.InvokeRequired)
+            if (this.m_invoker.InvokeRequired)
             {
-                this.m_control.Invoke(new Action<long>(this.Server_LostConnection), id);
+                this.m_invoker.Invoke(new Action<long>(this.Server_LostConnection), id);
             }
             else
             {
