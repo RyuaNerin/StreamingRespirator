@@ -2,15 +2,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json;
 
-namespace StreamingRespirator.Core.Json.Tweetdeck
+namespace StreamingRespirator.Core.Twitter
 {
     [DebuggerDisplay("{Count}")]
-    internal class Td_activity : List<Td_activity_item>
+    internal class ActivityList : List<Activity>
     {
     }
 
     [DebuggerDisplay("{Action} : {Targets.Count}")]
-    internal class Td_activity_item
+    internal class Activity
     {
         [JsonProperty("action")]
         public string Action { get; set; }

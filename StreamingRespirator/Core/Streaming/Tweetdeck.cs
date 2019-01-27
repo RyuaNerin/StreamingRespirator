@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using Newtonsoft.Json;
-using StreamingRespirator.Core.Json;
+using StreamingRespirator.Core.Twitter;
 using StreamingRespirator.Core.Streaming.TimeLines;
 using StreamingRespirator.Core.Windows;
 

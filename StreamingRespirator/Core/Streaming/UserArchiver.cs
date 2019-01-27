@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using StreamingRespirator.Core.Json;
+using StreamingRespirator.Core.Twitter;
 
 namespace StreamingRespirator.Core.Streaming
 {

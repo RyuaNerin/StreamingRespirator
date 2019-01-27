@@ -1,21 +1,21 @@
 using System;
 using System.Diagnostics;
 using Newtonsoft.Json;
-using StreamingRespirator.Core.Json.Tweetdeck;
+using StreamingRespirator.Core.Twitter.Tweetdeck;
 
-namespace StreamingRespirator.Core.Json.Streaming
+namespace StreamingRespirator.Core.Twitter.Streaming
 {
     [DebuggerDisplay("{Item.Sender.ScreenName} -> {Item.Recipient.ScreenName} : {Item.Text}")]
-    internal class St_dm
+    internal class StreamingDirectMessage
     {
         [JsonProperty("direct_message")]
-        public St_dm_item Item { get; set; } = new St_dm_item();
+        public StreamingDirectMessageItem Item { get; set; } = new StreamingDirectMessageItem();
 
         public override string ToString()
             => $"{this.Item.Sender.ScreenName} -> {this.Item.Recipient.ScreenName} : {this.Item.Text}";
     }
 
-    internal class St_dm_item
+    internal class StreamingDirectMessageItem
     {
         [JsonProperty("id")]
         public long Id { get; set; }

@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace StreamingRespirator.Core.Json
+namespace StreamingRespirator.Core.Twitter
 {
     [DebuggerDisplay("{Id} = {ScreenName}")]
     internal class TwitterUser

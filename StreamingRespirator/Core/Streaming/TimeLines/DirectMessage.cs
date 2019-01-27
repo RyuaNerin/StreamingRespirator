@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using StreamingRespirator.Core.Json;
-using StreamingRespirator.Core.Json.Streaming;
-using StreamingRespirator.Core.Json.Tweetdeck;
+using StreamingRespirator.Core.Twitter;
+using StreamingRespirator.Core.Twitter.Streaming;
+using StreamingRespirator.Core.Twitter.Tweetdeck;
 
 namespace StreamingRespirator.Core.Streaming.TimeLines
 {
-    internal class DirectMessage : BaseTimeLine<St_dm>
+    internal class DirectMessage : BaseTimeLine<StreamingDirectMessage>
     {
         public DirectMessage(TweetDeck tweetDeck)
             : base(tweetDeck)
@@ -41,9 +41,9 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 return BaseUrl + "&cursor=" + this.m_cursor;
         }
 
-        protected override IEnumerable<St_dm> ParseHtml(string html)
+        protected override IEnumerable<StreamingDirectMessage> ParseHtml(string html)
         {
-            var dmJson = JsonConvert.DeserializeObject<Td_dm>(html);
+            var dmJson = JsonConvert.DeserializeObject<Twitter.Tweetdeck.DirectMessage>(html);
 
             if (!(dmJson?.Item?.Entries?.Length > 0))
                 return null;
@@ -59,7 +59,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                          .Where(e => e.Message != null)
                          .Select(e =>
                          {
-                             var dm = new St_dm();
+                             var dm = new StreamingDirectMessage();
 
                              dm.Item.Id = e.Message.Data.Id;
                              dm.Item.IdStr = e.Message.Data.Id.ToString();
@@ -81,12 +81,12 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                          .ToArray();
         }
 
-        protected override IEnumerable<TwitterUser> SelectUsers(IEnumerable<St_dm> items)
+        protected override IEnumerable<TwitterUser> SelectUsers(IEnumerable<StreamingDirectMessage> items)
         {
             return items.Select(e => e.Item.Sender);
         }
 
-        protected override IEnumerable<St_dm> FilterItemForConnection(StreamingConnection connection, IEnumerable<St_dm> items)
+        protected override IEnumerable<StreamingDirectMessage> FilterItemForConnection(StreamingConnection connection, IEnumerable<StreamingDirectMessage> items)
         {
             var lid = connection.LastDirectMessage;
             connection.LastDirectMessage = items.Max(e => e.Item.Id);

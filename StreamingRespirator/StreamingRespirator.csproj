@@ -103,10 +103,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Core\Json\Streaming\St_Event.cs" />
-    <Compile Include="Core\Json\Streaming\St_Friends.cs" />
-    <Compile Include="Core\Json\TwitterStatus.cs" />
-    <Compile Include="Core\Json\TwitterUser.cs" />
+    <Compile Include="Core\Streaming\Twitter\Streaming\StreamingEvent.cs" />
+    <Compile Include="Core\Streaming\Twitter\Streaming\StreamingFriends.cs" />
+    <Compile Include="Core\Streaming\Twitter\TwitterStatus.cs" />
+    <Compile Include="Core\Streaming\Twitter\TwitterUser.cs" />
     <Compile Include="Core\MainContext.cs" />
     <Compile Include="Core\Streaming\TimeLines\ActivityAboutMe.cs" />
     <Compile Include="Core\Streaming\TimeLines\BaseTimeLine.cs" />
@@ -125,10 +125,10 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Core\Json\Streaming\St_dm.cs" />
-    <Compile Include="Core\Json\Tweetdeck\Td_activity.cs" />
-    <Compile Include="Core\Json\Tweetdeck\Td_dm.cs" />
-    <Compile Include="Core\Json\Tweetdeck\Td_statuses.cs" />
+    <Compile Include="Core\Streaming\Twitter\Streaming\StreamingDirectMessage.cs" />
+    <Compile Include="Core\Streaming\Twitter\Activity.cs" />
+    <Compile Include="Core\Streaming\Twitter\DirectMessage.cs" />
+    <Compile Include="Core\Streaming\Twitter\TwitterStatusList.cs" />
     <Compile Include="Core\LastRelease.cs" />
     <Compile Include="Core\Streaming\StreamingConnection.cs" />
     <Compile Include="Core\Program.cs" />

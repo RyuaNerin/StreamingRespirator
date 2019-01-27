@@ -1,8 +1,8 @@
 using Newtonsoft.Json;
 
-namespace StreamingRespirator.Core.Json.Streaming
+namespace StreamingRespirator.Core.Twitter.Streaming
 {
-    internal class St_Friends
+    internal class StreamingFriends
     {
         [JsonProperty("friends")]
         public long[] Friends { get; set; }

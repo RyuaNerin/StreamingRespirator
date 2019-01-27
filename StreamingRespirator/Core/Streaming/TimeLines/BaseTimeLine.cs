@@ -6,8 +6,8 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using StreamingRespirator.Core.Json;
-using StreamingRespirator.Core.Json.Streaming;
+using StreamingRespirator.Core.Twitter;
+using StreamingRespirator.Core.Twitter.Streaming;
 
 namespace StreamingRespirator.Core.Streaming.TimeLines
 {
@@ -143,7 +143,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
         private void UserUpdatedEvent(TwitterUser user)
         {
-            var data = new St_Event()
+            var data = new StreamingEvent()
             {
                 Event  = "user_update",
                 Source = user,

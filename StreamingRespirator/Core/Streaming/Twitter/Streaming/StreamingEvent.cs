@@ -1,9 +1,9 @@
 using System;
 using Newtonsoft.Json;
 
-namespace StreamingRespirator.Core.Json.Streaming
+namespace StreamingRespirator.Core.Twitter.Streaming
 {
-    internal class St_Event
+    internal class StreamingEvent
     {
         [JsonProperty("target")]
         public object Target { get; set; }

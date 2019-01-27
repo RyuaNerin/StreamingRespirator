@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
-using StreamingRespirator.Core.Json;
-using StreamingRespirator.Core.Json.Tweetdeck;
+using StreamingRespirator.Core.Twitter;
+using StreamingRespirator.Core.Twitter.Tweetdeck;
 
 namespace StreamingRespirator.Core.Streaming.TimeLines
 {
@@ -43,7 +43,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
         protected override IEnumerable<TwitterStatus> ParseHtml(string html)
         {
-            var items = JsonConvert.DeserializeObject<Td_activity>(html)
+            var items = JsonConvert.DeserializeObject<ActivityList>(html)
                                    .Where(e => e.Action == "retweet" || e.Action == "reply");
 
             if (items.Count() == 0)

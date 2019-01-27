@@ -3,23 +3,23 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json;
 
-namespace StreamingRespirator.Core.Json.Tweetdeck
+namespace StreamingRespirator.Core.Twitter.Tweetdeck
 {
     [DebuggerDisplay("Item")]
-    internal class Td_dm
+    internal class DirectMessage
     {
         [JsonProperty("user_inbox")]
-        public Td_dm_item UserInbox { get; set; }
+        public DirectMessageItem UserInbox { get; set; }
 
         [JsonProperty("user_events")]
-        public Td_dm_item UserEvents { get; set; }
+        public DirectMessageItem UserEvents { get; set; }
 
         [JsonIgnore]
-        public Td_dm_item Item => this.UserEvents ?? this.UserInbox;
+        public DirectMessageItem Item => this.UserEvents ?? this.UserInbox;
     }
 
     [DebuggerDisplay("Entries : {Entries?.Length}")]
-    internal class Td_dm_item
+    internal class DirectMessageItem
     {
         [JsonProperty("conversations")]
         public object Conversations { get; set; }
@@ -28,28 +28,28 @@ namespace StreamingRespirator.Core.Json.Tweetdeck
         public string Cursor { get; set; }
 
         [JsonProperty("entries")]
-        public Td_dm_item_entry[] Entries { get; set; }
+        public DirectMessageEntry[] Entries { get; set; }
 
         [JsonProperty("users")]
         public Dictionary<string, TwitterUser> Users { get; set; }
     }
 
     [DebuggerDisplay("{Message}")]
-    internal class Td_dm_item_entry
+    internal class DirectMessageEntry
     {
         [JsonProperty("message")]
-        public Td_dm_item_entry_message Message { get; set; }
+        public DirectMessageMessageData Message { get; set; }
     }
 
     [DebuggerDisplay("{Data}")]
-    internal class Td_dm_item_entry_message
+    internal class DirectMessageMessageData
     {
         [JsonProperty("message_data")]
-        public Td_dm_item_entry_data Data { get; set; }
+        public DirectMessageMessage Data { get; set; }
     }
 
     [DebuggerDisplay("{Sender_Id} > {Recipiend_Id} : {Id} / {Text}")]
-    internal class Td_dm_item_entry_data
+    internal class DirectMessageMessage
     {
         [JsonProperty("id")]
         public long Id { get; set; }

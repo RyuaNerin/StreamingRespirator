@@ -3,10 +3,10 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace StreamingRespirator.Core.Json.Tweetdeck
+namespace StreamingRespirator.Core.Twitter.Tweetdeck
 {
     [DebuggerDisplay("{Count}")]
-    internal class Td_statuses : List<TwitterStatus>
+    internal class TwitterStatusList : List<TwitterStatus>
     {
     }
 }
