@@ -223,7 +223,7 @@ namespace StreamingRespirator.Core.Streaming
                         lock (this.m_connections)
                             this.m_connections.Add(sc);
                         
-                        sc.SendToStream(JsonConvert.SerializeObject(new St_Friends() { Friends = td.GetFriends() }));
+                        sc.SendToStream(new St_Friends() { Friends = td.GetFriends() });
 
                         td.AddConnection(sc);
                         this.NewConnection?.Invoke(ownerId, td.Auth.ScreenName);

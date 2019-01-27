@@ -1,6 +1,8 @@
 using System;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
+using Newtonsoft.Json;
 using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core.Streaming
@@ -63,9 +65,17 @@ namespace StreamingRespirator.Core.Streaming
             this.SendToStream(KeepAlivePacket);
         }
 
-        public void SendToStream(string data)
+        private static readonly JsonSerializerSettings Jss = new JsonSerializerSettings
         {
-            this.SendToStream(Encoding.UTF8.GetBytes(data + "\r\n"));
+            StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
+            Formatting = Formatting.None,
+            DateFormatString = "ddd MMM dd HH:mm:ss +ffff yyyy"
+        };
+        public void SendToStream(object data)
+        {
+            Debug.WriteLine(data);
+
+            this.SendToStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data, Jss) + "\r\n\r\n"));
 
             this.m_keepAlive.Change(KeepAlivePeriod, KeepAlivePeriod);
         }

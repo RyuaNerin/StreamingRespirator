@@ -437,12 +437,6 @@ namespace StreamingRespirator.Core.Streaming
         }
 
         private static readonly DateTime ForTimeStamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-        private static readonly JsonSerializerSettings Jss = new JsonSerializerSettings
-        {
-            StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
-            Formatting = Formatting.None,
-            DateFormatString = "ddd MMM dd HH:mm:ss +ffff yyyy"
-        };
 
         private void Request<Ttem>(
             Timer timer,
@@ -484,11 +478,6 @@ namespace StreamingRespirator.Core.Streaming
 
             if (items != null && items.Count() > 0)
             {
-#if DEBUG
-                foreach (var item in items)
-                    System.Diagnostics.Debug.WriteLine(item);
-#endif
-
                 var task = Task.Factory.StartNew(() =>
                 {
                     var users = selectUsers(items);
@@ -508,7 +497,7 @@ namespace StreamingRespirator.Core.Streaming
                             return;
 
                         foreach (var item in filtered)
-                            connection.SendToStream(JsonConvert.SerializeObject(item, Jss));
+                            connection.SendToStream(item);
                     });
 
                 task.Wait();
@@ -721,14 +710,12 @@ namespace StreamingRespirator.Core.Streaming
 
         private void UserUpdatedEvent(TwitterUser user)
         {
-            var data = JsonConvert.SerializeObject(
-                new St_Event()
-                {
-                    Target = user,
-                    Source = user,
-                    Event  = "user_update"
-                },
-                Jss);
+            var data = new St_Event()
+            {
+                Target = user,
+                Source = user,
+                Event  = "user_update"
+            };
             
             Parallel.ForEach(this.GetConnections(), connection => connection.SendToStream(data));
         }
