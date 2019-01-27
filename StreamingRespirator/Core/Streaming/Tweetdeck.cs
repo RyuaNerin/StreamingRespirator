@@ -29,7 +29,7 @@ namespace StreamingRespirator.Core.Streaming
         [JsonIgnore]
         public CookieContainer Cookies { get; } = new CookieContainer();
 
-        [JsonProperty("cookies")]
+        [JsonProperty("cookies", ObjectCreationHandling = ObjectCreationHandling.Replace, DefaultValueHandling = DefaultValueHandling.Ignore)]
         [System.ComponentModel.Browsable(false)]
         public IDictionary<string, string> JsonCookies
         {
@@ -737,8 +737,6 @@ namespace StreamingRespirator.Core.Streaming
                         serializer.Populate(reader, AuthArchive);
                     }
                 }
-
-                File.Encrypt(Program.CookiePath);
             }
             catch
             {
@@ -758,6 +756,8 @@ namespace StreamingRespirator.Core.Streaming
                         serializer.Serialize(writer, AuthArchive);
                     }
                 }
+
+                File.Encrypt(Program.CookiePath);
             }
             catch
             {
