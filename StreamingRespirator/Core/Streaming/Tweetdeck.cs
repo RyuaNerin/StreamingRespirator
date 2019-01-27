@@ -289,20 +289,6 @@ namespace StreamingRespirator.Core.Streaming
             try
             {
                 using (var res = req.GetResponse() as HttpWebResponse)
-                    if (((int)res.StatusCode / 100) != 2)
-                        return false;
-            }
-            catch (WebException webEx)
-            {
-                webEx.Response?.Dispose();
-
-                return false;
-            }
-
-            req = this.CreateReqeust("GET", "https://api.twitter.com/1.1/account/verify_credentials.json");
-            try
-            {
-                using (var res = req.GetResponse() as HttpWebResponse)
                 {
                     if (((int)res.StatusCode / 100) != 2)
                         return false;
