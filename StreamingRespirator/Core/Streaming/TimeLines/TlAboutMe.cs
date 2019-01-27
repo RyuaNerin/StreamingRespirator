@@ -42,10 +42,9 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
         protected override IEnumerable<TwitterStatus> ParseHtml(string html)
         {
-            var items = JsonConvert.DeserializeObject<ActivityList>(html)
-                                   .Where(e => e.Action == "retweet" || e.Action == "reply");
+            var items = JsonConvert.DeserializeObject<ActivityList>(html);
 
-            if (items.Count() == 0)
+            if (items.Count == 0)
                 return null;
 
             var curCursor = this.m_cursor;
@@ -54,7 +53,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             if (curCursor == 0)
                 return null;
 
-            return items.SelectMany(e => e.Targets)
+            return items.Where(e => e.Action == "retweet" || e.Action == "reply")
+                        .SelectMany(e => e.Targets)
                         .OrderBy(e => e.Id)
                         .ToArray();
         }
