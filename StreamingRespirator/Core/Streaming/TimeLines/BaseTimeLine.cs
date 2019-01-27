@@ -75,7 +75,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         private static readonly DateTime ForTimeStamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private void Refresh(object state)
         {
-            var next = 0;
+            var next = 15 * 1000;
 
             var req = this.m_twitterClient.Credential.CreateReqeust(this.Method, this.GetUrl());
             IEnumerable<T> items = null;
@@ -87,22 +87,21 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                     using (var reader = new StreamReader(stream, Encoding.UTF8))
                         items = this.ParseHtml(reader.ReadToEnd());
 
-                    /*
-                    x-rate-limit-limit      : 225
-                    x-rate-limit-remaining  : 9
-                    x-rate-limit-reset      : 1548385894
-                    */
-
-                    if (int.TryParse(res.Headers.Get("x-rate-limit-remaining"), out int remaining) &&
-                        int.TryParse(res.Headers.Get("x-rate-limit-reset"), out int reset))
-                    {
-                        next = Math.Min(1000, (int)((reset - (DateTime.UtcNow - ForTimeStamp).TotalSeconds) / remaining * 1000));
-                    }
+                    CalcNextRefresh(res.Headers, ref next);
                 }
             }
             catch (WebException webEx)
             {
-                webEx.Response?.Dispose();
+                if (webEx.Response != null)
+                {
+                    using (var res = webEx.Response as HttpWebResponse)
+                    {
+                        CalcNextRefresh(res.Headers, ref next);
+                    }
+                }
+            }
+            catch
+            {
             }
 
             if (items != null && items.Count() > 0)
@@ -139,6 +138,22 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             }
             catch
             {
+            }
+        }
+
+        private static void CalcNextRefresh(WebHeaderCollection headers, ref int next)
+        {
+            /*
+            x-rate-limit-limit      : 225
+            x-rate-limit-remaining  : 9
+            x-rate-limit-reset      : 1548385894
+            */
+
+            if (int.TryParse(headers.Get("x-rate-limit-remaining"), out int remaining) &&
+                int.TryParse(headers.Get("x-rate-limit-reset"    ), out int reset))
+            {
+                next = (int)((reset - (DateTime.UtcNow - ForTimeStamp).TotalSeconds) / remaining * 1000);
+                next = Math.Max(1000, next);
             }
         }
 
