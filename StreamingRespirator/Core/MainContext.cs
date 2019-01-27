@@ -16,22 +16,29 @@ namespace StreamingRespirator.Core
         private ContextMenuStrip   m_contextMenuStrip;
         private ToolStripMenuItem  m_stripAbout;
         private ToolStripSeparator m_stripSep0;
-        private ToolStripLabel     m_stripConnected;
+        private ToolStripMenuItem  m_stripAdd;
         private ToolStripSeparator m_stripSep1;
         private ToolStripMenuItem  m_stripExit;
 
-        private readonly Dictionary<long, ToolStripLabel> m_connected = new Dictionary<long, ToolStripLabel>();
+        private readonly Dictionary<long, ToolStripMenuItem> m_clients = new Dictionary<long, ToolStripMenuItem>();
 
         public MainContext()
         {
             this.m_invoker = new Control();
             this.m_invoker.CreateControl();
 
-            this.m_server = new RespiratorServer(this.m_invoker);
-            this.m_server.NewConnection  += this.Server_NewConnection;
-            this.m_server.LostConnection += this.Server_LostConnection;
+            this.m_server = new RespiratorServer();
+
+            TwitterClientFactory.ClientAdded   += this.TwitterClientFactory_ClientAdded;
+            TwitterClientFactory.ClientUpdated += this.TwitterClientFactory_ClientUpdated;
+            TwitterClientFactory.ClientRemoved += this.TwitterClientFactory_ClientRemoved;
+
+            TwitterClientFactory.ClientStarted += this.TwitterClientFactory_ClientStarted;
+            TwitterClientFactory.ClientStoped  += this.TwitterClientFactory_ClientStoped;
 
             this.InitializeComponent();
+
+            TwitterClientFactory.LoadCookie();
 
             if (!this.StartProxy())
                 Application.Exit();
@@ -44,7 +51,8 @@ namespace StreamingRespirator.Core
 
             this.m_stripSep0 = new ToolStripSeparator();
 
-            this.m_stripConnected = new ToolStripLabel("연결된 스트리밍");
+            this.m_stripAdd = new ToolStripMenuItem("계정 추가");
+            this.m_stripAdd.Click += this.StripAdd_Click;
 
             this.m_stripSep1 = new ToolStripSeparator();
 
@@ -53,12 +61,12 @@ namespace StreamingRespirator.Core
 
             this.m_contextMenuStrip = new ContextMenuStrip
             {
-                RenderMode      = ToolStripRenderMode.Professional,
+                //RenderMode      = ToolStripRenderMode.Professional,
                 Items =
                 {
                     this.m_stripAbout,
                     this.m_stripSep0,
-                    this.m_stripConnected,
+                    this.m_stripAdd,
                     this.m_stripSep1,
                     this.m_stripExit,
                 },
@@ -72,44 +80,104 @@ namespace StreamingRespirator.Core
             };
         }
 
-        private void Server_NewConnection(long id, string screenName)
+        private void TwitterClientFactory_ClientAdded(long id, string screenName)
         {
             if (this.m_invoker.InvokeRequired)
             {
-                this.m_invoker.Invoke(new Action<long, string>(this.Server_NewConnection), id, screenName);
+                this.m_invoker.Invoke(new Action<long, string>(this.TwitterClientFactory_ClientAdded), id, screenName);
             }
             else
             {
-                lock (this.m_connected)
+                lock (this.m_clients)
                 {
-                    if (this.m_connected.ContainsKey(id))
+                    if (this.m_clients.ContainsKey(id))
                         return;
 
-                    var item = new ToolStripLabel(screenName);
-                    this.m_connected.Add(id, item);
 
+                    var itemRemove = new ToolStripMenuItem("삭제")
+                    {
+                        Tag = id,
+                    };
+                    itemRemove.Click += new EventHandler(this.StripRemoveClient_Click);
+
+                    var item = new ToolStripMenuItem(screenName)
+                    {
+                        Checked      = false,
+                        CheckOnClick = false,
+                    };
+                    item.DropDownItems.Add(itemRemove);
+
+                    this.m_clients.Add(id, item);
                     this.m_contextMenuStrip.Items.Insert(this.m_contextMenuStrip.Items.Count - 2, item);
                 }
             }
         }
 
-        private void Server_LostConnection(long id)
+        private void StripRemoveClient_Click(object sender, EventArgs e)
+        {
+            var item = sender as ToolStripMenuItem;
+            TwitterClientFactory.RemoveClient((long)item.Tag);
+        }
+
+        private void TwitterClientFactory_ClientUpdated(long id, string screenName)
         {
             if (this.m_invoker.InvokeRequired)
             {
-                this.m_invoker.Invoke(new Action<long>(this.Server_LostConnection), id);
+                this.m_invoker.Invoke(new Action<long, string>(this.TwitterClientFactory_ClientUpdated), id, screenName);
             }
             else
             {
-                lock (this.m_connected)
+                lock (this.m_clients)
                 {
-                    if (!this.m_connected.ContainsKey(id))
-                        return;
-
-                    var item = this.m_connected[id];
-                    this.m_contextMenuStrip.Items.Remove(item);
-                    this.m_connected.Remove(id);
+                    this.m_clients[id].Text = screenName;
                 }
+            }
+        }
+
+        private void TwitterClientFactory_ClientRemoved(long id)
+        {
+            if (this.m_invoker.InvokeRequired)
+            {
+                this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientRemoved), id);
+            }
+            else
+            {
+                lock (this.m_clients)
+                {
+                    var item = this.m_clients[id];
+
+                    foreach (Control subItem in item.DropDownItems)
+                        subItem.Dispose();
+
+                    item.Dispose();
+
+                    this.m_clients.Remove(id);
+                }
+            }
+        }
+
+        private void TwitterClientFactory_ClientStarted(long id)
+        {
+            if (this.m_invoker.InvokeRequired)
+            {
+                this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientStarted), id);
+            }
+            else
+            {
+                lock (this.m_clients)
+                    this.m_clients[id].Checked = true;
+            }
+        }
+        private void TwitterClientFactory_ClientStoped(long id)
+        {
+            if (this.m_invoker.InvokeRequired)
+            {
+                this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientStoped), id);
+            }
+            else
+            {
+                lock (this.m_clients)
+                    this.m_clients[id].Checked = false;
             }
         }
 
@@ -132,6 +200,11 @@ namespace StreamingRespirator.Core
                 MessageBox.Show("호흡기 작동중에 오류가 발생하였습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return false;
             }
+        }
+
+        private void StripAdd_Click(object sender, EventArgs e)
+        {
+            TwitterClientFactory.AddClient(this.m_invoker);
         }
 
         private void StripAbout_Click(object sender, EventArgs e)

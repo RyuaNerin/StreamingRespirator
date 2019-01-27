@@ -7,8 +7,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 {
     internal class TlHome : BaseTimeLine<TwitterStatus>
     {
-        public TlHome(TweetDeck tweetDeck)
-            : base(tweetDeck)
+        public TlHome(TwitterClient twitterClient)
+            : base(twitterClient)
         {
         }
 
@@ -65,9 +65,6 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         {
             var lid = connection.LastStatus;
             connection.LastStatus = items.Max(e => e.Id);
-
-            if (lid == 0)
-                return null;
 
             return items.Where(e => e.Id > lid).OrderBy(e => e.Id);
         }

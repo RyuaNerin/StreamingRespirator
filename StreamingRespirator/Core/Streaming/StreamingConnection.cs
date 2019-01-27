@@ -64,11 +64,6 @@ namespace StreamingRespirator.Core.Streaming
             this.SendToStream(KeepAlivePacket);
         }
 
-        public void SendKeepAlive()
-        {
-            this.SendToStream(KeepAlivePacket);
-        }
-
         private static readonly JsonSerializerSettings Jss = new JsonSerializerSettings
         {
             StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,

@@ -6,8 +6,6 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using StreamingRespirator.Core.Streaming.Twitter.Packet;
 using StreamingRespirator.Utilities;
 using Titanium.Web.Proxy;
 using Titanium.Web.Proxy.EventArguments;
@@ -27,22 +25,15 @@ namespace StreamingRespirator.Core.Streaming
         private readonly ProxyServer m_proxy;
         private readonly ExplicitProxyEndPoint m_proxyEndPoint;
 
-        private readonly Control m_invoker;
-
         private readonly HttpListener m_httpStreamingListener;
         private string m_streamingUrl;
 
         private readonly HashSet<StreamingConnection> m_connections = new HashSet<StreamingConnection>();
 
-        public event Action<long, string> NewConnection;
-        public event Action<long>         LostConnection;
-
         public bool IsRunning { get; private set; }
 
-        public RespiratorServer(Control invoker)
+        public RespiratorServer()
         {
-            this.m_invoker = invoker;
-
             this.m_proxyEndPoint = new ExplicitProxyEndPoint(IPAddress.Loopback, ProxyPort);
             this.m_proxyEndPoint.BeforeTunnelConnectRequest += this.EntPoint_BeforeTunnelConnectRequest;
 
@@ -172,19 +163,15 @@ namespace StreamingRespirator.Core.Streaming
 
         private void Listener_GetHttpContext(IAsyncResult ar)
         {
-            HttpListenerContext cnt;
             try
             {
-                cnt = this.m_httpStreamingListener.EndGetContext(ar);
+                new Thread(this.ConnectionThread).Start(this.m_httpStreamingListener.EndGetContext(ar));
             }
             catch
             {
-                return;
             }
 
             this.m_httpStreamingListener.BeginGetContext(this.Listener_GetHttpContext, null);
-
-            new Thread(this.ConnectionThread).Start(cnt);
         }
 
         private void ConnectionThread(object listenerContextObject)
@@ -203,13 +190,11 @@ namespace StreamingRespirator.Core.Streaming
 
             if (ownerId != 0)
             {
-                var td = TweetDeck.GetTweetDeck(ownerId, this.m_invoker);
+                var twitterClient = TwitterClientFactory.GetClient(ownerId);
 
-                if (td == null)
+                if (twitterClient == null)
                 {
                     cnt.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
-
-                    cnt.Response.Close();
                 }
                 else
                 {
@@ -221,19 +206,15 @@ namespace StreamingRespirator.Core.Streaming
                     {
                         lock (this.m_connections)
                             this.m_connections.Add(sc);
-                        
-                        sc.SendToStream(new PacketFriends() { Friends = td.GetFriends() });
 
-                        td.AddConnection(sc);
-                        this.NewConnection?.Invoke(ownerId, td.Auth.ScreenName);
+                        twitterClient.AddConnection(sc);
 
                         sc.Stream.WaitHandle.WaitOne();
 
                         lock (this.m_connections)
                             this.m_connections.Remove(sc);
 
-                        td.RemoveStream(sc);
-                        this.LostConnection?.Invoke(ownerId);
+                        twitterClient.RemoveStream(sc);
                     }
                 }
 

@@ -8,8 +8,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 {
     internal class TlDirectMessage : BaseTimeLine<PacketDirectMessage>
     {
-        public TlDirectMessage(TweetDeck tweetDeck)
-            : base(tweetDeck)
+        public TlDirectMessage(TwitterClient twitterClient)
+            : base(twitterClient)
         {
         }
 
@@ -89,9 +89,6 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         {
             var lid = connection.LastDirectMessage;
             connection.LastDirectMessage = items.Max(e => e.Item.Id);
-
-            if (lid == 0)
-                return null;
 
             return items.Where(e => e.Item.Id > lid).OrderBy(e => e.Item.Id);
         }

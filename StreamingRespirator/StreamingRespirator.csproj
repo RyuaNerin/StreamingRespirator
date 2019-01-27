@@ -103,6 +103,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Streaming\TwitterClientFactory.cs" />
+    <Compile Include="Core\Streaming\TwitterCredentials.cs" />
     <Compile Include="Core\Streaming\Twitter\Packet\PacketEvent.cs" />
     <Compile Include="Core\Streaming\Twitter\Packet\PacketFriends.cs" />
     <Compile Include="Core\Streaming\Twitter\TwitterStatus.cs" />
@@ -112,7 +114,7 @@
     <Compile Include="Core\Streaming\TimeLines\BaseTimeLine.cs" />
     <Compile Include="Core\Streaming\TimeLines\TlDirectMessage.cs" />
     <Compile Include="Core\Streaming\TimeLines\TlHome.cs" />
-    <Compile Include="Core\Streaming\Tweetdeck.cs" />
+    <Compile Include="Core\Streaming\TwitterClient.cs" />
     <Compile Include="Core\Streaming\UserCache.cs" />
     <Compile Include="Core\Windows\LoginWindow.cs">
       <SubType>Form</SubType>

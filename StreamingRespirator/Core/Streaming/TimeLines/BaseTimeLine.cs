@@ -20,14 +20,14 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
     internal abstract class BaseTimeLine<T> : ITimeLine, IDisposable
         where T: IPacket
     {
-        private readonly TweetDeck m_tweetDeck;
+        private readonly TwitterClient m_twitterClient;
         private readonly Timer m_timer;
 
         protected abstract string Method { get; }
 
-        protected BaseTimeLine(TweetDeck tweetDeck)
+        protected BaseTimeLine(TwitterClient twitterClient)
         {
-            this.m_tweetDeck = tweetDeck;
+            this.m_twitterClient = twitterClient;
             this.m_timer = new Timer(this.Refresh, null, Timeout.Infinite, Timeout.Infinite);
         }
 
@@ -77,7 +77,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         {
             var next = 0;
 
-            var req = this.m_tweetDeck.CreateReqeust(this.Method, this.GetUrl());
+            var req = this.m_twitterClient.Credential.CreateReqeust(this.Method, this.GetUrl());
             IEnumerable<T> items = null;
             try
             {
@@ -113,12 +113,12 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                     if (users != null)
                     {
                         foreach (var user in users)
-                            if (this.m_tweetDeck.UserCache.IsUpdated(user))
+                            if (this.m_twitterClient.UserCache.IsUpdated(user))
                                 this.UserUpdatedEvent(user);
                     }
                 });
 
-                Parallel.ForEach(this.m_tweetDeck.GetConnections(),
+                Parallel.ForEach(this.m_twitterClient.GetConnections(),
                     connection =>
                     {
                         var filtered = this.FilterItemForConnection(connection, items);
@@ -150,7 +150,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 Target = user,
             };
 
-            Parallel.ForEach(this.m_tweetDeck.GetConnections(), connection => connection.SendToStream(data));
+            Parallel.ForEach(this.m_twitterClient.GetConnections(), connection => connection.SendToStream(data));
         }
     }
 }
