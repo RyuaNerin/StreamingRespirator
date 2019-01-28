@@ -2,11 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using StreamingRespirator.Core.Streaming.Twitter;
 using StreamingRespirator.Utilities;
 using Titanium.Web.Proxy;
 using Titanium.Web.Proxy.EventArguments;
@@ -185,7 +188,146 @@ namespace StreamingRespirator.Core.Streaming
                 e.Respond(res);
             }
 
+            // 404 : id = 삭제된 트윗일 수 있음
+            // 200 : 성공시 스트리밍에 전송해서 한번 더 띄우도록
+            // POST https://api.twitter.com/1.1/statuses/retweet/:id.json
+            else if (uri.Host == "api.twitter.com" &&
+                     uri.AbsolutePath.StartsWith("/1.1/statuses/retweet/"))
+            {
+                CustomRequest_Retweet(e);
+            }
+
             return Task.FromResult(true);
+        }
+        private static bool CustomRequest_Retweet(SessionEventArgs e)
+        {
+            var ownerId = ParseOwnerId(e.HttpClient.Request.RequestUri, e.HttpClient.Request.Headers);
+            if (ownerId == 0)
+                return false;
+
+            var twitClient = TwitterClientFactory.GetInsatnce(ownerId);
+            if (twitClient == null)
+                return false;
+            
+            string body;
+            int statusCode;
+            var response = GetResponse(e, false, out statusCode, out body);
+            if (response == null)
+                return false;
+
+            e.Respond(response);
+
+            if (statusCode == 404)
+                twitClient.StatusMaybeDestroyed(ParseJsonId(e.HttpClient.Request.RequestUri));
+            else
+            {
+                var status = JsonConvert.DeserializeObject<TwitterStatus>(body);
+
+                if (status != null)
+                    twitClient.SendStatus(status);
+            }
+
+            return true;
+        }
+        private static Response GetResponse(SessionEventArgs e, bool sendBody, out int statusCode, out string body)
+        {
+            statusCode = 0;
+            body = null;
+
+            var reqProxy = e.HttpClient.Request;
+
+            var reqHttp = WebRequest.Create(reqProxy.RequestUri) as HttpWebRequest;
+            reqHttp.Method = reqProxy.Method;
+            
+            foreach (var head in reqProxy.Headers)
+            {
+                switch (head.Name.ToLower())
+                {
+                    case "accept"               : reqHttp.Accept            = head.Value; break;
+                    case "connection"           : reqHttp.Connection        = head.Value; break;
+                    case "content-length"       :                                         break;
+                    case "content-type"         : reqHttp.ContentType       = head.Value; break;
+                    case "expect"               : reqHttp.Expect            = head.Value; break;
+                    case "host"                 : reqHttp.Host              = head.Value; break;
+                    case "media-type"           : reqHttp.MediaType         = head.Value; break;
+                    case "referer"              : reqHttp.Referer           = head.Value; break;
+                    case "transfer-encoding"    : reqHttp.TransferEncoding  = head.Value; break;
+                    case "user-agent"           : reqHttp.UserAgent         = head.Value; break;
+
+                    default:
+                        reqHttp.Headers.Set(head.Name, head.Value);
+                        break;
+                }
+            }
+
+            if (sendBody && e.HttpClient.Request.HasBody)
+            {
+                var task = e.GetRequestBody();
+                task.Wait();
+
+                var buff = task.Result;
+                reqHttp.GetRequestStream().Write(buff, 0, buff.Length);
+            }
+
+            HttpWebResponse resHttp = null;
+            try
+            {
+                resHttp = reqHttp.GetResponse() as HttpWebResponse;
+            }
+            catch (WebException webEx)
+            {
+                if (webEx.Response != null)
+                    resHttp = webEx.Response as HttpWebResponse;
+            }
+            catch
+            {
+            }
+
+            if (resHttp == null)
+                return null;
+            
+            using (resHttp)
+            {
+                statusCode = (int)resHttp.StatusCode;
+
+                using (var mem = new MemoryStream(4096))
+                {
+                    using (var stream = resHttp.GetResponseStream())
+                    {
+                        var buff = new byte[4096];
+                        var count = 0;
+
+                        while ((count = stream.Read(buff, 0, 4096)) > 0)
+                            mem.Write(buff, 0, count);
+                    }
+
+                    mem.Position = 0;
+
+                    using (var reader = new StreamReader(mem))
+                        body = reader.ReadToEnd();
+
+                    var resProxy = new Response(mem.ToArray())
+                    {
+                        HttpVersion = e.HttpClient.Request.HttpVersion,
+                        StatusCode = (int)resHttp.StatusCode,
+                        StatusDescription = resHttp.StatusDescription,
+                    };
+
+                    foreach (var headerName in resHttp.Headers.AllKeys)
+                    {
+                        switch (headerName.ToLower())
+                        {
+                            case "content-type": resProxy.ContentType = resHttp.Headers[headerName]; break;
+
+                            default:
+                                resProxy.Headers.AddHeader(headerName, resHttp.Headers[headerName]);
+                                break;
+                        }
+                    }
+
+                    return resProxy;
+                }
+            }
         }
 
         private Task Proxy_AfterResponse(object sender, SessionEventArgs e)
@@ -215,19 +357,10 @@ namespace StreamingRespirator.Core.Streaming
                 twitClient.StatusDestroyed(ParseJsonId(uri));
                 return;
             }
-            if (uri.AbsolutePath.StartsWith("/1.1/statuses/retweet/"))
+            if (uri.AbsolutePath.StartsWith("/1.1/statuses/unretweet/"))
             {
                 twitClient.StatusDestroyed(ParseJsonId(uri));
                 return;
-            }
-
-            // 404 : id = 삭제된 트윗일 수 있음
-            // 성공시 스트리밍에 전송해서 한번 더 띄우도록
-            // POST https://api.twitter.com/1.1/statuses/retweet/:id.json
-            if (uri.AbsolutePath.StartsWith("/1.1/statuses/retweet/"))
-            {
-                if (e.HttpClient.Response.StatusCode == 404)
-                    twitClient.StatusMaybeDestroyed(ParseJsonId(uri));
             }
 
             // 401 : in_reply_to_status_id = 삭제된 트윗일 수 있음
@@ -252,6 +385,7 @@ namespace StreamingRespirator.Core.Streaming
                 }
             }
         }
+
         private static long ParseJsonId(Uri uri)
         {
             var idStr = uri.AbsolutePath;

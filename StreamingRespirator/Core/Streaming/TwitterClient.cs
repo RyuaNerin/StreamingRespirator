@@ -218,5 +218,10 @@ namespace StreamingRespirator.Core.Streaming
 
             return null;
         }
+
+        public void SendStatus(TwitterStatus stauts)
+        {
+            Task.Factory.StartNew(() => Parallel.ForEach(this.GetConnections(), e => e.SendToStream(stauts)));
+        }
     }
 }
