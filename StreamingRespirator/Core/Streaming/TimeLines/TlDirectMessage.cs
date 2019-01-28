@@ -64,7 +64,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             return (items, users);
         }
 
-        private static PacketDirectMessage ToPacket(DirectMessage dm, DirectMessageEntry e)
+        private static PacketDirectMessage ToPacket(DirectMessage dm, DirectMessage.Entry e)
         {
             var packet = new PacketDirectMessage();
             packet.Item.Id        = e.Message.Data.Id;
