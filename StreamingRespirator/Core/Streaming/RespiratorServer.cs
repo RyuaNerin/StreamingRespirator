@@ -201,7 +201,7 @@ namespace StreamingRespirator.Core.Streaming
                     if (type != 0)
                     {
                         var idStr = uri.AbsolutePath;
-                        idStr = idStr.Substring(idStr.LastIndexOf('/'));
+                        idStr = idStr.Substring(idStr.LastIndexOf('/') + 1);
                         idStr = idStr.Substring(0, idStr.IndexOf('.'));
 
                         if (long.TryParse(idStr, out var id))
