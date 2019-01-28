@@ -101,6 +101,17 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
+        public static TwitterClient GetInsatnce(long id)
+        {
+            lock (Instances)
+            {
+                if (!Instances.ContainsKey(id))
+                    return null;
+
+                return Instances[id];
+            }
+        }
+
         public static void RemoveClient(long id)
         {
             lock (Instances)

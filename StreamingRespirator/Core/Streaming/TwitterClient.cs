@@ -159,5 +159,24 @@ namespace StreamingRespirator.Core.Streaming
             lock (this.m_connections)
                 return this.m_connections.ToArray();
         }
+
+        public void CallStatusDestroy(long id)
+        {
+            Task.Factory.StartNew(() => this.SendDeletePacket(this.Credential.Id, id));
+        }
+
+        public void CallStatusUnreweet(long id)
+        {
+            Task.Factory.StartNew(() => this.SendDeletePacket(this.Credential.Id, id));
+        }
+
+        internal void SendDeletePacket(long userId, long id)
+        {
+            var packetDelete = new PacketDelete();
+            packetDelete.Delete.Status.UserId = userId;
+            packetDelete.Delete.Status.Id = id;
+
+            Parallel.ForEach(this.GetConnections(), e => e.SendToStream(packetDelete));
+        }
     }
 }

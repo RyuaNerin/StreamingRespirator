@@ -105,6 +105,7 @@
   <ItemGroup>
     <Compile Include="Core\Streaming\TwitterClientFactory.cs" />
     <Compile Include="Core\Streaming\TwitterCredentials.cs" />
+    <Compile Include="Core\Streaming\Twitter\Packet\PacketDelete.cs" />
     <Compile Include="Core\Streaming\Twitter\Packet\PacketEvent.cs" />
     <Compile Include="Core\Streaming\Twitter\Packet\PacketFriends.cs" />
     <Compile Include="Core\Streaming\Twitter\TwitterStatus.cs" />
