@@ -58,7 +58,7 @@ namespace StreamingRespirator.Core.Streaming.Twitter
         public long Time { get; set; }
 
         [JsonIgnore]
-        public DateTime CreatedAt => new DateTime(1970, 1, 1, 0, 0, 0).AddSeconds(this.Time);
+        public DateTime CreatedAt => new DateTime(1970, 1, 1, 0, 0, 0).AddMilliseconds(this.Time);
 
         [JsonProperty("recipient_id")]
         public string Recipiend_Id { get; set; }
