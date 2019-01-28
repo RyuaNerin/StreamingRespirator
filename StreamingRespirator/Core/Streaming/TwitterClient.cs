@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using StreamingRespirator.Core.Streaming.TimeLines;
+using StreamingRespirator.Core.Streaming.Twitter;
 using StreamingRespirator.Core.Streaming.Twitter.Packet;
 
 namespace StreamingRespirator.Core.Streaming
@@ -119,7 +121,7 @@ namespace StreamingRespirator.Core.Streaming
             [JsonProperty("ids")]
             public long[] Ids { get; set; }
         }
-        private void SendFriendsPacket(StreamingConnection connection)
+        public void SendFriendsPacket(StreamingConnection connection)
         {
             var GetFriendsPacket = new PacketFriends
             {
@@ -160,23 +162,61 @@ namespace StreamingRespirator.Core.Streaming
                 return this.m_connections.ToArray();
         }
 
-        public void CallStatusDestroy(long id)
+        public void StatusDestroyed(long id)
         {
             Task.Factory.StartNew(() => this.SendDeletePacket(this.Credential.Id, id));
         }
-
-        public void CallStatusUnreweet(long id)
-        {
-            Task.Factory.StartNew(() => this.SendDeletePacket(this.Credential.Id, id));
-        }
-
-        internal void SendDeletePacket(long userId, long id)
+        private void SendDeletePacket(long userId, long id)
         {
             var packetDelete = new PacketDelete();
             packetDelete.Delete.Status.UserId = userId;
             packetDelete.Delete.Status.Id = id;
 
             Parallel.ForEach(this.GetConnections(), e => e.SendToStream(packetDelete));
+        }
+
+        public void StatusMaybeDestroyed(long id)
+        {
+            Task.Factory.StartNew(() => this.CheckStatus(id));
+        }
+        private void CheckStatus(long id)
+        {
+            if (this.ShowStatus(id) != null)
+                return;
+
+            var packetDelete = new PacketDelete();
+            packetDelete.Delete.Status.UserId = 0;
+            packetDelete.Delete.Status.Id = id;
+
+            Parallel.ForEach(this.GetConnections(), e => e.SendToStream(packetDelete));
+        }
+        private TwitterStatus ShowStatus(long id)
+        {
+            /*
+            id                   | ///
+            */
+            var req = this.Credential.CreateReqeust("GET", "https://api.twitter.com/1.1/statuses/show.json?id=" + id);
+
+            try
+            {
+                using (var res = req.GetResponse() as HttpWebResponse)
+                {
+                    using (var stream = res.GetResponseStream())
+                    using (var reader = new StreamReader(stream, Encoding.UTF8))
+                    {
+                        return JsonConvert.DeserializeObject<TwitterStatus>(reader.ReadToEnd());
+                    }
+                }
+            }
+            catch (WebException webEx)
+            {
+                webEx.Response?.Dispose();
+            }
+            catch
+            {
+            }
+
+            return null;
         }
     }
 }

@@ -123,29 +123,35 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
-        private static long ParseOwnerId(HeaderCollection headers)
+        private static long ParseOwnerId(Uri uri, HeaderCollection headers)
         {
-            if (!headers.Headers.TryGetValue("Authorization", out var authHeader))
-                return 0;
+            string authHeader = null;
 
-            if (string.IsNullOrWhiteSpace(authHeader.Value))
-                return 0;
+            if (headers.Headers.TryGetValue("Authorization", out var head))
+            {
+                if (!string.IsNullOrWhiteSpace(head.Value))
+                    authHeader = head.Value;
+            }
 
-            return ParseOwnerId(authHeader.Value);
+            if (authHeader == null)
+                authHeader = uri.Query;
+
+
+            return ParseOwnerId(authHeader);
         }
-        private static long ParseOwnerId(NameValueCollection headers)
+        private static long ParseOwnerId(Uri uri, NameValueCollection headers)
         {
             var header = headers.Get("Authorization");
 
             if (string.IsNullOrWhiteSpace(header))
-                return 0;
+                header = uri.Query;
 
             return ParseOwnerId(header);
         }
 
         private static long ParseOwnerId(string authorizationHeader)
         {
-            var m = Regex.Match(authorizationHeader, "oauth_token=\"([0-9]+)\\-");
+            var m = Regex.Match(authorizationHeader, "oauth_token=\"?([0-9]+)\\-");
             if (!m.Success)
                 return 0;
 
@@ -166,7 +172,7 @@ namespace StreamingRespirator.Core.Streaming
                     StatusDescription = "Unauthorized",
                 };
                 
-                var ownerId = ParseOwnerId(e.HttpClient.Request.Headers);
+                var ownerId = ParseOwnerId(uri, e.HttpClient.Request.Headers);
                 if (ownerId != 0)
                 {
                     res.StatusCode = (int)HttpStatusCode.Found;
@@ -184,44 +190,75 @@ namespace StreamingRespirator.Core.Streaming
 
         private Task Proxy_AfterResponse(object sender, SessionEventArgs e)
         {
+            this.Proxy_AfterResponse(e);
+            return Task.FromResult(true);
+        }
+        private async void Proxy_AfterResponse(SessionEventArgs e)
+        {
+            var uri = e.HttpClient.Request.RequestUri;
+            if (uri.Host != "api.twitter.com")
+                return;
+
+            var ownerId = ParseOwnerId(uri, e.HttpClient.Request.Headers);
+            if (ownerId == 0)
+                return;
+
+            var twitClient = TwitterClientFactory.GetInsatnce(ownerId);
+            if (twitClient == null)
+                return;
+
+            // 삭제 패킷 전송
             // POST https://api.twitter.com/1.1/statuses/destroy/:id.json
             // POST https://api.twitter.com/1.1/statuses/unretweet/:id.json
-
-            if (e.HttpClient.Request.Method.ToUpper() == "POST")
+            if (uri.AbsolutePath.StartsWith("/1.1/statuses/destroy/"))
             {
-                var uri = e.HttpClient.Request.RequestUri;
+                twitClient.StatusDestroyed(ParseJsonId(uri));
+                return;
+            }
+            if (uri.AbsolutePath.StartsWith("/1.1/statuses/retweet/"))
+            {
+                twitClient.StatusDestroyed(ParseJsonId(uri));
+                return;
+            }
 
-                if (uri.Host == "api.twitter.com")
+            // 404 : id = 삭제된 트윗일 수 있음
+            // 성공시 스트리밍에 전송해서 한번 더 띄우도록
+            // POST https://api.twitter.com/1.1/statuses/retweet/:id.json
+            if (uri.AbsolutePath.StartsWith("/1.1/statuses/retweet/"))
+            {
+                if (e.HttpClient.Response.StatusCode == 404)
+                    twitClient.StatusMaybeDestroyed(ParseJsonId(uri));
+            }
+
+            // 401 : in_reply_to_status_id = 삭제된 트윗일 수 있음
+            // POST https://api.twitter.com/1.1/statuses/update.json
+            if (uri.AbsolutePath.StartsWith("/1.1/statuses/update.json"))
+            {
+                if (e.HttpClient.Response.StatusCode == 401)
                 {
-                    var type = 0;
+                    string queryString;
 
-                         if (uri.AbsolutePath.StartsWith("/1.1/statuses/destroy/"  )) type = 1;
-                    else if (uri.AbsolutePath.StartsWith("/1.1/statuses/unretweet/")) type = 2;
+                    if (e.HttpClient.Request.HasBody)
+                        queryString = await e.GetRequestBodyAsString();
+                    else
+                        queryString = uri.Query;
 
-                    if (type != 0)
+                    var m = Regex.Match(queryString, "in_reply_to_status_id=(\\d)+");
+
+                    if (m.Success && long.TryParse(m.Groups[1].Value, out var id))
                     {
-                        var idStr = uri.AbsolutePath;
-                        idStr = idStr.Substring(idStr.LastIndexOf('/') + 1);
-                        idStr = idStr.Substring(0, idStr.IndexOf('.'));
-
-                        if (long.TryParse(idStr, out var id))
-                        {
-                            var ownerId = ParseOwnerId(e.HttpClient.Request.Headers);
-                            if (ownerId != 0)
-                            {
-                                var twitClient = TwitterClientFactory.GetInsatnce(ownerId);
-                                if (twitClient != null)
-                                {
-                                    if (type == 1) twitClient.CallStatusDestroy(id);
-                                    if (type == 2) twitClient.CallStatusUnreweet(id);
-                                }
-                            }
-                        }
+                        twitClient.StatusMaybeDestroyed(id);
                     }
                 }
             }
+        }
+        private static long ParseJsonId(Uri uri)
+        {
+            var idStr = uri.AbsolutePath;
+            idStr = idStr.Substring(idStr.LastIndexOf('/') + 1);
+            idStr = idStr.Substring(0, idStr.IndexOf('.'));
 
-            return Task.FromResult(true);
+            return long.TryParse(idStr, out var id) ? id : 0;
         }
 
         private void Listener_GetHttpContext(IAsyncResult ar)
@@ -246,7 +283,7 @@ namespace StreamingRespirator.Core.Streaming
 
             Debug.WriteLine($"streaming connected : {desc}");
 
-            long ownerId = ParseOwnerId(cnt.Request.Headers);
+            long ownerId = ParseOwnerId(cnt.Request.Url, cnt.Request.Headers);
 
             if (ownerId == 0)
                 if (cnt.Request.Url.AbsolutePath.Length > 1)
@@ -266,7 +303,7 @@ namespace StreamingRespirator.Core.Streaming
                     cnt.Response.AppendHeader("Connection", "close");
                     cnt.Response.SendChunked = true;
 
-                    using (var sc = new StreamingConnection(new WaitableStream(cnt.Response.OutputStream), ownerId, desc))
+                    using (var sc = new StreamingConnection(new WaitableStream(cnt.Response.OutputStream), twitterClient))
                     {
                         lock (this.m_connections)
                             this.m_connections.Add(sc);
@@ -286,6 +323,7 @@ namespace StreamingRespirator.Core.Streaming
             }
 
             Debug.WriteLine($"streaming disconnected : {desc}");
+            cnt.Response.OutputStream.Dispose();
             cnt.Response.Close();
         }
     }

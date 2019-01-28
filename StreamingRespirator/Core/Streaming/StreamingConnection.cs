@@ -16,18 +16,21 @@ namespace StreamingRespirator.Core.Streaming
         private const int KeepAlivePeriod = 5 * 1000;
 
         private readonly Timer m_keepAlive;
+        private readonly Timer m_friends;
 
         public WaitableStream Stream      { get; }
-        public string         Description { get; }
-        public long           OwnerId     { get; }
+        public TwitterClient  Client      { get; }
 
-        public StreamingConnection(WaitableStream item, long ownerId, string description)
+        public long OwnerId
+            => this.Client.Credential.Id;
+
+        public StreamingConnection(WaitableStream item, TwitterClient client)
         {
-            this.Stream      = item;
-            this.OwnerId     = ownerId;
-            this.Description = description;
+            this.Stream = item;
+            this.Client = client;
 
             this.m_keepAlive = new Timer(this.SendKeepAlive, null, KeepAlivePeriod, KeepAlivePeriod);
+            this.m_friends   = new Timer(this.SendKeepAlive, null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
         }
 
         ~StreamingConnection()
@@ -49,8 +52,8 @@ namespace StreamingRespirator.Core.Streaming
 
             if (disposing)
             {
+                this.m_friends  .Dispose();
                 this.m_keepAlive.Dispose();
-                this.Stream     .Dispose();
             }
         }
         
@@ -58,6 +61,11 @@ namespace StreamingRespirator.Core.Streaming
         private void SendKeepAlive(object sender)
         {
             this.SendToStream(KeepAlivePacket);
+        }
+
+        private void SendFriends(object sender)
+        {
+            this.Client.SendFriendsPacket(this);
         }
 
         private static readonly JsonSerializerSettings Jss = new JsonSerializerSettings
