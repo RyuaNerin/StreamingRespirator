@@ -21,10 +21,6 @@ namespace StreamingRespirator.Core.Streaming
         public string         Description { get; }
         public long           OwnerId     { get; }
 
-        public long LastStatus        { get; set; }
-        public long LastActivity      { get; set; }
-        public long LastDirectMessage { get; set; }
-
         public StreamingConnection(WaitableStream item, long ownerId, string description)
         {
             this.Stream      = item;

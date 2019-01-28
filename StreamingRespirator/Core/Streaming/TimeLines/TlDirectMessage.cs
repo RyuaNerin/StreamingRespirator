@@ -25,7 +25,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         include_ext_alt_text    | true
         include_reply_count	    | true
         ----------------------------------------
-        cursor                  | /////
+        since_id                |     | cursor
         */
         private const string BaseUrl = "https://api.twitter.com/1.1/dm/user_updates.json?include_groups=true&ext=altText&cards_platform=Web-13&include_entities=1&include_user_entities=1&include_cards=1&send_error_codes=1&tweet_mode=extended&include_ext_alt_text=true&include_reply_count=true";
 
@@ -40,57 +40,40 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 return BaseUrl + "&cursor=" + this.m_cursor;
         }
 
-        protected override IEnumerable<PacketDirectMessage> ParseHtml(string html)
+        protected override (IEnumerable<PacketDirectMessage> items, IEnumerable<TwitterUser> users) ParseHtml(string html)
         {
-            var dmJson = JsonConvert.DeserializeObject<DirectMessage>(html);
+            var dm = JsonConvert.DeserializeObject<DirectMessage>(html);
+            if (!(dm?.Item?.Entries?.Length > 0))
+                return (null, null);
 
-            if (!(dmJson?.Item?.Entries?.Length > 0))
-                return null;
+            var items = dm.Item
+                          .Entries
+                          .Where(e => e.Message != null)
+                          .Select(e => ToPacket(dm, e))
+                          .OrderBy(e => e.Item.Id)
+                          .ToArray();
+
+            var users = items.Select(e => e.Item.Sender);
 
             var curCursor = this.m_cursor;
-            this.m_cursor = dmJson.Item.Cursor;
+            this.m_cursor = dm.Item.Cursor;
 
             if (curCursor == null)
-                return null;
+                items = null;
 
-            return dmJson.Item
-                         .Entries
-                         .Where(e => e.Message != null)
-                         .Select(e =>
-                         {
-                             var dm = new PacketDirectMessage();
-
-                             dm.Item.Id = e.Message.Data.Id;
-                             dm.Item.IdStr = e.Message.Data.Id.ToString();
-                             dm.Item.Text = e.Message.Data.Text;
-                             dm.Item.CreatedAt = e.Message.Data.CreatedAt;
-
-                             var sender = dmJson.Item.Users[e.Message.Data.Sender_Id];
-                             dm.Item.Sender = sender;
-                             dm.Item.SenderId = sender.Id;
-                             dm.Item.SenderScreenName = sender.ScreenName;
-
-                             var recipient = dmJson.Item.Users[e.Message.Data.Recipiend_Id];
-                             dm.Item.Recipient = recipient;
-                             dm.Item.RecipientId = recipient.Id;
-                             dm.Item.RecipientScreenName = recipient.ScreenName;
-
-                             return dm;
-                         })
-                         .ToArray();
+            return (items, users);
         }
 
-        protected override IEnumerable<TwitterUser> SelectUsers(IEnumerable<PacketDirectMessage> items)
+        private static PacketDirectMessage ToPacket(DirectMessage dm, DirectMessageEntry e)
         {
-            return items.Select(e => e.Item.Sender);
-        }
+            var packet = new PacketDirectMessage();
+            packet.Item.Id        = e.Message.Data.Id;
+            packet.Item.Text      = e.Message.Data.Text;
+            packet.Item.CreatedAt = e.Message.Data.CreatedAt;
+            packet.Item.Sender    = dm.Item.Users[e.Message.Data.Sender_Id];
+            packet.Item.Recipient = dm.Item.Users[e.Message.Data.Recipiend_Id];
 
-        protected override IEnumerable<PacketDirectMessage> FilterItemForConnection(StreamingConnection connection, IEnumerable<PacketDirectMessage> items)
-        {
-            var lid = connection.LastDirectMessage;
-            connection.LastDirectMessage = items.Max(e => e.Item.Id);
-
-            return items.Where(e => e.Item.Id > lid).OrderBy(e => e.Item.Id);
+            return packet;
         }
     }
 }

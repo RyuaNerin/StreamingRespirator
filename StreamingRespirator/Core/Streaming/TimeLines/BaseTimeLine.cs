@@ -68,9 +68,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         }
 
         protected abstract string GetUrl();
-        protected abstract IEnumerable<T> ParseHtml(string html);
-        protected abstract IEnumerable<TwitterUser> SelectUsers(IEnumerable<T> items);
-        protected abstract IEnumerable<T> FilterItemForConnection(StreamingConnection connection, IEnumerable<T> items);
+        protected abstract (IEnumerable<T> items, IEnumerable<TwitterUser> users) ParseHtml(string html);
 
         private static readonly DateTime ForTimeStamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private void Refresh(object state)
@@ -79,13 +77,14 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             var req = this.m_twitterClient.Credential.CreateReqeust(this.Method, this.GetUrl());
             IEnumerable<T> items = null;
+            IEnumerable<TwitterUser> users = null;
             try
             {
                 using (var res = req.GetResponse() as HttpWebResponse)
                 {
                     using (var stream = res.GetResponseStream())
                     using (var reader = new StreamReader(stream, Encoding.UTF8))
-                        items = this.ParseHtml(reader.ReadToEnd());
+                        (items, users) = this.ParseHtml(reader.ReadToEnd());
 
                     CalcNextRefresh(res.Headers, ref next);
                 }
@@ -103,33 +102,28 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             catch
             {
             }
+            
+            var userCacheTask = Task.Factory.StartNew(() =>
+            {
+                if (users != null)
+                {
+                    foreach (var user in users)
+                        if (this.m_twitterClient.UserCache.IsUpdated(user))
+                            this.UserUpdatedEvent(user);
+                }
+            });
 
             if (items != null && items.Count() > 0)
             {
-                var task = Task.Factory.StartNew(() =>
-                {
-                    var users = this.SelectUsers(items);
-                    if (users != null)
-                    {
-                        foreach (var user in users)
-                            if (this.m_twitterClient.UserCache.IsUpdated(user))
-                                this.UserUpdatedEvent(user);
-                    }
-                });
-
                 Parallel.ForEach(this.m_twitterClient.GetConnections(),
                     connection =>
                     {
-                        var filtered = this.FilterItemForConnection(connection, items);
-                        if (filtered == null)
-                            return;
-
-                        foreach (var item in filtered)
+                        foreach (var item in items)
                             connection.SendToStream(item);
                     });
-
-                task.Wait();
             }
+
+            userCacheTask.Wait();
 
             try
             {

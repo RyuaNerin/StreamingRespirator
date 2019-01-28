@@ -20,7 +20,7 @@ namespace StreamingRespirator.Core.Streaming.Twitter.Packet
         public long Id { get; set; }
 
         [JsonProperty("id_str")]
-        public string IdStr { get; set; }
+        public string IdStr => this.Id.ToString();
 
         [JsonProperty("text")]
         public string Text { get; set; }
@@ -32,19 +32,19 @@ namespace StreamingRespirator.Core.Streaming.Twitter.Packet
         public TwitterUser Sender { get; set; }
 
         [JsonProperty("sender_id")]
-        public long SenderId { get; set; }
+        public long SenderId => this.Sender?.Id ?? 0;
 
         [JsonProperty("sender_screen_name")]
-        public string SenderScreenName { get; set; }
-        
+        public string SenderScreenName => this.Sender?.ScreenName;
+
         [JsonProperty("recipient")]
         public TwitterUser Recipient { get; set; }
 
         [JsonProperty("recipient_id")]
-        public long RecipientId { get; set; }
+        public long RecipientId => this.Recipient?.Id ?? 0;
 
         [JsonProperty("recipient_screen_name")]
-        public string RecipientScreenName { get; set; }
+        public string RecipientScreenName => this.Recipient?.ScreenName;
 
     }
 }
