@@ -24,7 +24,16 @@ namespace StreamingRespirator.Core.Streaming.Twitter
         public TwitterUser User { get; set; }
 
         [JsonIgnore]
-        public string Text => ((this.AdditionalData["full_text"] ?? this.AdditionalData["text"]).Value<string>())?.Replace("\n", "");
+        public string Text
+            => (
+                this.AdditionalData.ContainsKey("full_text")
+                ? this.AdditionalData["full_text"]
+                :   (
+                    this.AdditionalData.ContainsKey("text")
+                    ? this.AdditionalData["text"]
+                    : null
+                    )
+                )?.Value<string>().Replace("\n", "");
 
         [JsonExtensionData]
         public IDictionary<string, JToken> AdditionalData { get; set; }
