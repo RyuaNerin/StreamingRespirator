@@ -82,34 +82,40 @@ namespace StreamingRespirator.Core
 
         private void TwitterClientFactory_ClientAdded(long id, string screenName)
         {
-            if (this.m_invoker.InvokeRequired)
+            try
             {
-                this.m_invoker.Invoke(new Action<long, string>(this.TwitterClientFactory_ClientAdded), id, screenName);
-            }
-            else
-            {
-                lock (this.m_clients)
+                if (this.m_invoker.InvokeRequired)
                 {
-                    if (this.m_clients.ContainsKey(id))
-                        return;
-
-
-                    var itemRemove = new ToolStripMenuItem("삭제")
-                    {
-                        Tag = id,
-                    };
-                    itemRemove.Click += new EventHandler(this.StripRemoveClient_Click);
-
-                    var item = new ToolStripMenuItem(screenName)
-                    {
-                        Checked      = false,
-                        CheckOnClick = false,
-                    };
-                    item.DropDownItems.Add(itemRemove);
-
-                    this.m_clients.Add(id, item);
-                    this.m_contextMenuStrip.Items.Insert(this.m_contextMenuStrip.Items.Count - 2, item);
+                    this.m_invoker.Invoke(new Action<long, string>(this.TwitterClientFactory_ClientAdded), id, screenName);
                 }
+                else
+                {
+                    lock (this.m_clients)
+                    {
+                        if (this.m_clients.ContainsKey(id))
+                            return;
+
+
+                        var itemRemove = new ToolStripMenuItem("삭제")
+                        {
+                            Tag = id,
+                        };
+                        itemRemove.Click += new EventHandler(this.StripRemoveClient_Click);
+
+                        var item = new ToolStripMenuItem(screenName)
+                        {
+                            Checked      = false,
+                            CheckOnClick = false,
+                        };
+                        item.DropDownItems.Add(itemRemove);
+
+                        this.m_clients.Add(id, item);
+                        this.m_contextMenuStrip.Items.Insert(this.m_contextMenuStrip.Items.Count - 2, item);
+                    }
+                }
+            }
+            catch
+            {
             }
         }
 
@@ -121,63 +127,87 @@ namespace StreamingRespirator.Core
 
         private void TwitterClientFactory_ClientUpdated(long id, string screenName)
         {
-            if (this.m_invoker.InvokeRequired)
+            try
             {
-                this.m_invoker.Invoke(new Action<long, string>(this.TwitterClientFactory_ClientUpdated), id, screenName);
-            }
-            else
-            {
-                lock (this.m_clients)
+                if (this.m_invoker.InvokeRequired)
                 {
-                    this.m_clients[id].Text = screenName;
+                    this.m_invoker.Invoke(new Action<long, string>(this.TwitterClientFactory_ClientUpdated), id, screenName);
                 }
+                else
+                {
+                    lock (this.m_clients)
+                    {
+                        this.m_clients[id].Text = screenName;
+                    }
+                }
+            }
+            catch
+            {
             }
         }
 
         private void TwitterClientFactory_ClientRemoved(long id)
         {
-            if (this.m_invoker.InvokeRequired)
+            try
             {
-                this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientRemoved), id);
-            }
-            else
-            {
-                lock (this.m_clients)
+                if (this.m_invoker.InvokeRequired)
                 {
-                    var item = this.m_clients[id];
-
-                    foreach (Control subItem in item.DropDownItems)
-                        subItem.Dispose();
-
-                    item.Dispose();
-
-                    this.m_clients.Remove(id);
+                    this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientRemoved), id);
                 }
+                else
+                {
+                    lock (this.m_clients)
+                    {
+                        var item = this.m_clients[id];
+
+                        foreach (Control subItem in item.DropDownItems)
+                            subItem.Dispose();
+
+                        item.Dispose();
+
+                        this.m_clients.Remove(id);
+                    }
+                }
+            }
+            catch
+            {
             }
         }
 
         private void TwitterClientFactory_ClientStarted(long id)
         {
-            if (this.m_invoker.InvokeRequired)
+            try
             {
-                this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientStarted), id);
+                if (this.m_invoker.InvokeRequired)
+                {
+                    this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientStarted), id);
+                }
+                else
+                {
+                    lock (this.m_clients)
+                        this.m_clients[id].Checked = true;
+                }
             }
-            else
+            catch
             {
-                lock (this.m_clients)
-                    this.m_clients[id].Checked = true;
             }
         }
         private void TwitterClientFactory_ClientStoped(long id)
         {
-            if (this.m_invoker.InvokeRequired)
+            try
             {
-                this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientStoped), id);
+                if (this.m_invoker.InvokeRequired)
+                {
+                    this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientStoped), id);
+                }
+                else
+                {
+                    lock (this.m_clients)
+                        this.m_clients[id].Checked = false;
+                }
             }
-            else
+            catch
             {
-                lock (this.m_clients)
-                    this.m_clients[id].Checked = false;
             }
         }
 
