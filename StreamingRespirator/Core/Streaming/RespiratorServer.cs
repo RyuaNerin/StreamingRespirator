@@ -199,37 +199,48 @@ namespace StreamingRespirator.Core.Streaming
 
             return Task.FromResult(true);
         }
-        private static bool CustomRequest_Retweet(SessionEventArgs e)
+        private static void Send500Response(SessionEventArgs e)
         {
-            var ownerId = ParseOwnerId(e.HttpClient.Request.RequestUri, e.HttpClient.Request.Headers);
+            var resProxy = new Response
+            {
+                StatusCode          = (int)HttpStatusCode.InternalServerError,
+                StatusDescription   = "Internal Server Error",
+            };
+
+            e.Respond(resProxy, true);
+        }
+        private static bool GetInstance(SessionEventArgs e, out long ownerId, out TwitterClient twitClient)
+        {
+            ownerId = ParseOwnerId(e.HttpClient.Request.RequestUri, e.HttpClient.Request.Headers);
+            twitClient = null;
             if (ownerId == 0)
                 return false;
 
-            var twitClient = TwitterClientFactory.GetInsatnce(ownerId);
+            twitClient = TwitterClientFactory.GetInsatnce(ownerId);
             if (twitClient == null)
                 return false;
-            
-            string body;
-            int statusCode;
-            var response = GetResponse(e, false, out statusCode, out body);
-            if (response == null)
-                return false;
-
-            e.Respond(response);
-
-            if (statusCode == 404)
-                twitClient.StatusMaybeDestroyed(ParseJsonId(e.HttpClient.Request.RequestUri));
-            else
-            {
-                var status = JsonConvert.DeserializeObject<TwitterStatus>(body);
-
-                if (status != null)
-                    twitClient.SendStatus(status);
-            }
 
             return true;
         }
-        private static Response GetResponse(SessionEventArgs e, bool sendBody, out int statusCode, out string body)
+        private static void CustomRequest_Retweet(SessionEventArgs e)
+        {
+            if (!SendResponse(e, false, out int statusCode, out string body))
+                Send500Response(e);
+
+            if (GetInstance(e, out var ownerId, out var twitClient))
+            {
+                if (statusCode == 404)
+                    twitClient.StatusMaybeDestroyed(ParseJsonId(e.HttpClient.Request.RequestUri));
+                else
+                {
+                    var status = JsonConvert.DeserializeObject<TwitterStatus>(body);
+
+                    if (status != null)
+                        twitClient.SendStatus(status);
+                }
+            }
+        }
+        private static bool SendResponse(SessionEventArgs e, bool sendBody, out int statusCode, out string body)
         {
             statusCode = 0;
             body = null;
@@ -284,7 +295,7 @@ namespace StreamingRespirator.Core.Streaming
             }
 
             if (resHttp == null)
-                return null;
+                return false;
             
             using (resHttp)
             {
@@ -325,7 +336,9 @@ namespace StreamingRespirator.Core.Streaming
                         }
                     }
 
-                    return resProxy;
+                    e.Respond(resProxy);
+
+                    return true;
                 }
             }
         }
