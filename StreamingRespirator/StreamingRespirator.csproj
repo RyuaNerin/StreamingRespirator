@@ -171,6 +171,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />
+    <None Include="Resources\uniF053.png" />
+    <None Include="Resources\uniF054.png" />
+    <None Include="Resources\uniF055.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

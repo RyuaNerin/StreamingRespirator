@@ -126,10 +126,20 @@ namespace StreamingRespirator.Core
                 {
                     Checked = false,
                     CheckOnClick = false,
+
                 },
-                TlHome      = new ToolStripLabel("-"),
-                TlAbountMe  = new ToolStripLabel("-"),
-                TlDm        = new ToolStripLabel("-"),
+                TlHome = new ToolStripMenuItem("-")
+                {
+                    Image = Properties.Resources.uniF053,
+                },
+                TlAbountMe = new ToolStripMenuItem("-")
+                {
+                    Image = Properties.Resources.uniF055,
+                },
+                TlDm = new ToolStripMenuItem("-")
+                {
+                    Image = Properties.Resources.uniF054,
+                },
             };
 
             st.Remove.Click += new EventHandler(this.StripRemoveClient_Click);
@@ -177,7 +187,18 @@ namespace StreamingRespirator.Core
                             var now = DateTime.Now;
 
                             if (data.ScreenName != null) cts.RootItem.Text = data.ScreenName;
-                            if (data.Connected      .HasValue) cts.RootItem  .Checked = data.Connected      .Value;
+                            if (data.Connected.HasValue)
+                            {
+                                cts.RootItem.Checked = data.Connected.Value;
+
+                                if (!data.Connected.Value)
+                                {
+                                    cts.TlHome    .Text = "-";
+                                    cts.TlAbountMe.Text = "-";
+                                    cts.TlDm      .Text = "-";
+                                }
+                            }
+
                             if (data.WaitTimeHome   .HasValue) cts.TlHome    .Text    = FormatWaitTime(data.WaitTimeHome   .Value);
                             if (data.WaitTimeAboutMe.HasValue) cts.TlAbountMe.Text    = FormatWaitTime(data.WaitTimeAboutMe.Value);
                             if (data.WaitTimeDm     .HasValue) cts.TlDm      .Text    = FormatWaitTime(data.WaitTimeDm     .Value);
@@ -193,7 +214,7 @@ namespace StreamingRespirator.Core
         private static string FormatWaitTime(double waitTime)
         {
             var now = DateTime.Now;
-            return string.Format("{0:HH-mm-ss} ({1:##0.0}s)", now.AddSeconds(waitTime), waitTime);
+            return string.Format("{0:HH:mm:ss} ({1:##0.0}s)", now.AddSeconds(waitTime), waitTime);
         }
 
         private void StripRemoveClient_Click(object sender, EventArgs e)
