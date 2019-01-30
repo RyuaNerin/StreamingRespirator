@@ -189,22 +189,20 @@ namespace StreamingRespirator.Core.Streaming
                 // POST https://api.twitter.com/1.1/statuses/destroy/:id.json
                 // POST https://api.twitter.com/1.1/statuses/unretweet/:id.json
                 if (uri.AbsolutePath.StartsWith("/1.1/statuses/destroy/"))
-                    CustomRequest_Destroy_Unretweet(e);
-
+                    ProxyDestroyOrUnretweet(e);
                 else if (uri.AbsolutePath.StartsWith("/1.1/statuses/unretweet/"))
-                    CustomRequest_Destroy_Unretweet(e);
+                    ProxyDestroyOrUnretweet(e);
 
                 // 404 : id = 삭제된 트윗일 수 있음
                 // 200 : 성공시 스트리밍에 전송해서 한번 더 띄우도록
                 // POST https://api.twitter.com/1.1/statuses/retweet/:id.json
                 else if (uri.AbsolutePath.StartsWith("/1.1/statuses/retweet/"))
-                    CustomRequest_Retweet(e);
-
+                    ProxyRetweet(e);
 
                 // 401 : in_reply_to_status_id = 삭제된 트윗일 수 있음
                 // POST https://api.twitter.com/1.1/statuses/update.json
                 else if (uri.AbsolutePath.StartsWith("/1.1/statuses/update.json"))
-                    CustomRequest_Update(e);
+                    ProxyUpdate(e);
             }
 
 
@@ -236,7 +234,7 @@ namespace StreamingRespirator.Core.Streaming
 
             return true;
         }
-        private static void CustomRequest_Retweet(SessionEventArgs e)
+        private static void ProxyRetweet(SessionEventArgs e)
         {
             if (!SendResponse(e, out var requestBody, out var statusCode, out var body))
                 Send500Response(e);
@@ -254,7 +252,7 @@ namespace StreamingRespirator.Core.Streaming
                 }
             }
         }
-        private static void CustomRequest_Destroy_Unretweet(SessionEventArgs e)
+        private static void ProxyDestroyOrUnretweet(SessionEventArgs e)
         {
             if (!SendResponse(e, out var requestBody, out var statusCode, out var body))
                 Send500Response(e);
@@ -270,7 +268,7 @@ namespace StreamingRespirator.Core.Streaming
                 }
             }
         }
-        private static void CustomRequest_Update(SessionEventArgs e)
+        private static void ProxyUpdate(SessionEventArgs e)
         {
             if (!SendResponse(e, out var requestBody, out var statusCode, out var body))
                 Send500Response(e);
@@ -441,7 +439,6 @@ namespace StreamingRespirator.Core.Streaming
                     cnt.Response.AppendHeader("Content-type", "application/json; charset=utf-8");
                     cnt.Response.AppendHeader("Connection", "close");
                     cnt.Response.SendChunked = true;
-
                     using (var sc = new StreamingConnection(new WaitableStream(cnt.Response.OutputStream), twitterClient))
                     {
                         lock (this.m_connections)
