@@ -245,7 +245,7 @@ namespace StreamingRespirator.Core.Streaming
             {
                 if (statusCode == 404)
                     twitClient.StatusMaybeDestroyed(ParseJsonId(e.HttpClient.Request.RequestUri));
-                else
+                else if (Config.Filter.ShowMyRetweet)
                 {
                     var status = JsonConvert.DeserializeObject<TwitterStatus>(body);
 

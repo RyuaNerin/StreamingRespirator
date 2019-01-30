@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Windows.Forms;
-using Newtonsoft.Json;
 using StreamingRespirator.Core.Windows;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
@@ -16,6 +15,28 @@ namespace StreamingRespirator.Core.Streaming
         public static readonly Uri CookieUri = new Uri("https://twitter.com/");
 
         private static readonly Dictionary<long, TwitterClient> Instances = new Dictionary<long, TwitterClient>();
+        public static IEnumerable<TwitterCredential> Accounts
+        {
+            get
+            {
+                lock (Instances)
+                    return Instances.Select(e => e.Value.Credential);
+            }
+            set
+            {
+                lock (Instances)
+                {
+                    foreach (var cred in value)
+                    {
+                        if (string.IsNullOrWhiteSpace(cred.Cookie) ||
+                            string.IsNullOrWhiteSpace(cred.ScreenName))
+                            continue;
+
+                        AddClient(cred);
+                    }
+                }
+            }
+        }
 
         public static event Action<long, string> ClientAdded;
         public static event Action<long, string> ClientUpdated;
@@ -29,54 +50,6 @@ namespace StreamingRespirator.Core.Streaming
 
         private static void StreamingStoped(long id)
             => ClientStoped?.Invoke(id);
-
-        public static void LoadCookie()
-        {
-            try
-            {
-                lock (Instances)
-                {
-                    var saved = new Dictionary<long, TwitterCredential>();
-
-                    using (var file = File.OpenRead(Program.CookiePath))
-                    using (var reader = new StreamReader(file, Encoding.ASCII))
-                    {
-                        new JsonSerializer().Populate(reader, saved);
-                    }
-
-                    foreach (var st in saved)
-                    {
-                        if (string.IsNullOrWhiteSpace(st.Value.Cookie) ||
-                            string.IsNullOrWhiteSpace(st.Value.ScreenName))
-                            continue;
-
-                        AddClient(st.Value);
-                    }
-                }
-            }
-            catch
-            {
-            }
-        }
-
-        private static void SaveCookie()
-        {
-            try
-            {
-                lock (Instances)
-                {
-                    using (var file = File.OpenWrite(Program.CookiePath))
-                    using (var writer = new StreamWriter(file, Encoding.ASCII) { AutoFlush = true })
-                    {
-                        var serializer = new JsonSerializer();
-                        serializer.Serialize(writer, Instances.ToDictionary(e => e.Key,  e => e.Value.Credential));
-                    }
-                }
-            }
-            catch
-            {
-            }
-        }
 
         public static TwitterClient GetClient(long id)
         {
@@ -121,7 +94,7 @@ namespace StreamingRespirator.Core.Streaming
 
                 ClientRemoved?.Invoke(id);
 
-                SaveCookie();
+                Config.Save();
             }
         }
 
@@ -138,7 +111,7 @@ namespace StreamingRespirator.Core.Streaming
 
                 ClientAdded?.Invoke(twitCred.Id, twitCred.ScreenName);
 
-                SaveCookie();
+                Config.Save();
             }
         }
 

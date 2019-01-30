@@ -15,9 +15,12 @@ namespace StreamingRespirator.Core
         private NotifyIcon         m_notifyIcon;
         private ContextMenuStrip   m_contextMenuStrip;
         private ToolStripMenuItem  m_stripAbout;
-        private ToolStripSeparator m_stripSep0;
+        private ToolStripSeparator m_stripSepConfig;
+        private ToolStripMenuItem  m_stripRetweet;
+        private ToolStripMenuItem  m_stripMyRetweet;
+        private ToolStripSeparator m_stripSepAccount;
         private ToolStripMenuItem  m_stripAdd;
-        private ToolStripSeparator m_stripSep1;
+        private ToolStripSeparator m_stripSepExit;
         private ToolStripMenuItem  m_stripExit;
 
         private readonly Dictionary<long, ToolStripMenuItem> m_clients = new Dictionary<long, ToolStripMenuItem>();
@@ -38,7 +41,7 @@ namespace StreamingRespirator.Core
 
             this.InitializeComponent();
 
-            TwitterClientFactory.LoadCookie();
+            Config.Load();
 
             if (!this.StartProxy())
                 Application.Exit();
@@ -49,12 +52,35 @@ namespace StreamingRespirator.Core
             this.m_stripAbout = new ToolStripMenuItem("By RyuaNerin");
             this.m_stripAbout.Click += this.StripAbout_Click;
 
-            this.m_stripSep0 = new ToolStripSeparator();
+            ////////////////////////////////////////////////////////////
+            
+            this.m_stripSepConfig = new ToolStripSeparator();
+
+            this.m_stripRetweet = new ToolStripMenuItem("리트윗된 내 트윗 표시")
+            {
+                CheckOnClick = true,
+                Checked = Config.Filter.ShowRetweetedMyStatus,
+            };
+            this.m_stripRetweet.CheckedChanged += (s, e) => Config.Filter.ShowRetweetedMyStatus = this.m_stripRetweet.Checked;
+
+            this.m_stripMyRetweet = new ToolStripMenuItem("내 리트윗 다시 표시")
+            {
+                CheckOnClick = true,
+                Checked      = Config.Filter.ShowMyRetweet,
+            };
+            this.m_stripMyRetweet.CheckedChanged += (s, e) => Config.Filter.ShowMyRetweet = this.m_stripMyRetweet.Checked;
+
+            ////////////////////////////////////////////////////////////
+
+            this.m_stripSepAccount = new ToolStripSeparator();
 
             this.m_stripAdd = new ToolStripMenuItem("계정 추가");
             this.m_stripAdd.Click += this.StripAdd_Click;
+            this.m_stripSepAccount = new ToolStripSeparator();
 
-            this.m_stripSep1 = new ToolStripSeparator();
+            ////////////////////////////////////////////////////////////
+
+            this.m_stripSepExit = new ToolStripSeparator();
 
             this.m_stripExit = new ToolStripMenuItem("종료");
             this.m_stripExit.Click += this.StripExit_Click;
@@ -65,9 +91,12 @@ namespace StreamingRespirator.Core
                 Items =
                 {
                     this.m_stripAbout,
-                    this.m_stripSep0,
+                    this.m_stripSepConfig,
+                    this.m_stripRetweet,
+                    this.m_stripMyRetweet,
+                    this.m_stripSepAccount,
                     this.m_stripAdd,
-                    this.m_stripSep1,
+                    this.m_stripSepExit,
                     this.m_stripExit,
                 },
             };
@@ -110,7 +139,7 @@ namespace StreamingRespirator.Core
                         item.DropDownItems.Add(itemRemove);
 
                         this.m_clients.Add(id, item);
-                        this.m_contextMenuStrip.Items.Insert(this.m_contextMenuStrip.Items.Count - 2, item);
+                        this.m_contextMenuStrip.Items.Insert(this.m_contextMenuStrip.Items.IndexOf(this.m_stripSepExit), item);
                     }
                 }
             }
@@ -250,7 +279,8 @@ namespace StreamingRespirator.Core
         
         private void StripExit_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            //Application.Exit();
+            this.ExitThreadCore();
         }
     }
 }

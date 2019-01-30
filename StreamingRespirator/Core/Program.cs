@@ -10,11 +10,11 @@ namespace StreamingRespirator.Core
     {
         public const string MutexName = "{5FF75362-95BA-4399-8C77-C1A0C5B8A291}";
 
-        public static readonly string CookiePath;
+        public static readonly string ConfigPath;
 
         static Program()
         {
-            CookiePath = Path.ChangeExtension(Application.ExecutablePath, ".cookie");
+            ConfigPath = Path.ChangeExtension(Application.ExecutablePath, ".cnf");
         }
 
         [STAThread]
@@ -37,6 +37,8 @@ namespace StreamingRespirator.Core
 
                 var context = new MainContext();
                 Application.Run(context);
+                Config.Save();
+
                 context.StopProxy();
             }
         }

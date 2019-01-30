@@ -103,6 +103,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\Config.cs" />
     <Compile Include="Core\Streaming\TwitterClientFactory.cs" />
     <Compile Include="Core\Streaming\TwitterCredentials.cs" />
     <Compile Include="Core\Streaming\Twitter\Packet\PacketDelete.cs" />
