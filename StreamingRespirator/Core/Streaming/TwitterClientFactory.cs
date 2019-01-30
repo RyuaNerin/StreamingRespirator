@@ -10,6 +10,16 @@ using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace StreamingRespirator.Core.Streaming
 {
+    internal struct StateUpdateData
+    {
+        public bool         IsRemoved;
+        public string       ScreenName;
+        public bool?        Connected;
+        public float?       WaitTimeHome;
+        public float?       WaitTimeAboutMe;
+        public float?       WaitTimeDm;
+    }
+
     static class TwitterClientFactory
     {
         public static readonly Uri CookieUri = new Uri("https://twitter.com/");
@@ -38,18 +48,10 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
-        public static event Action<long, string> ClientAdded;
-        public static event Action<long, string> ClientUpdated;
-        public static event Action<long        > ClientRemoved;
+        public static event Action<long, StateUpdateData> ClientUpdated;
 
-        public static event Action<long> ClientStarted;
-        public static event Action<long> ClientStoped;
-
-        private static void StreamingStarted(long id)
-            => ClientStarted?.Invoke(id);
-
-        private static void StreamingStoped(long id)
-            => ClientStoped?.Invoke(id);
+        private static void ClientStatusUpdatedEvent(long id, StateUpdateData statusData)
+            => ClientUpdated?.Invoke(id, statusData);
 
         public static TwitterClient GetClient(long id)
         {
@@ -68,7 +70,7 @@ namespace StreamingRespirator.Core.Streaming
                 }
 
                 if (inst.Credential.ScreenName != befScreenName)
-                    ClientUpdated?.Invoke(id, inst.Credential.ScreenName);
+                    ClientStatusUpdatedEvent(id, new StateUpdateData { ScreenName = inst.Credential.ScreenName });
 
                 return inst;
             }
@@ -92,7 +94,7 @@ namespace StreamingRespirator.Core.Streaming
                 Instances[id].Dispose();
                 Instances.Remove(id);
 
-                ClientRemoved?.Invoke(id);
+                ClientStatusUpdatedEvent(id, new StateUpdateData { IsRemoved = true });
 
                 Config.Save();
             }
@@ -103,13 +105,11 @@ namespace StreamingRespirator.Core.Streaming
             lock (Instances)
             {
                 var twitClient = new TwitterClient(twitCred);
-
-                twitClient.StreamingStarted += StreamingStarted;
-                twitClient.StreamingStoped  += StreamingStoped;
+                twitClient.ClientUpdated += ClientStatusUpdatedEvent;
 
                 Instances.Add(twitCred.Id, twitClient);
 
-                ClientAdded?.Invoke(twitCred.Id, twitCred.ScreenName);
+                ClientStatusUpdatedEvent(twitCred.Id, new StateUpdateData { ScreenName = twitCred.ScreenName });
 
                 Config.Save();
             }

@@ -60,5 +60,10 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             return (items, users);
         }
+
+        protected override void UpdateStatus(float waitTime)
+        {
+            this.m_twitterClient.TimelineUpdated(new StateUpdateData { WaitTimeAboutMe = waitTime });
+        }
     }
 }

@@ -16,8 +16,7 @@ namespace StreamingRespirator.Core.Streaming
     {
         private readonly HashSet<StreamingConnection> m_connections = new HashSet<StreamingConnection>();
 
-        public event Action<long> StreamingStarted;
-        public event Action<long> StreamingStoped;
+        public event Action<long, StateUpdateData> ClientUpdated;
 
         private readonly ITimeLine m_tlHome;
         private readonly ITimeLine m_tlAboutMe;
@@ -104,7 +103,7 @@ namespace StreamingRespirator.Core.Streaming
             this.m_tlAboutMe.Start();
             this.m_tlDm     .Start();
 
-            this.StreamingStarted?.Invoke(this.Credential.Id);
+            this.ClientUpdated?.Invoke(this.Credential.Id, new StateUpdateData { Connected = true });
         }
 
         private void StopTimeLine()
@@ -113,7 +112,12 @@ namespace StreamingRespirator.Core.Streaming
             this.m_tlAboutMe.Stop();
             this.m_tlDm     .Stop();
 
-            this.StreamingStoped?.Invoke(this.Credential.Id);
+            this.ClientUpdated?.Invoke(this.Credential.Id, new StateUpdateData { Connected = false });
+        }
+
+        public void TimelineUpdated(StateUpdateData data)
+        {
+            this.ClientUpdated?.Invoke(this.Credential.Id, data);
         }
 
         private class FriendsCursor

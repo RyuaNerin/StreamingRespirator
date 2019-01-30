@@ -23,8 +23,6 @@ namespace StreamingRespirator.Core
         private ToolStripSeparator m_stripSepExit;
         private ToolStripMenuItem  m_stripExit;
 
-        private readonly Dictionary<long, ToolStripMenuItem> m_clients = new Dictionary<long, ToolStripMenuItem>();
-
         public MainContext()
         {
             this.m_invoker = new Control();
@@ -32,12 +30,7 @@ namespace StreamingRespirator.Core
 
             this.m_server = new RespiratorServer();
 
-            TwitterClientFactory.ClientAdded   += this.TwitterClientFactory_ClientAdded;
             TwitterClientFactory.ClientUpdated += this.TwitterClientFactory_ClientUpdated;
-            TwitterClientFactory.ClientRemoved += this.TwitterClientFactory_ClientRemoved;
-
-            TwitterClientFactory.ClientStarted += this.TwitterClientFactory_ClientStarted;
-            TwitterClientFactory.ClientStoped  += this.TwitterClientFactory_ClientStoped;
 
             this.InitializeComponent();
 
@@ -109,135 +102,104 @@ namespace StreamingRespirator.Core
             };
         }
 
-        private void TwitterClientFactory_ClientAdded(long id, string screenName)
+        private struct ClientToolStripItems
+        {
+            public ToolStripMenuItem RootItem;
+
+            public ToolStripItem Remove;
+
+            public ToolStripItem TlHome;
+            public ToolStripItem TlAbountMe;
+            public ToolStripItem TlDm;
+        }
+        private readonly Dictionary<long, ClientToolStripItems> m_clients = new Dictionary<long, ClientToolStripItems>();
+
+        private ClientToolStripItems NewClientToolStripItems(long id, StateUpdateData data)
+        {
+            var st = new ClientToolStripItems
+            {
+                Remove = new ToolStripMenuItem("삭제")
+                {
+                    Tag = id,
+                },
+                RootItem = new ToolStripMenuItem(data.ScreenName)
+                {
+                    Checked = false,
+                    CheckOnClick = false,
+                },
+                TlHome      = new ToolStripLabel("-"),
+                TlAbountMe  = new ToolStripLabel("-"),
+                TlDm        = new ToolStripLabel("-"),
+            };
+
+            st.Remove.Click += new EventHandler(this.StripRemoveClient_Click);
+
+            st.RootItem.DropDownItems.AddRange(new ToolStripItem[]
+            {
+                st.Remove,
+                new ToolStripSeparator(),
+                st.TlHome,
+                st.TlAbountMe,
+                st.TlDm,
+            });
+
+            this.m_contextMenuStrip.Items.Insert(this.m_contextMenuStrip.Items.IndexOf(this.m_stripSepExit), st.RootItem);
+
+            return st;
+        }
+        private void TwitterClientFactory_ClientUpdated(long id, StateUpdateData data)
         {
             try
             {
                 if (this.m_invoker.InvokeRequired)
                 {
-                    this.m_invoker.Invoke(new Action<long, string>(this.TwitterClientFactory_ClientAdded), id, screenName);
+                    this.m_invoker.Invoke(new Action<long, StateUpdateData>(this.TwitterClientFactory_ClientUpdated), id, data);
                 }
                 else
                 {
                     lock (this.m_clients)
                     {
-                        if (this.m_clients.ContainsKey(id))
-                            return;
+                        if (!data.IsRemoved && !this.m_clients.ContainsKey(id))
+                            this.m_clients.Add(id, this.NewClientToolStripItems(id, data));
 
+                        var cts = this.m_clients[id];
 
-                        var itemRemove = new ToolStripMenuItem("삭제")
+                        if (data.IsRemoved)
                         {
-                            Tag = id,
-                        };
-                        itemRemove.Click += new EventHandler(this.StripRemoveClient_Click);
+                            foreach (Control subItem in cts.RootItem.DropDownItems)
+                                subItem.Dispose();
+                            cts.RootItem.Dispose();
 
-                        var item = new ToolStripMenuItem(screenName)
+                            this.m_clients.Remove(id);
+                        }
+                        else
                         {
-                            Checked      = false,
-                            CheckOnClick = false,
-                        };
-                        item.DropDownItems.Add(itemRemove);
+                            var now = DateTime.Now;
 
-                        this.m_clients.Add(id, item);
-                        this.m_contextMenuStrip.Items.Insert(this.m_contextMenuStrip.Items.IndexOf(this.m_stripSepExit), item);
+                            if (data.ScreenName != null) cts.RootItem.Text = data.ScreenName;
+                            if (data.Connected      .HasValue) cts.RootItem  .Checked = data.Connected      .Value;
+                            if (data.WaitTimeHome   .HasValue) cts.TlHome    .Text    = FormatWaitTime(data.WaitTimeHome   .Value);
+                            if (data.WaitTimeAboutMe.HasValue) cts.TlAbountMe.Text    = FormatWaitTime(data.WaitTimeAboutMe.Value);
+                            if (data.WaitTimeDm     .HasValue) cts.TlDm      .Text    = FormatWaitTime(data.WaitTimeDm     .Value);
+                        }
                     }
                 }
             }
             catch
             {
             }
+        }
+
+        private static string FormatWaitTime(double waitTime)
+        {
+            var now = DateTime.Now;
+            return string.Format("{0:HH-mm-ss} ({1:##0.0}s)", now.AddSeconds(waitTime), waitTime);
         }
 
         private void StripRemoveClient_Click(object sender, EventArgs e)
         {
             var item = sender as ToolStripMenuItem;
             TwitterClientFactory.RemoveClient((long)item.Tag);
-        }
-
-        private void TwitterClientFactory_ClientUpdated(long id, string screenName)
-        {
-            try
-            {
-                if (this.m_invoker.InvokeRequired)
-                {
-                    this.m_invoker.Invoke(new Action<long, string>(this.TwitterClientFactory_ClientUpdated), id, screenName);
-                }
-                else
-                {
-                    lock (this.m_clients)
-                    {
-                        this.m_clients[id].Text = screenName;
-                    }
-                }
-            }
-            catch
-            {
-            }
-        }
-
-        private void TwitterClientFactory_ClientRemoved(long id)
-        {
-            try
-            {
-                if (this.m_invoker.InvokeRequired)
-                {
-                    this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientRemoved), id);
-                }
-                else
-                {
-                    lock (this.m_clients)
-                    {
-                        var item = this.m_clients[id];
-
-                        foreach (Control subItem in item.DropDownItems)
-                            subItem.Dispose();
-
-                        item.Dispose();
-
-                        this.m_clients.Remove(id);
-                    }
-                }
-            }
-            catch
-            {
-            }
-        }
-
-        private void TwitterClientFactory_ClientStarted(long id)
-        {
-            try
-            {
-                if (this.m_invoker.InvokeRequired)
-                {
-                    this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientStarted), id);
-                }
-                else
-                {
-                    lock (this.m_clients)
-                        this.m_clients[id].Checked = true;
-                }
-            }
-            catch
-            {
-            }
-        }
-        private void TwitterClientFactory_ClientStoped(long id)
-        {
-            try
-            {
-                if (this.m_invoker.InvokeRequired)
-                {
-                    this.m_invoker.Invoke(new Action<long>(this.TwitterClientFactory_ClientStoped), id);
-                }
-                else
-                {
-                    lock (this.m_clients)
-                        this.m_clients[id].Checked = false;
-                }
-            }
-            catch
-            {
-            }
         }
 
         public void StopProxy()

@@ -20,7 +20,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
     internal abstract class BaseTimeLine<T> : ITimeLine, IDisposable
         where T: IPacket
     {
-        private readonly TwitterClient m_twitterClient;
+        protected readonly TwitterClient m_twitterClient;
         private readonly Timer m_timer;
 
         protected abstract string Method { get; }
@@ -69,6 +69,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
         protected abstract string GetUrl();
         protected abstract (IEnumerable<T> items, IEnumerable<TwitterUser> users) ParseHtml(string html);
+        protected abstract void UpdateStatus(float nextTime);
 
         private static readonly DateTime ForTimeStamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private void Refresh(object state)
@@ -128,7 +129,11 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             try
             {
                 if (this.m_working)
+                {
                     this.m_timer.Change(next > 0 ? next : 15 * 1000, Timeout.Infinite);
+
+                    this.UpdateStatus(next / 1000f);
+                }
             }
             catch
             {
