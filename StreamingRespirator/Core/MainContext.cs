@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using StreamingRespirator.Core.Streaming;
 
@@ -246,7 +247,7 @@ namespace StreamingRespirator.Core
 
         private void StripAdd_Click(object sender, EventArgs e)
         {
-            TwitterClientFactory.AddClient(this.m_invoker);
+            Task.Factory.StartNew(() => TwitterClientFactory.AddClient(this.m_invoker));
         }
 
         private void StripAbout_Click(object sender, EventArgs e)
