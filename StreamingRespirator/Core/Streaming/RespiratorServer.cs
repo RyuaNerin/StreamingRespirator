@@ -208,16 +208,6 @@ namespace StreamingRespirator.Core.Streaming
 
             return Task.FromResult(true);
         }
-        private static void Send500Response(SessionEventArgs e)
-        {
-            var resProxy = new Response
-            {
-                StatusCode          = (int)HttpStatusCode.InternalServerError,
-                StatusDescription   = "Internal Server Error",
-            };
-
-            e.Respond(resProxy, true);
-        }
         private static bool GetInstance(SessionEventArgs e, string requestBody, out long ownerId, out TwitterClient twitClient)
         {
             twitClient = null;
@@ -237,7 +227,7 @@ namespace StreamingRespirator.Core.Streaming
         private static void ProxyRetweet(SessionEventArgs e)
         {
             if (!SendResponse(e, out var requestBody, out var statusCode, out var body))
-                Send500Response(e);
+                return;
 
             if (GetInstance(e, requestBody, out var ownerId, out var twitClient))
             {
@@ -255,7 +245,7 @@ namespace StreamingRespirator.Core.Streaming
         private static void ProxyDestroyOrUnretweet(SessionEventArgs e)
         {
             if (!SendResponse(e, out var requestBody, out var statusCode, out var body))
-                Send500Response(e);
+                return;
 
             if (GetInstance(e, requestBody, out var ownerId, out var twitClient))
             {
@@ -271,7 +261,7 @@ namespace StreamingRespirator.Core.Streaming
         private static void ProxyUpdate(SessionEventArgs e)
         {
             if (!SendResponse(e, out var requestBody, out var statusCode, out var body))
-                Send500Response(e);
+                return;
 
             if (GetInstance(e, requestBody, out var ownerId, out var twitClient))
             {
@@ -282,6 +272,16 @@ namespace StreamingRespirator.Core.Streaming
                         twitClient.StatusMaybeDestroyed(id);
                 }
             }
+        }
+        private static void Send500Response(SessionEventArgs e)
+        {
+            var resProxy = new Response
+            {
+                StatusCode = (int)HttpStatusCode.InternalServerError,
+                StatusDescription = "Internal Server Error",
+            };
+
+            e.Respond(resProxy, true);
         }
         private static bool SendResponse(SessionEventArgs e, out string requestBody, out int statusCode, out string body)
         {
@@ -341,7 +341,10 @@ namespace StreamingRespirator.Core.Streaming
             }
 
             if (resHttp == null)
+            {
+                Send500Response(e);
                 return false;
+            }
             
             using (resHttp)
             {
