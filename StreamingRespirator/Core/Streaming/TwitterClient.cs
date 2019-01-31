@@ -113,6 +113,8 @@ namespace StreamingRespirator.Core.Streaming
             this.m_tlDm     .Stop();
 
             this.ClientUpdated?.Invoke(this.Credential.Id, new StateUpdateData { Connected = false });
+
+            this.UserCache.Clear();
         }
 
         public void TimelineUpdated(StateUpdateData data)
