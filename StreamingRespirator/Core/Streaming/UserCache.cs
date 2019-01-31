@@ -17,8 +17,8 @@ namespace StreamingRespirator.Core.Streaming
             public string   ProfileImage;
         }
 
-        private readonly TimeSpan CacheExpires = TimeSpan.FromHours(6);
-        private readonly Dictionary<long, UserInfo> Cache = new Dictionary<long, UserInfo>();
+        private readonly TimeSpan CacheExpires = TimeSpan.FromHours(1);
+        private readonly SortedDictionary<long, UserInfo> Cache = new SortedDictionary<long, UserInfo>();
 
         private readonly Timer timerCleaner;
 
@@ -61,6 +61,14 @@ namespace StreamingRespirator.Core.Streaming
 
                 foreach (var id in expired)
                     this.Cache.Remove(id);
+            }
+        }
+
+        public void Clear()
+        {
+            lock (this.Cache)
+            {
+                this.Cache.Clear();
             }
         }
 
