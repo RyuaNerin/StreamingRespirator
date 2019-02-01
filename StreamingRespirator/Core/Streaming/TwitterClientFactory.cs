@@ -25,12 +25,22 @@ namespace StreamingRespirator.Core.Streaming
         public static readonly Uri CookieUri = new Uri("https://twitter.com/");
 
         private static readonly Dictionary<long, TwitterClient> Instances = new Dictionary<long, TwitterClient>();
+
+        public static int AccountCount
+        {
+            get
+            {
+                lock (Instances)
+                    return Instances.Count;
+            }
+        }
+
         public static IEnumerable<TwitterCredential> Accounts
         {
             get
             {
                 lock (Instances)
-                    return Instances.Select(e => e.Value.Credential);
+                    return Instances.Select(e => e.Value.Credential).ToArray();
             }
             set
             {

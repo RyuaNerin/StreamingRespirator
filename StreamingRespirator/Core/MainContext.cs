@@ -39,6 +39,9 @@ namespace StreamingRespirator.Core
 
             if (!this.StartProxy())
                 Application.Exit();
+
+            if (TwitterClientFactory.AccountCount == 0)
+                this.m_notifyIcon.ShowBalloonTip(10000, "스트리밍 호흡기", "계정이 추가되어있지 않습니다!\n\n계정을 추가해주세요!", ToolTipIcon.Info);
         }
 
         private void InitializeComponent()
@@ -101,6 +104,7 @@ namespace StreamingRespirator.Core
                 ContextMenuStrip = this.m_contextMenuStrip,
                 Visible          = true,
             };
+            this.m_notifyIcon.BalloonTipClicked += this.NotifyIcon_BalloonTipClicked;
         }
 
         private struct ClientToolStripItems
@@ -245,6 +249,11 @@ namespace StreamingRespirator.Core
             }
         }
 
+
+        private void NotifyIcon_BalloonTipClicked(object sender, EventArgs e)
+        {
+            Task.Factory.StartNew(() => TwitterClientFactory.AddClient(this.m_invoker));
+        }
         private void StripAdd_Click(object sender, EventArgs e)
         {
             Task.Factory.StartNew(() => TwitterClientFactory.AddClient(this.m_invoker));
