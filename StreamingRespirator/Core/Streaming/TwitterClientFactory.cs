@@ -114,10 +114,20 @@ namespace StreamingRespirator.Core.Streaming
         {
             lock (Instances)
             {
-                var twitClient = new TwitterClient(twitCred);
-                twitClient.ClientUpdated += ClientStatusUpdatedEvent;
+                TwitterClient twitClient;
+                if (!Instances.ContainsKey(twitCred.Id))
+                {
+                    twitClient = new TwitterClient(twitCred);
+                    twitClient.ClientUpdated += ClientStatusUpdatedEvent;
 
-                Instances.Add(twitCred.Id, twitClient);
+                    Instances.Add(twitCred.Id, twitClient);
+                }
+                else
+                {
+                    twitClient = Instances[twitCred.Id];
+                    twitClient.Credential.ScreenName = twitCred.ScreenName;
+                    twitClient.Credential.Cookie     = twitCred.Cookie;
+                }
 
                 ClientStatusUpdatedEvent(twitCred.Id, new StateUpdateData { ScreenName = twitCred.ScreenName });
 
