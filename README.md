@@ -9,6 +9,8 @@
 [![](https://img.shields.io/badge/Telegram-unknown5766-blue.svg?longCache=true&style=flat-square)](https://t.me/unknown5766)
 
 
+## 설명서 업데이트중입니다
+
 ## 목차
 
 - [LICENSE](#license)
@@ -39,7 +41,9 @@
 
   ![](docs/3.png)
 
-4. 스트리밍이 연결되고 나면 1회 트위터 로그인 과정이 있습니다.
+4. 우측 하단 트레이 아이콘을 우클릭 한 후 계정을 추가해주세요.
+
+5. 트위터 클라이언트를 실행 후, 하단 연결 방법을 참조하여 스트리밍에 연결합니다.
 
 ### 아즈레아 적용 방법
 
