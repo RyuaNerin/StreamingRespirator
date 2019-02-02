@@ -64,8 +64,10 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         public void Stop()
         {
             this.m_working = false;
+            this.Clear();
             this.m_timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
+        protected abstract void Clear();
 
         protected abstract string GetUrl();
         protected abstract (IEnumerable<T> items, IEnumerable<TwitterUser> users) ParseHtml(string html);
