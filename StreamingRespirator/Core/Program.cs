@@ -11,10 +11,12 @@ namespace StreamingRespirator.Core
         public const string MutexName = "{5FF75362-95BA-4399-8C77-C1A0C5B8A291}";
 
         public static readonly string ConfigPath;
+        public static readonly string PfxFilePath;
 
         static Program()
         {
-            ConfigPath = Path.ChangeExtension(Application.ExecutablePath, ".cnf");
+            ConfigPath  = Path.ChangeExtension(Application.ExecutablePath, ".cnf");
+            PfxFilePath = Path.ChangeExtension(Application.ExecutablePath, ".pfx");
         }
 
         [STAThread]
