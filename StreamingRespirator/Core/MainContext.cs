@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using StreamingRespirator.Core.Streaming;
@@ -39,6 +40,7 @@ namespace StreamingRespirator.Core
             this.InitializeComponent();
 
             Config.Load();
+            this.m_startWithWindows.Checked = Config.StartWithWindows;
 
             if (!this.StartProxy())
                 Application.Exit();
@@ -237,8 +239,12 @@ namespace StreamingRespirator.Core
             return string.Format("{0:HH:mm:ss} ({1:##0.0}s)", now.AddSeconds(waitTime), waitTime);
         }
 
+        private volatile ManualResetEventSlim m_startWithWindowsWorking = new ManualResetEventSlim(false);
         private void StartWithWindows_Click(object sender, EventArgs e)
         {
+            if (this.m_startWithWindowsWorking.IsSet)
+                return;
+
             var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), Path.GetFileNameWithoutExtension(Application.ExecutablePath) + ".lnk");
 
             if (!Config.StartWithWindows)
@@ -274,6 +280,8 @@ namespace StreamingRespirator.Core
                 this.m_startWithWindows.Checked = false;
                 Config.Save();
             }
+
+            this.m_startWithWindowsWorking.Reset();
         }
 
         private void StripRemoveClient_Click(object sender, EventArgs e)
