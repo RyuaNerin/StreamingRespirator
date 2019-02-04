@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using StreamingRespirator.Core.Streaming;
@@ -17,6 +18,8 @@ namespace StreamingRespirator.Core
         private ContextMenuStrip   m_contextMenuStrip;
         private ToolStripMenuItem  m_stripAbout;
         private ToolStripSeparator m_stripSepConfig;
+        private ToolStripMenuItem  m_startWithWindows;
+        private ToolStripSeparator m_stripSepConfig2;
         private ToolStripMenuItem  m_stripRetweet;
         private ToolStripMenuItem  m_stripMyRetweet;
         private ToolStripSeparator m_stripSepAccount;
@@ -52,6 +55,16 @@ namespace StreamingRespirator.Core
             ////////////////////////////////////////////////////////////
             
             this.m_stripSepConfig = new ToolStripSeparator();
+
+            this.m_startWithWindows = new ToolStripMenuItem("윈도우 시작시 자동 실행")
+            {
+                Checked = Config.StartWithWindows,
+            };
+            this.m_startWithWindows.Click += this.StartWithWindows_Click;
+
+            ////////////////////////////////////////////////////////////
+
+            this.m_stripSepConfig2 = new ToolStripSeparator();
 
             this.m_stripRetweet = new ToolStripMenuItem("리트윗된 내 트윗 표시")
             {
@@ -89,6 +102,8 @@ namespace StreamingRespirator.Core
                 {
                     this.m_stripAbout,
                     this.m_stripSepConfig,
+                    this.m_startWithWindows,
+                    this.m_stripSepConfig2,
                     this.m_stripRetweet,
                     this.m_stripMyRetweet,
                     this.m_stripSepAccount,
@@ -220,6 +235,45 @@ namespace StreamingRespirator.Core
         {
             var now = DateTime.Now;
             return string.Format("{0:HH:mm:ss} ({1:##0.0}s)", now.AddSeconds(waitTime), waitTime);
+        }
+
+        private void StartWithWindows_Click(object sender, EventArgs e)
+        {
+            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), Path.GetFileNameWithoutExtension(Application.ExecutablePath) + ".lnk");
+
+            if (!Config.StartWithWindows)
+            {
+                try
+                {
+                    var ws = new IWshRuntimeLibrary.WshShell();
+                    IWshRuntimeLibrary.IWshShortcut shortCut = ws.CreateShortcut(path);
+
+                    shortCut.Description = "스트리밍 호흡기";
+                    shortCut.TargetPath = Application.ExecutablePath;
+                    shortCut.Save();
+
+                    Config.StartWithWindows = true;
+                    this.m_startWithWindows.Checked = true;
+                    Config.Save();
+                }
+                catch
+                {
+                }
+            }
+            else
+            {
+                try
+                {
+                    File.Delete(path);
+                }
+                catch
+                {
+                }
+
+                Config.StartWithWindows = false;
+                this.m_startWithWindows.Checked = false;
+                Config.Save();
+            }
         }
 
         private void StripRemoveClient_Click(object sender, EventArgs e)

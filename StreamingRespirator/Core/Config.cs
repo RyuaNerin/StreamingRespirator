@@ -8,6 +8,8 @@ namespace StreamingRespirator.Core
 {
     internal static class Config
     {
+        public static bool StartWithWindows { get; set; }
+
         public static ConfigFilter Filter { get; } = new ConfigFilter();
         public class ConfigFilter
         {
@@ -59,6 +61,13 @@ namespace StreamingRespirator.Core
 
             [JsonProperty("filter")]
             public static ConfigFilter Filter => Config.Filter;
+
+            [JsonProperty("startup")]
+            public static bool StartWithWindows
+            {
+                get => Config.StartWithWindows;
+                set => Config.StartWithWindows = value;
+            }
         }
     }
 }
