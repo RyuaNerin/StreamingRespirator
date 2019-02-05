@@ -379,6 +379,8 @@ namespace StreamingRespirator.Core.Streaming
                         switch (headerName.ToLower())
                         {
                             case "content-type": resProxy.ContentType = resHttp.Headers[headerName]; break;
+                            case "content-length":
+                                break;
 
                             default:
                                 resProxy.Headers.AddHeader(headerName, resHttp.Headers[headerName]);
