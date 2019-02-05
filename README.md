@@ -1,5 +1,8 @@
 # 스트리밍 호흡기
 
+[![GitHub license](https://img.shields.io/github/license/RyuaNerin/StreamingRespirator.svg?style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/blob/master/LICENSE)
+[![Github Releases](https://img.shields.io/github/downloads/RyuaNerin/StreamingRespirator/total.svg?style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/releases/latest)
+
 - 이제는 없어져버린 스트리밍에 호흡기를 달아 비슷하게나마 사용 가능하게 해줍니다
 
 - 버그 및 건의사항은 아래 방법으로 연락주세요.
@@ -21,15 +24,11 @@
 
 ## LICENSE
 
-[![GitHub license](https://img.shields.io/github/license/RyuaNerin/StreamingRespirator.svg?style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/blob/master/LICENSE)
-
 - 이 프로그램은 [GNU GENERAL PUBLIC LICENSE v3](LICENSE) 로 배포되며
 - 사용된 오픈소스 라이브러리에는 이 라이선스가 적용되지 않을 수 있습니다.
 - 이 프로그램으로 인한 모든 결과의 책임은 사용자에게 있습니다.
 
 ## 사용 방법
-
-[![Github Releases](https://img.shields.io/github/downloads/RyuaNerin/StreamingRespirator/total.svg?style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/releases/latest)
 
 1. [여기](https://github.com/RyuaNerin/StreamingRespirator/releases/latest) 에서 프로그램을 다운로드합니다.
 
