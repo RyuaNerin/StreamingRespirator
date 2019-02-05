@@ -351,7 +351,7 @@ namespace StreamingRespirator.Core.Streaming
             {
                 statusCode = (int)resHttp.StatusCode;
 
-                using (var mem = new MemoryStream(4096))
+                using (var mem = new MemoryStream(Math.Min((int)resHttp.ContentLength, 4096)))
                 {
                     using (var stream = resHttp.GetResponseStream())
                     {
