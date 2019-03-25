@@ -16,7 +16,7 @@ namespace StreamingRespirator.Core
 
                 var req = WebRequest.CreateHttp("https://api.github.com/repos/RyuaNerin/StreamingRespirator/releases/latest");
                 req.Timeout = 5000;
-                req.UserAgent = "StreamingRespirator";
+                req.UserAgent = Properties.Resources.UserAgent;
                 using (var res = req.GetResponse())
                 {
                     using (var rStream = res.GetResponseStream())

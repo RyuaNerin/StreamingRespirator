@@ -130,4 +130,7 @@
   <data name="uniF055" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\uniF055.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="UserAgent" xml:space="preserve">
+    <value>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36</value>
+  </data>
 </root>

@@ -47,7 +47,7 @@ namespace StreamingRespirator.Core.Streaming
         {
             var req = WebRequest.Create(uriStr) as HttpWebRequest;
             req.Method = method;
-            req.UserAgent = "Streaming Respirator";
+            req.UserAgent = Properties.Resources.UserAgent;
 
             if (method == "POST")
                 req.ContentType = "application/x-www-form-urlencoded";
