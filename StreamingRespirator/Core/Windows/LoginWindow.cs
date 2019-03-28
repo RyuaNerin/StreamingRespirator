@@ -10,6 +10,7 @@ namespace StreamingRespirator.Core.Windows
             InitializeComponent();
 
             this.ctlUsername.Text = defaultUsername;
+            this.Icon = Properties.Resources.icon;
         }
 
         public string Username => this.ctlUsername.Text;

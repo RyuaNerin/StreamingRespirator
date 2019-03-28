@@ -117,7 +117,7 @@ namespace StreamingRespirator.Core
 
             this.m_notifyIcon = new NotifyIcon
             {
-                Icon             = Properties.Resources.tray,
+                Icon             = Properties.Resources.icon,
                 ContextMenuStrip = this.m_contextMenuStrip,
                 Visible          = true,
             };

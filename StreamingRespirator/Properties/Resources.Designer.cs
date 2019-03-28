@@ -63,9 +63,9 @@ namespace StreamingRespirator.Properties {
         /// <summary>
         ///   (아이콘)과(와) 유사한 System.Drawing.Icon 형식의 지역화된 리소스를 찾습니다.
         /// </summary>
-        internal static System.Drawing.Icon tray {
+        internal static System.Drawing.Icon icon {
             get {
-                object obj = ResourceManager.GetObject("tray", resourceCulture);
+                object obj = ResourceManager.GetObject("icon", resourceCulture);
                 return ((System.Drawing.Icon)(obj));
             }
         }
@@ -97,6 +97,15 @@ namespace StreamingRespirator.Properties {
             get {
                 object obj = ResourceManager.GetObject("uniF055", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string UserAgent {
+            get {
+                return ResourceManager.GetString("UserAgent", resourceCulture);
             }
         }
     }
