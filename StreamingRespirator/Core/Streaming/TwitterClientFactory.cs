@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text;
 using System.Windows.Forms;
 using StreamingRespirator.Core.Windows;
-using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
 namespace StreamingRespirator.Core.Streaming
 {
@@ -137,149 +133,53 @@ namespace StreamingRespirator.Core.Streaming
 
         public static void AddClient(Control invoker)
         {
-            string id = null;
-            string pw = null;
-            
-            if ((bool)invoker.Invoke(new Func<bool>(
+            string cookie = null;
+
+            var dialogResult = (DialogResult)invoker.Invoke(new Func<DialogResult>(
                 () =>
                 {
-                    using (var frm = new LoginWindow(null))
+                    using (var frm = new LoginWindowWeb())
                     {
-                        if (frm.ShowDialog() != DialogResult.OK)
-                            return true;
+                        frm.ShowDialog();
 
-                        id = frm.Username;
-                        pw = frm.Password;
+                        cookie = frm.Cookie;
 
-                        return false;
+                        return frm.DialogResult;
                     }
-                })))
-            {
-                return;
-            }
+                }));
 
-            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace(pw))
-                return;
+            if (dialogResult == DialogResult.OK)
+            {
+                var twitCred = GetCredential(cookie);
 
-            var twitCred = Login(id, pw, out string errorMessage);
-            if (twitCred != null)
-            {
-                invoker.Invoke(new Action(() => MessageBox.Show(twitCred.ScreenName + "가 추가되었습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)));
+                if (twitCred != null)
+                {
+                    invoker.Invoke(new Action(() => MessageBox.Show(twitCred.ScreenName + "가 추가되었습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information)));
 
-                AddClient(twitCred);
+                    AddClient(twitCred);
+                }
+                else
+                {
+                    invoker.Invoke(new Action(() => MessageBox.Show("인증에 실패하였습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)));
+                }
             }
-            else if (!string.IsNullOrWhiteSpace(errorMessage))
+            else if (dialogResult == DialogResult.Abort)
             {
-                invoker.Invoke(new Action(() => MessageBox.Show(errorMessage, "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)));
-            }
-            else
-            {
+                invoker.Invoke(new Action(() => MessageBox.Show("알 수 없는 오류입니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Asterisk)));
             }
         }
 
-        private static TwitterCredential Login(string id, string pw, out string body)
+        private static TwitterCredential GetCredential(string cookie)
         {
-            body = null;
-
-            var cookieContainer = new CookieContainer();
-
-            var authenticity_token = LoginStep1(cookieContainer);
-            if (string.IsNullOrWhiteSpace(authenticity_token))
-                return null;
-            
-            if (!LoginStep2(id, pw, cookieContainer, authenticity_token, out body))
-                return null;
-
             var tempCredentials = new TwitterCredential()
             {
-                Cookie = cookieContainer.GetCookieHeader(CookieUri),
+                Cookie = cookie,
             };
 
             if (!tempCredentials.VerifyCredentials())
                 return null;
             
             return tempCredentials;
-        }
-
-        private static string LoginStep1(CookieContainer cookieContainer)
-        {
-            var req = TwitterCredential.CreateRequestBase("GET", "https://twitter.com/");
-            req.CookieContainer = cookieContainer;
-            try
-            {
-                using (var res = req.GetResponse() as HttpWebResponse)
-                {
-                    if (((int)res.StatusCode / 100) != 2)
-                        return null;
-
-                    var html = new HtmlDocument();
-
-                    using (var stream = res.GetResponseStream())
-                    using (var reader = new StreamReader(stream))
-                        html.LoadHtml(reader.ReadToEnd());
-
-                    return html.DocumentNode.SelectSingleNode("//input[@name='authenticity_token']")?.GetAttributeValue("value", null);
-                }
-            }
-            catch (WebException webEx)
-            {
-                webEx.Response?.Dispose();
-            }
-            catch
-            {
-            }
-
-            return null;
-        }
-
-        private static bool LoginStep2(string id, string pw, CookieContainer cookieContainer, string authenticity_token, out string errorMessage)
-        {
-            errorMessage = null;
-
-            var postData = Encoding.UTF8.GetBytes(
-                new Dictionary<string, string>
-                {
-                    ["session[username_or_email]"] = id,
-                    ["session[password]"         ] = pw,
-                    ["scribe_log"                ] = "",
-                    ["redirect_after_login"      ] = "https://tweetdeck.twitter.com/?via_twitter_login=true",
-                    ["remember_me"               ] = "1",
-                    ["authenticity_token"        ] = authenticity_token
-                }.Select(e => $"{Uri.EscapeDataString(e.Key)}={Uri.EscapeDataString(e.Value)}")
-                 .Aggregate(new StringBuilder(), (cur, next) => { if (cur.Length > 0) cur.Append('&'); return cur.Append(next); })
-                 .ToString()
-            );
-
-            var req = TwitterCredential.CreateRequestBase("POST", "https://twitter.com/sessions");
-            req.CookieContainer = cookieContainer;
-
-            try
-            {
-                req.GetRequestStream().Write(postData, 0, postData.Length);
-
-                using (var res = req.GetResponse() as HttpWebResponse)
-                {
-                    return ((int)res.StatusCode / 100) == 2 && res.ResponseUri.Host == "tweetdeck.twitter.com";
-                }
-            }
-            catch (WebException webEx)
-            {
-                if (webEx.Response != null)
-                {
-                    using (var res = webEx.Response)
-                    {
-                        var html = new HtmlDocument();
-
-                        using (var stream = res.GetResponseStream())
-                        using (var reader = new StreamReader(stream))
-                            html.LoadHtml(reader.ReadToEnd());
-
-                        errorMessage = html.DocumentNode.SelectSingleNode("//span[@class='message-text']")?.InnerText;
-                    }
-                }
-            }
-
-            return false;
         }
     }
 }
