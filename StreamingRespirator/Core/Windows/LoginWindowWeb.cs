@@ -10,7 +10,7 @@ using StreamingRespirator.Core.Streaming;
 
 namespace StreamingRespirator.Core.Windows
 {
-    [System.ComponentModel.Designer("CODE")]
+    [System.ComponentModel.DesignerCategory("CODE")]
     internal class LoginWindowWeb : Form
     {
         static readonly Uri TwitterUri = new Uri("https://twitter.com/");

@@ -124,9 +124,7 @@
     <Compile Include="Core\Streaming\TimeLines\TlHome.cs" />
     <Compile Include="Core\Streaming\TwitterClient.cs" />
     <Compile Include="Core\Streaming\UserCache.cs" />
-    <Compile Include="Core\Windows\LoginWindowWeb.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Include="Core\Windows\LoginWindowWeb.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
