@@ -9,6 +9,19 @@ namespace StreamingRespirator.Core.Streaming
 {
     internal class TwitterCredential
     {
+        public static TwitterCredential GetCredential(string cookie)
+        {
+            var tempCredentials = new TwitterCredential()
+            {
+                Cookie = cookie,
+            };
+
+            if (!tempCredentials.VerifyCredentials())
+                return null;
+
+            return tempCredentials;
+        }
+
         [JsonProperty("id")]
         public long Id { get; set; }
 

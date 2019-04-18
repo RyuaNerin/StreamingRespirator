@@ -133,53 +133,19 @@ namespace StreamingRespirator.Core.Streaming
 
         public static void AddClient(Control invoker)
         {
-            string cookie = null;
-
-            var dialogResult = (DialogResult)invoker.Invoke(new Func<DialogResult>(
+            var twitCred = (TwitterCredential)invoker.Invoke(new Func<TwitterCredential>(
                 () =>
                 {
                     using (var frm = new LoginWindowWeb())
                     {
                         frm.ShowDialog();
 
-                        cookie = frm.Cookie;
-
-                        return frm.DialogResult;
+                        return frm.TwitterCredential;
                     }
                 }));
 
-            if (dialogResult == DialogResult.OK)
-            {
-                var twitCred = GetCredential(cookie);
-
-                if (twitCred != null)
-                {
-                    invoker.Invoke(new Action(() => MessageBox.Show(twitCred.ScreenName + "가 추가되었습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information)));
-
-                    AddClient(twitCred);
-                }
-                else
-                {
-                    invoker.Invoke(new Action(() => MessageBox.Show("인증에 실패하였습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)));
-                }
-            }
-            else if (dialogResult == DialogResult.Abort)
-            {
-                invoker.Invoke(new Action(() => MessageBox.Show("알 수 없는 오류입니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Asterisk)));
-            }
-        }
-
-        private static TwitterCredential GetCredential(string cookie)
-        {
-            var tempCredentials = new TwitterCredential()
-            {
-                Cookie = cookie,
-            };
-
-            if (!tempCredentials.VerifyCredentials())
-                return null;
-            
-            return tempCredentials;
+            if (twitCred != null)
+                AddClient(twitCred);
         }
     }
 }

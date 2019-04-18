@@ -1,93 +1,161 @@
 using System;
+using System.Drawing;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using mshtml;
+using StreamingRespirator.Core.Streaming;
 
 namespace StreamingRespirator.Core.Windows
 {
-    public partial class LoginWindowWeb : Form
+    [System.ComponentModel.Designer("CODE")]
+    internal class LoginWindowWeb : Form
     {
         static readonly Uri TwitterUri = new Uri("https://twitter.com/");
 
-        private SHDocVw.WebBrowser m_iWebBrowser;
+        private readonly WebBrowser m_webBrowser;
+        private SHDocVw.WebBrowser m_webBrowserSh;
 
-        public string Cookie { get; private set; }
+        public TwitterCredential TwitterCredential { get; private set; }
+
+        static LoginWindowWeb()
+        {
+            NativeMethods.SetCookieSupressBehavior();
+        }
 
         public LoginWindowWeb()
         {
-            this.InitializeComponent();
+            this.SuspendLayout();
+
+            this.m_webBrowser = new WebBrowser();
+            this.m_webBrowser.AllowWebBrowserDrop            = false;
+            this.m_webBrowser.CausesValidation               = false;
+            this.m_webBrowser.Dock                           = DockStyle.Fill;
+            this.m_webBrowser.IsWebBrowserContextMenuEnabled = false;
+            this.m_webBrowser.ScrollBarsEnabled              = false;
+            this.m_webBrowser.Visible                        = false;
+
+            this.m_webBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(this.ctlWeb_DocumentCompleted);
+            this.m_webBrowser.Navigating        += new WebBrowserNavigatingEventHandler(this.ctlWeb_Navigating);
+
+            this.AutoScaleDimensions = new SizeF(96F, 96F);
+            this.AutoScaleMode       = AutoScaleMode.Dpi;
+            this.BackColor           = Color.White;
+            this.ClientSize          = new Size(380, 240);
+            this.FormBorderStyle     = FormBorderStyle.FixedSingle;
+            this.MaximizeBox         = false;
+            this.MinimizeBox         = false;
+            this.StartPosition       = FormStartPosition.CenterScreen;
+
+            this.Controls.Add(this.m_webBrowser);
+
+            this.Text = "스트리밍 호흡기 로그인";
+
+            this.ResumeLayout(false);
         }
 
-        private void LoginWindow2_Load(object sender, EventArgs e)
+        private bool m_disposed = false;
+        protected override void Dispose(bool disposing)
         {
-            this.m_iWebBrowser = (SHDocVw.WebBrowser)this.ctlWeb.ActiveXInstance;
-
-            this.m_iWebBrowser.Resizable = false;
-            this.m_iWebBrowser.Silent = true;
-            this.m_iWebBrowser.StatusBar = false;
-            this.m_iWebBrowser.TheaterMode = false;
-            this.m_iWebBrowser.Offline = false;
-            this.m_iWebBrowser.MenuBar = false;
-            this.m_iWebBrowser.RegisterAsBrowser = false;
-            this.m_iWebBrowser.RegisterAsDropTarget = false;
-            this.m_iWebBrowser.AddressBar = false;
-
-            if (ClearTwitterCookies())
+            if (disposing && !this.m_disposed)
             {
-                this.ctlWeb.Navigate("https://twitter.com/login");
+                this.m_disposed = true;
+
+                try
+                {
+                    this.m_webBrowserSh?.Quit();
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    Marshal.ReleaseComObject(this.m_webBrowserSh);
+                }
+                catch
+                {
+                }
+
+                this.m_webBrowser.Dispose();
             }
-            else
-            {
-                this.DialogResult = DialogResult.Abort;
-                this.Close();
-            }
+
+            base.Dispose(disposing);
         }
 
-        private void LoginWindow2_FormClosed(object sender, FormClosedEventArgs e)
+        protected override void OnLoad(EventArgs e)
         {
-            try
-            {
-                this.m_iWebBrowser?.Quit();
-            }
-            catch
-            {
-            }
+            base.OnLoad(e);
 
-            try
-            {
-                Marshal.ReleaseComObject(this.m_iWebBrowser);
-            }
-            catch
-            {
-            }
+            this.m_webBrowserSh = (SHDocVw.WebBrowser)this.m_webBrowser.ActiveXInstance;
+
+            this.m_webBrowserSh.Resizable = false;
+            this.m_webBrowserSh.Silent = true;
+            this.m_webBrowserSh.StatusBar = false;
+            this.m_webBrowserSh.TheaterMode = false;
+            this.m_webBrowserSh.Offline = false;
+            this.m_webBrowserSh.MenuBar = false;
+            this.m_webBrowserSh.RegisterAsBrowser = false;
+            this.m_webBrowserSh.RegisterAsDropTarget = false;
+            this.m_webBrowserSh.AddressBar = false;
+
+            this.m_webBrowser.Navigate("https://twitter.com/login");
+        }
+
+        protected override void OnGotFocus(EventArgs e)
+        {
+            base.OnGotFocus(e);
+
+            this.m_webBrowser.Focus();
         }
 
         private void ctlWeb_Navigating(object sender, WebBrowserNavigatingEventArgs e)
         {
-            this.ctlWeb.Visible = false;
+            this.m_webBrowser.Visible = false;
         }
 
+        private bool m_logined = false;
         private void ctlWeb_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            if (this.ctlWeb.Url.Host == "twitter.com" && this.ctlWeb.Url.AbsolutePath == "/")
+            if (this.m_webBrowser.Url.Host == "twitter.com" && this.m_webBrowser.Url.AbsolutePath == "/")
             {
-                this.ctlWeb.Stop();
+                if (this.m_logined)
+                    return;
 
-                this.Cookie = GetTwitterCookies().GetCookieHeader(TwitterUri);
-                this.DialogResult = DialogResult.OK;
-                this.Close();
+                this.m_logined = true;
+
+                this.m_webBrowser.Stop();
+
+                Task.Factory.StartNew(() =>
+                {
+                    var cookie = NativeMethods.GetCookies(TwitterUri).GetCookieHeader(TwitterUri);
+                    var twitCred = TwitterCredential.GetCredential(cookie);
+
+                    if (twitCred != null)
+                    {
+                        this.Invoke(new Action(() => MessageBox.Show(this, twitCred.ScreenName + "가 추가되었습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information)));
+
+                        this.TwitterCredential = twitCred;
+                    }
+                    else
+                    {
+                        this.Invoke(new Action(() => MessageBox.Show(this, "인증에 실패하였습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)));
+                    }
+
+                    this.Invoke(new Action(this.Close));
+                });
                 return;
             }
 
             try
             {
-                var doc = (HTMLDocument)this.ctlWeb.Document.DomDocument;
+                var doc = (HTMLDocument)this.m_webBrowser.Document.DomDocument;
 
                 try
                 {
-                    this.ctlWeb.Document.InvokeScript("eval", new object[] { "$(document).contextmenu(function(){return false;});" });
+                    this.m_webBrowser.Document.InvokeScript("eval", new object[] { "$(document).contextmenu(function(){return false;});" });
                 }
                 catch
                 {
@@ -117,63 +185,24 @@ namespace StreamingRespirator.Core.Windows
                     elem.style.border = "";
                 }
 
-                this.ctlWeb.Visible = true;
+                this.m_webBrowser.Visible = true;
             }
             catch
             {
             }
         }
 
-
-        private static bool ClearTwitterCookies()
-        {
-            var optionPtr = IntPtr.Zero;
-            try
-            {
-                optionPtr = Marshal.AllocHGlobal(4);
-                Marshal.WriteInt32(optionPtr, 3);
-
-                return NativeMethods.InternetSetOption(0, 81/*INTERNET_OPTION_SUPPRESS_BEHAVIOR*/, optionPtr, sizeof(int));
-            }
-            finally
-            {
-                if (optionPtr != IntPtr.Zero)
-                    Marshal.FreeHGlobal(optionPtr);
-            }
-        }
-
-        private static CookieContainer GetTwitterCookies()
-        {
-            var cc = new CookieContainer();
-
-            GetTwitterCookies(cc, 0);
-            GetTwitterCookies(cc, NativeMethods.INTERNET_COOKIE_HTTPONLY);
-
-            return cc;
-        }
-
-        private static void GetTwitterCookies(CookieContainer cc, int option)
-        {
-            int datasize = 8192 * 16;
-            StringBuilder cookieData = new StringBuilder(datasize);
-            if (!NativeMethods.InternetGetCookieEx(TwitterUri.ToString(), null, cookieData, ref datasize, option, IntPtr.Zero))
-            {
-                if (datasize < 0)
-                    return;
-
-                cookieData = new StringBuilder(datasize);
-                if (!NativeMethods.InternetGetCookieEx(TwitterUri.ToString(), null, cookieData, ref datasize, option, IntPtr.Zero))
-                    return;
-            }
-
-            if (cookieData.Length > 0)
-                cc.SetCookies(TwitterUri, cookieData.ToString().Replace(';', ','));
-        }
-
         private static class NativeMethods
         {
-            [DllImport("wininet.dll", SetLastError = true)]
-            public static extern bool InternetGetCookieEx(
+            [DllImport("wininet.dll")]
+            private static extern bool InternetSetOption(
+                int hInternet,
+                int dwOption,
+                IntPtr lpBuffer,
+                int dwBufferLength);
+
+            [DllImport("wininet.dll")]
+            private static extern bool InternetGetCookieEx(
                 string url,
                 string cookieName,
                 StringBuilder cookieData,
@@ -181,37 +210,56 @@ namespace StreamingRespirator.Core.Windows
                 int dwFlags,
                 IntPtr lpReserved);
 
-            [DllImport("wininet.dll", CharSet = CharSet.Auto, SetLastError = true)]
-            public static extern InternetCookieState InternetSetCookieEx(
-                string lpszURL,
-                string lpszCookieName,
-                string lpszCookieData,
-                int dwFlags,
-                int dwReserved);
+            private const int INTERNET_COOKIE_HTTPONLY = 0x00002000;
+            private const int INTERNET_OPTION_SUPPRESS_BEHAVIOR = 81;
 
-            [DllImport("wininet.dll")]
-            public static extern bool InternetSetOption(
-                int hInternet,
-                int dwOption,
-                IntPtr lpBuffer,
-                int dwBufferLength);
-
-            public const int INTERNET_COOKIE_HTTPONLY = 0x00002000;
-
-            public enum InternetCookieState : int
+            public static void SetCookieSupressBehavior()
             {
-                COOKIE_STATE_UNKNOWN = 0x0,
-                COOKIE_STATE_ACCEPT = 0x1,
-                COOKIE_STATE_PROMPT = 0x2,
-                COOKIE_STATE_LEASH = 0x3,
-                COOKIE_STATE_DOWNGRADE = 0x4,
-                COOKIE_STATE_REJECT = 0x5,
-                COOKIE_STATE_MAX = COOKIE_STATE_REJECT
+                var optionPtr = IntPtr.Zero;
+                try
+                {
+                    optionPtr = Marshal.AllocHGlobal(4);
+                    Marshal.WriteInt32(optionPtr, 3);
+
+                    InternetSetOption(0, INTERNET_OPTION_SUPPRESS_BEHAVIOR, optionPtr, 4);
+                }
+                finally
+                {
+                    if (optionPtr != IntPtr.Zero)
+                        Marshal.FreeHGlobal(optionPtr);
+                }
+            }
+
+            public static CookieContainer GetCookies(Uri uri)
+            {
+                var cc = new CookieContainer();
+
+                GetCookies(uri, cc, 0);
+                GetCookies(uri, cc, INTERNET_COOKIE_HTTPONLY);
+
+                return cc;
+            }
+            private static void GetCookies(Uri uri, CookieContainer cc, int option)
+            {
+                int datasize = 8192 * 16;
+                StringBuilder cookieData = new StringBuilder(datasize);
+                if (!InternetGetCookieEx(uri.ToString(), null, cookieData, ref datasize, option, IntPtr.Zero))
+                {
+                    if (datasize < 0)
+                        return;
+
+                    cookieData = new StringBuilder(datasize);
+                    if (!InternetGetCookieEx(uri.ToString(), null, cookieData, ref datasize, option, IntPtr.Zero))
+                        return;
+                }
+
+                if (cookieData.Length > 0)
+                    cc.SetCookies(uri, cookieData.ToString().Replace(';', ','));
             }
         }
     }
 
-    internal static class HtmlExtension
+    internal static class HtmlElementExtension
     {
         public static IHTMLElement GetElementByClassName(this HTMLDocument element, string className)
             => ((IHTMLElementCollection)((dynamic)element)?.getElementsByClassName(className)).At(0);
