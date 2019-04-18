@@ -198,7 +198,7 @@ namespace StreamingRespirator.Core
 
                         if (data.IsRemoved)
                         {
-                            foreach (Control subItem in cts.RootItem.DropDownItems)
+                            foreach (ToolStripMenuItem subItem in cts.RootItem.DropDownItems)
                                 subItem.Dispose();
                             cts.RootItem.Dispose();
 
