@@ -14,12 +14,6 @@ namespace StreamingRespirator.Core.Streaming.Twitter.Packet
         {
             [JsonProperty("status")]
             public StatusItem Status { get; } = new StatusItem();
-
-            [JsonIgnore]
-            public DateTime DateTime { get; set; } = DateTime.UtcNow;
-
-            [JsonProperty("")]
-            public long TimeStampMs => (long)(this.DateTime - new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).TotalMilliseconds;
         }
 
         public class StatusItem
