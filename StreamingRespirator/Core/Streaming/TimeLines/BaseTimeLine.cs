@@ -15,6 +15,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
     {
         void Start();
         void Stop();
+        void ForceRefresh();
     }
 
     internal abstract class BaseTimeLine<T> : ITimeLine, IDisposable
@@ -72,6 +73,11 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         protected abstract string GetUrl();
         protected abstract (IEnumerable<T> items, IEnumerable<TwitterUser> users) ParseHtml(string html);
         protected abstract void UpdateStatus(float nextTime);
+
+        public void ForceRefresh()
+        {
+            this.m_timer.Change(0, Timeout.Infinite);
+        }
 
         private static readonly DateTime ForTimeStamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private void Refresh(object state)

@@ -122,6 +122,13 @@ namespace StreamingRespirator.Core.Streaming
             this.ClientUpdated?.Invoke(this.Credential.Id, data);
         }
 
+        public void ForceRefresh(bool home, bool aboutMe, bool dm)
+        {
+            if (home   ) this.m_tlHome   .ForceRefresh();
+            if (aboutMe) this.m_tlAboutMe.ForceRefresh();
+            if (dm     ) this.m_tlDm     .ForceRefresh();
+        }
+
         private class FriendsCursor
         {
             [JsonProperty("ids")]

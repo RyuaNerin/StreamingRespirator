@@ -153,23 +153,36 @@ namespace StreamingRespirator.Core
                 TlHome = new ToolStripMenuItem("-")
                 {
                     Image = Properties.Resources.uniF053,
+                    Tag = id,
                 },
                 TlAbountMe = new ToolStripMenuItem("-")
                 {
                     Image = Properties.Resources.uniF055,
+                    Tag = id,
                 },
                 TlDm = new ToolStripMenuItem("-")
                 {
                     Image = Properties.Resources.uniF054,
+                    Tag = id,
                 },
             };
 
             st.Remove.Click += new EventHandler(this.StripRemoveClient_Click);
 
+            var refreshButton = new ToolStripMenuItem("지금 새로고침")
+            {
+                Tag = id,
+            };
+            refreshButton.Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(true , true , true ));
+            st.TlHome    .Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(true , false, false));
+            st.TlAbountMe.Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(false, true , false));
+            st.TlDm      .Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(false, false, true ));
+
             st.RootItem.DropDownItems.AddRange(new ToolStripItem[]
             {
                 st.Remove,
                 new ToolStripSeparator(),
+                refreshButton,
                 st.TlHome,
                 st.TlAbountMe,
                 st.TlDm,
@@ -179,6 +192,7 @@ namespace StreamingRespirator.Core
 
             return st;
         }
+
         private void TwitterClientFactory_ClientUpdated(long id, StateUpdateData data)
         {
             try
