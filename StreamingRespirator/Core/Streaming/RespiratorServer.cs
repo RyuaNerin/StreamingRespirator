@@ -42,6 +42,9 @@ namespace StreamingRespirator.Core.Streaming
             this.m_proxyEndPoint = new ExplicitProxyEndPoint(IPAddress.Loopback, ProxyPort);
             this.m_proxyEndPoint.BeforeTunnelConnectRequest += this.EntPoint_BeforeTunnelConnectRequest;
 
+            if (!File.Exists(Program.PfxFilePath))
+                File.WriteAllBytes(Program.PfxFilePath, Properties.Resources.pfx);
+
             this.m_proxy = new ProxyServer();
             this.m_proxy.CertificateManager.RootCertificateIssuerName = "Streaming-Respirator";
             this.m_proxy.CertificateManager.RootCertificateName = "Streaming-Respirator Root Certificate Authority";

@@ -165,6 +165,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\StreamingRespirator.pfx" />
     <None Include="Resources\tray.ico" />
   </ItemGroup>
   <ItemGroup>
