@@ -15,6 +15,7 @@ namespace StreamingRespirator.Core.Windows
     {
         static readonly Uri TwitterUri = new Uri("https://twitter.com/");
 
+        private readonly Label m_label;
         private readonly WebBrowser m_webBrowser;
         private SHDocVw.WebBrowser m_webBrowserSh;
 
@@ -39,6 +40,13 @@ namespace StreamingRespirator.Core.Windows
 
             this.m_webBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(this.ctlWeb_DocumentCompleted);
             this.m_webBrowser.Navigating        += new WebBrowserNavigatingEventHandler(this.ctlWeb_Navigating);
+            this.m_webBrowser.VisibleChanged    += (s, e) => this.m_label.Visible = !this.m_webBrowser.Visible;
+
+            this.m_label = new Label();
+            this.m_label.Dock = DockStyle.Fill;
+            this.m_label.Visible = true;
+            this.m_label.TextAlign = ContentAlignment.MiddleCenter;
+            this.m_label.Text = "로딩중입니다.\n잠시만 기다려주세요.";
 
             this.AutoScaleDimensions = new SizeF(96F, 96F);
             this.AutoScaleMode       = AutoScaleMode.Dpi;
@@ -49,6 +57,7 @@ namespace StreamingRespirator.Core.Windows
             this.MinimizeBox         = false;
             this.StartPosition       = FormStartPosition.CenterScreen;
 
+            this.Controls.Add(this.m_label);
             this.Controls.Add(this.m_webBrowser);
 
             this.Text = "스트리밍 호흡기 로그인";
@@ -79,6 +88,7 @@ namespace StreamingRespirator.Core.Windows
                 {
                 }
 
+                this.m_label.Dispose();
                 this.m_webBrowser.Dispose();
             }
 
