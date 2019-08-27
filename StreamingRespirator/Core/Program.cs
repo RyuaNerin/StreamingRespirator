@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -29,6 +30,8 @@ namespace StreamingRespirator.Core
 
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
+
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
 #if !DEBUG
                 System.Net.WebRequest.DefaultWebProxy = null;
