@@ -56,6 +56,66 @@ namespace StreamingRespirator.Core.Streaming
             return req;
         }
 
+        public bool Reqeust(string method, string uriStr, byte[] data = null)
+        {
+            var req = this.CreateReqeust(method, uriStr);
+
+            if (method == "POST" && data != null)
+                req.GetRequestStream().Write(data, 0, data.Length);
+
+            try
+            {
+                using (var res = req.GetResponse() as HttpWebResponse)
+                {
+                    using (var stream = res.GetResponseStream())
+                    {
+                        var buff = new byte[4096];
+                        int read;
+                        while ((read = stream.Read(buff, 0, 4096)) > 0);
+                    }
+
+                    return true;
+                }
+            }
+            catch (WebException webEx)
+            {
+                webEx.Response?.Dispose();
+            }
+            catch
+            {
+            }
+
+            return false;
+        }
+        public T Reqeust<T>(string method, string uriStr, byte[] data = null)
+        {
+            var req = this.CreateReqeust(method, uriStr);
+
+            if (method == "POST" && data != null)
+                req.GetRequestStream().Write(data, 0, data.Length);
+
+            try
+            {
+                using (var res = req.GetResponse() as HttpWebResponse)
+                {
+                    using (var stream = res.GetResponseStream())
+                    using (var reader = new StreamReader(stream, Encoding.UTF8))
+                    {
+                        return JsonConvert.DeserializeObject<T>(reader.ReadToEnd());
+                    }
+                }
+            }
+            catch (WebException webEx)
+            {
+                webEx.Response?.Dispose();
+            }
+            catch
+            {
+            }
+
+            return default(T);
+        }
+
         public static HttpWebRequest CreateRequestBase(string method, string uriStr)
         {
             var req = WebRequest.Create(uriStr) as HttpWebRequest;

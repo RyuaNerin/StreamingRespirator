@@ -97,6 +97,7 @@
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
+    <Reference Include="System.Web" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
@@ -112,6 +113,7 @@
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\Streaming\TwitterClientFactory.cs" />
     <Compile Include="Core\Streaming\TwitterCredentials.cs" />
+    <Compile Include="Core\Streaming\Twitter\DirectMessageCreate.cs" />
     <Compile Include="Core\Streaming\Twitter\Packet\PacketDelete.cs" />
     <Compile Include="Core\Streaming\Twitter\Packet\PacketEvent.cs" />
     <Compile Include="Core\Streaming\Twitter\Packet\PacketFriends.cs" />

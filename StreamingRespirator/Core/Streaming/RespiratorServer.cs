@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using Newtonsoft.Json;
 using StreamingRespirator.Core.Streaming.Twitter;
 using StreamingRespirator.Utilities;
@@ -212,10 +213,10 @@ namespace StreamingRespirator.Core.Streaming
 
             return Task.FromResult(true);
         }
-        private static bool GetInstance(SessionEventArgs e, string requestBody, out long ownerId, out TwitterClient twitClient)
+        private static bool GetInstance(SessionEventArgs e, string requestBodyStr, out long ownerId, out TwitterClient twitClient)
         {
             twitClient = null;
-            if (!TryGetOwnerId(e.HttpClient.Request.RequestUri, e.HttpClient.Request.Headers, requestBody, out ownerId))
+            if (!TryGetOwnerId(e.HttpClient.Request.RequestUri, e.HttpClient.Request.Headers, requestBodyStr, out ownerId))
                 return false;
 
             twitClient = null;
@@ -230,10 +231,12 @@ namespace StreamingRespirator.Core.Streaming
         }
         private static void ProxyRetweet(SessionEventArgs e)
         {
-            if (!SendResponse(e, out var requestBody, out var statusCode, out var body))
+            var reqeustBody = GetResponseBody(e, out var reqeustBodyStr);
+
+            if (!SendResponse(e, reqeustBody, out var statusCode, out var body))
                 return;
 
-            if (GetInstance(e, requestBody, out var ownerId, out var twitClient))
+            if (GetInstance(e, reqeustBodyStr, out var ownerId, out var twitClient))
             {
                 if (statusCode == 404)
                     twitClient.StatusMaybeDestroyed(ParseJsonId(e.HttpClient.Request.RequestUri));
@@ -248,10 +251,12 @@ namespace StreamingRespirator.Core.Streaming
         }
         private static void ProxyDestroyOrUnretweet(SessionEventArgs e)
         {
-            if (!SendResponse(e, out var requestBody, out var statusCode, out var body))
+            var reqeustBody = GetResponseBody(e, out var reqeustBodyStr);
+
+            if (!SendResponse(e, reqeustBody, out var statusCode, out var body))
                 return;
 
-            if (GetInstance(e, requestBody, out var ownerId, out var twitClient))
+            if (GetInstance(e, reqeustBodyStr, out var ownerId, out var twitClient))
             {
                 if (statusCode == 200)
                 {
@@ -264,15 +269,28 @@ namespace StreamingRespirator.Core.Streaming
         }
         private static void ProxyUpdate(SessionEventArgs e)
         {
-            if (!SendResponse(e, out var requestBody, out var statusCode, out var body))
+            var reqeustBody = GetResponseBody(e, out var reqeustBodyStr);
+            NameValueCollection postData = null;
+
+            // d @ScreenName data
+            if (e.HttpClient.Request.ContentType.Contains("application/x-www-form-urlencoded"))
+            {
+                postData = HttpUtility.ParseQueryString(reqeustBodyStr, Encoding.UTF8);
+            }
+
+            int statusCode;
+            if (SendDMInsteadOfPublic(e, reqeustBodyStr, postData, out statusCode))
+                return;
+            
+            if (!SendResponse(e, reqeustBody, out statusCode, out var body))
                 return;
 
-            if (GetInstance(e, requestBody, out var ownerId, out var twitClient))
+            if (GetInstance(e, reqeustBodyStr, out var ownerId, out var twitClient))
             {
                 if (statusCode == 401)
                 {
-                    var m = Regex.Match(requestBody, "in_reply_to_status_id=(\\d)+");
-                    if (m.Success && long.TryParse(m.Groups[1].Value, out var id))
+                    var idStr = postData["in_reply_to_status_id"];
+                    if (idStr != null && long.TryParse(idStr, out var id))
                         twitClient.StatusMaybeDestroyed(id);
                 }
             }
@@ -287,9 +305,24 @@ namespace StreamingRespirator.Core.Streaming
 
             e.Respond(resProxy, true);
         }
-        private static bool SendResponse(SessionEventArgs e, out string requestBody, out int statusCode, out string body)
+        private static byte[] GetResponseBody(SessionEventArgs e, out string requestBodyStr)
         {
-            requestBody = null;
+            if (e.HttpClient.Request.HasBody)
+            {
+                var task = e.GetRequestBody();
+                task.Wait();
+
+                var buff = task.Result;
+                requestBodyStr = Encoding.UTF8.GetString(buff);
+
+                return buff;
+            }
+
+            requestBodyStr = null;
+            return null;
+        }
+        private static bool SendResponse(SessionEventArgs e, byte[] requestBody, out int statusCode, out string body)
+        {
             statusCode = 0;
             body = null;
 
@@ -321,13 +354,7 @@ namespace StreamingRespirator.Core.Streaming
 
             if (e.HttpClient.Request.HasBody)
             {
-                var task = e.GetRequestBody();
-                task.Wait();
-
-                var buff = task.Result;
-                reqHttp.GetRequestStream().Write(buff, 0, buff.Length);
-
-                requestBody = Encoding.UTF8.GetString(buff);
+                reqHttp.GetRequestStream().Write(requestBody, 0, requestBody.Length);
             }
 
             HttpWebResponse resHttp = null;
@@ -396,6 +423,65 @@ namespace StreamingRespirator.Core.Streaming
                     return true;
                 }
             }
+        }
+
+        private static readonly JsonSerializerSettings Jss = new JsonSerializerSettings
+        {
+            StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
+            Formatting = Formatting.None,
+        };
+        private static bool SendDMInsteadOfPublic(SessionEventArgs e, string reqeustBodyStr, NameValueCollection postData, out int statusCode)
+        {
+            statusCode = (int)HttpStatusCode.NotFound;
+
+            if (postData == null)
+                return false;
+
+            var status = postData["status"];
+            if (status == null)
+                return false;
+            
+            var m = Regex.Match(status, "^d @?([A-Za-z0-9_]{1,15}) (.+)$");
+            if (!m.Success)
+                return false;
+
+            var screenName = m.Groups[1].Value;
+            var text = m.Groups[2].Value;
+            
+            if (!GetInstance(e, reqeustBodyStr, out var ownerId, out var twitClient))
+                return false;
+
+            var userId = twitClient.UserCache.GetUserIdByScreenName(screenName);
+            if (userId == 0)
+            {
+                var user = twitClient.Credential.Reqeust<TwitterUser>("GET", "https://api.twitter.com/1.1/users/show.json?screen_name=" + Uri.EscapeUriString(screenName));
+                if (user == null)
+                {
+                    statusCode = (int)HttpStatusCode.NotFound;
+                    return true;
+                }
+
+                twitClient.UserCache.IsUpdated(user);
+            }
+
+            var dmData = new DirectMessageNew();
+            dmData.Data.Type = "message_create";
+            dmData.Data.MessageCreate.Target.RecipientId = userId.ToString();
+            dmData.Data.MessageCreate.MessageData.Text = text;
+
+            var dmDataBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(dmData, Jss));
+
+            var succ = twitClient.Credential.Reqeust("POST", "https://api.twitter.com/1.1/direct_messages/events/new.json", dmDataBytes);
+
+            var resProxy = new Response()
+            {
+                HttpVersion       = e.HttpClient.Request.HttpVersion,
+                StatusCode        = succ ? (int)HttpStatusCode.OK  : (int)HttpStatusCode.NotFound ,
+                StatusDescription = succ ?                    "OK" :                    "NotFound",
+            };
+            e.Respond(resProxy);
+
+            return true;
         }
 
         private static long ParseJsonId(Uri uri)

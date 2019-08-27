@@ -106,5 +106,15 @@ namespace StreamingRespirator.Core.Streaming
                 }
             }
         }
+
+        public long GetUserIdByScreenName(string screenName)
+        {
+            lock (this.Cache)
+            {
+                var info = this.Cache.Values.FirstOrDefault(e => e.ScreenName == screenName);
+
+                return info != null ? info.Id : 0;
+            }
+        }
     }
 }
