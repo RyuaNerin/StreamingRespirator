@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -43,13 +44,10 @@ namespace StreamingRespirator.Core.Streaming
             this.m_proxyEndPoint = new ExplicitProxyEndPoint(IPAddress.Loopback, ProxyPort);
             this.m_proxyEndPoint.BeforeTunnelConnectRequest += this.EntPoint_BeforeTunnelConnectRequest;
 
-            if (!File.Exists(Program.PfxFilePath))
-                File.WriteAllBytes(Program.PfxFilePath, Properties.Resources.pfx);
-
             this.m_proxy = new ProxyServer();
             this.m_proxy.CertificateManager.RootCertificateIssuerName = "Streaming-Respirator";
             this.m_proxy.CertificateManager.RootCertificateName = "Streaming-Respirator Root Certificate Authority";
-            this.m_proxy.CertificateManager.PfxFilePath = Program.PfxFilePath;
+            this.m_proxy.CertificateManager.RootCertificate = new X509Certificate2(Properties.Resources.pfx, string.Empty, X509KeyStorageFlags.Exportable);
 
             this.m_proxy.AddEndPoint(this.m_proxyEndPoint);
             this.m_proxy.BeforeRequest += this.Proxy_BeforeRequest;
