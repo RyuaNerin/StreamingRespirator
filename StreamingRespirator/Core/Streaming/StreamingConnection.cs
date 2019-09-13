@@ -30,7 +30,7 @@ namespace StreamingRespirator.Core.Streaming
             this.Client = client;
 
             this.m_keepAlive = new Timer(this.SendKeepAlive, null, KeepAlivePeriod, KeepAlivePeriod);
-            this.m_friends   = new Timer(this.SendKeepAlive, null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
+            this.m_friends   = new Timer(this.SendFriends  , null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
         }
 
         ~StreamingConnection()
