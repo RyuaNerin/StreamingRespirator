@@ -69,7 +69,19 @@ namespace StreamingRespirator.Core.Streaming
                 var inst = Instances[id];
 
                 var befScreenName = inst.Credential.ScreenName;
-                if (!inst.Credential.VerifyCredentials())
+
+                bool verified;
+
+                try
+                {
+                    verified = inst.Credential.VerifyCredentials();
+                }
+                catch
+                {
+                    return null;
+                }
+
+                if (!verified)
                 {
                     RemoveClient(id);
                     return null;

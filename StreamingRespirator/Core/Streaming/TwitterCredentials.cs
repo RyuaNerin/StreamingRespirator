@@ -22,6 +22,18 @@ namespace StreamingRespirator.Core.Streaming
             return tempCredentials;
         }
 
+        public static HttpWebRequest CreateRequestBase(string method, string uriStr)
+        {
+            var req = WebRequest.Create(uriStr) as HttpWebRequest;
+            req.Method = method;
+            req.UserAgent = "Streaming Respirator";
+
+            if (method == "POST")
+                req.ContentType = "application/x-www-form-urlencoded";
+
+            return req;
+        }
+
         [JsonProperty("id")]
         public long Id { get; set; }
 
@@ -116,18 +128,10 @@ namespace StreamingRespirator.Core.Streaming
             return default(T);
         }
 
-        public static HttpWebRequest CreateRequestBase(string method, string uriStr)
-        {
-            var req = WebRequest.Create(uriStr) as HttpWebRequest;
-            req.Method = method;
-            req.UserAgent = "Streaming Respirator";
-
-            if (method == "POST")
-                req.ContentType = "application/x-www-form-urlencoded";
-
-            return req;
-        }
-
+        /// <summary>
+        /// 네트워크 에러 발생 시 WebException 을 Throw 함.
+        /// </summary>
+        /// <returns></returns>
         public bool VerifyCredentials()
         {
             var req = this.CreateReqeust("GET", "https://api.twitter.com/1.1/account/verify_credentials.json");
@@ -152,6 +156,9 @@ namespace StreamingRespirator.Core.Streaming
             catch (WebException webEx)
             {
                 webEx.Response?.Dispose();
+
+                if (webEx.Status != WebExceptionStatus.Success)
+                    throw webEx;
 
                 return false;
             }
