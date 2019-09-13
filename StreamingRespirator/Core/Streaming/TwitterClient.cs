@@ -145,28 +145,7 @@ namespace StreamingRespirator.Core.Streaming
         }
         private long[] GetFriendsPacket()
         {
-            var req = this.Credential.CreateReqeust("GET", $"https://api.twitter.com/1.1/friends/ids.json?count=5000user_id={this.Credential.Id}");
-
-            try
-            {
-                using (var res = req.GetResponse() as HttpWebResponse)
-                {
-                    using (var stream = res.GetResponseStream())
-                    using (var reader = new StreamReader(stream))
-                    {
-                        return JsonConvert.DeserializeObject<FriendsCursor>(reader.ReadToEnd()).Ids;
-                    }
-                }
-            }
-            catch (WebException webEx)
-            {
-                webEx.Response?.Dispose();
-            }
-            catch
-            {
-            }
-
-            return null;
+            return this.Credential.Reqeust<FriendsCursor>("GET", $"https://api.twitter.com/1.1/friends/ids.json?count=5000user_id={this.Credential.Id}")?.Ids;
         }
 
         public StreamingConnection[] GetConnections()
@@ -205,31 +184,7 @@ namespace StreamingRespirator.Core.Streaming
         }
         private TwitterStatus ShowStatus(long id)
         {
-            /*
-            id                   | ///
-            */
-            var req = this.Credential.CreateReqeust("GET", "https://api.twitter.com/1.1/statuses/show.json?id=" + id);
-
-            try
-            {
-                using (var res = req.GetResponse() as HttpWebResponse)
-                {
-                    using (var stream = res.GetResponseStream())
-                    using (var reader = new StreamReader(stream, Encoding.UTF8))
-                    {
-                        return JsonConvert.DeserializeObject<TwitterStatus>(reader.ReadToEnd());
-                    }
-                }
-            }
-            catch (WebException webEx)
-            {
-                webEx.Response?.Dispose();
-            }
-            catch
-            {
-            }
-
-            return null;
+            return this.Credential.Reqeust<TwitterStatus>("GET", "https://api.twitter.com/1.1/statuses/show.json?id=" + id);
         }
 
         public void SendStatus(TwitterStatus stauts)
