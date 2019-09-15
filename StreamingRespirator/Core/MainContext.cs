@@ -1,11 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using StreamingRespirator.Core.Streaming;
+using StreamingRespirator.Core.Windows;
 
 namespace StreamingRespirator.Core
 {
@@ -18,11 +17,7 @@ namespace StreamingRespirator.Core
         private NotifyIcon         m_notifyIcon;
         private ContextMenuStrip   m_contextMenuStrip;
         private ToolStripMenuItem  m_stripAbout;
-        private ToolStripSeparator m_stripSepConfig;
-        private ToolStripMenuItem  m_startWithWindows;
-        private ToolStripSeparator m_stripSepConfig2;
-        private ToolStripMenuItem  m_stripRetweet;
-        private ToolStripMenuItem  m_stripMyRetweet;
+        private ToolStripMenuItem  m_stripConfig;
         private ToolStripSeparator m_stripSepAccount;
         private ToolStripMenuItem  m_stripAdd;
         private ToolStripSeparator m_stripSepExit;
@@ -39,14 +34,18 @@ namespace StreamingRespirator.Core
 
             this.InitializeComponent();
 
-            Config.Load();
-            this.m_startWithWindows.Checked = Config.StartWithWindows;
-
             if (!this.StartProxy())
-                Application.Exit();
+                throw new Exception();
 
             if (TwitterClientFactory.AccountCount == 0)
                 this.m_notifyIcon.ShowBalloonTip(10000, "스트리밍 호흡기", "계정이 추가되어있지 않습니다!\n\n계정을 추가해주세요!", ToolTipIcon.Info);
+            else
+            {
+                foreach (var user in TwitterClientFactory.Accounts)
+                {
+                    this.m_clients.Add(user.Id, this.NewClientToolStripItems(user.Id, user.ScreenName));
+                }
+            }
         }
 
         private void InitializeComponent()
@@ -55,32 +54,9 @@ namespace StreamingRespirator.Core
             this.m_stripAbout.Click += this.StripAbout_Click;
 
             ////////////////////////////////////////////////////////////
-            
-            this.m_stripSepConfig = new ToolStripSeparator();
 
-            this.m_startWithWindows = new ToolStripMenuItem("윈도우 시작시 자동 실행")
-            {
-                Checked = Config.StartWithWindows,
-            };
-            this.m_startWithWindows.Click += this.StartWithWindows_Click;
-
-            ////////////////////////////////////////////////////////////
-
-            this.m_stripSepConfig2 = new ToolStripSeparator();
-
-            this.m_stripRetweet = new ToolStripMenuItem("리트윗된 내 트윗 표시")
-            {
-                CheckOnClick = true,
-                Checked = Config.Filter.ShowRetweetedMyStatus,
-            };
-            this.m_stripRetweet.CheckedChanged += (s, e) => Config.Filter.ShowRetweetedMyStatus = this.m_stripRetweet.Checked;
-
-            this.m_stripMyRetweet = new ToolStripMenuItem("내 리트윗 다시 표시")
-            {
-                CheckOnClick = true,
-                Checked      = Config.Filter.ShowMyRetweet,
-            };
-            this.m_stripMyRetweet.CheckedChanged += (s, e) => Config.Filter.ShowMyRetweet = this.m_stripMyRetweet.Checked;
+            this.m_stripConfig = new ToolStripMenuItem("호흡기 설정");
+            this.m_stripConfig.Click += this.StripConfig_Click;
 
             ////////////////////////////////////////////////////////////
 
@@ -103,11 +79,7 @@ namespace StreamingRespirator.Core
                 Items =
                 {
                     this.m_stripAbout,
-                    this.m_stripSepConfig,
-                    this.m_startWithWindows,
-                    this.m_stripSepConfig2,
-                    this.m_stripRetweet,
-                    this.m_stripMyRetweet,
+                    this.m_stripConfig,
                     this.m_stripSepAccount,
                     this.m_stripAdd,
                     this.m_stripSepExit,
@@ -124,6 +96,12 @@ namespace StreamingRespirator.Core
             this.m_notifyIcon.BalloonTipClicked += this.NotifyIcon_BalloonTipClicked;
         }
 
+        private void StripConfig_Click(object sender, EventArgs e)
+        {
+            using (var frm = new ConfigWindow())
+                frm.ShowDialog();
+        }
+
         private struct ClientToolStripItems
         {
             public ToolStripMenuItem RootItem;
@@ -136,7 +114,7 @@ namespace StreamingRespirator.Core
         }
         private readonly Dictionary<long, ClientToolStripItems> m_clients = new Dictionary<long, ClientToolStripItems>();
 
-        private ClientToolStripItems NewClientToolStripItems(long id, StateUpdateData data)
+        private ClientToolStripItems NewClientToolStripItems(long id, string screenName)
         {
             var st = new ClientToolStripItems
             {
@@ -144,7 +122,7 @@ namespace StreamingRespirator.Core
                 {
                     Tag = id,
                 },
-                RootItem = new ToolStripMenuItem(data.ScreenName)
+                RootItem = new ToolStripMenuItem(screenName)
                 {
                     Checked = false,
                     CheckOnClick = false,
@@ -206,7 +184,7 @@ namespace StreamingRespirator.Core
                     lock (this.m_clients)
                     {
                         if (!data.IsRemoved && !this.m_clients.ContainsKey(id))
-                            this.m_clients.Add(id, this.NewClientToolStripItems(id, data));
+                            this.m_clients.Add(id, this.NewClientToolStripItems(id, data.ScreenName));
 
                         var cts = this.m_clients[id];
 
@@ -253,51 +231,6 @@ namespace StreamingRespirator.Core
         {
             var now = DateTime.Now;
             return string.Format("{0:HH:mm:ss} ({1:##0.0}s)", now.AddSeconds(waitTime), waitTime);
-        }
-
-        private volatile ManualResetEventSlim m_startWithWindowsWorking = new ManualResetEventSlim(false);
-        private void StartWithWindows_Click(object sender, EventArgs e)
-        {
-            if (this.m_startWithWindowsWorking.IsSet)
-                return;
-
-            var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), Path.GetFileNameWithoutExtension(Application.ExecutablePath) + ".lnk");
-
-            if (!Config.StartWithWindows)
-            {
-                try
-                {
-                    var ws = new IWshRuntimeLibrary.WshShell();
-                    IWshRuntimeLibrary.IWshShortcut shortCut = ws.CreateShortcut(path);
-
-                    shortCut.Description = "스트리밍 호흡기";
-                    shortCut.TargetPath = Application.ExecutablePath;
-                    shortCut.Save();
-
-                    Config.StartWithWindows = true;
-                    this.m_startWithWindows.Checked = true;
-                    Config.Save();
-                }
-                catch
-                {
-                }
-            }
-            else
-            {
-                try
-                {
-                    File.Delete(path);
-                }
-                catch
-                {
-                }
-
-                Config.StartWithWindows = false;
-                this.m_startWithWindows.Checked = false;
-                Config.Save();
-            }
-
-            this.m_startWithWindowsWorking.Reset();
         }
 
         private void StripRemoveClient_Click(object sender, EventArgs e)

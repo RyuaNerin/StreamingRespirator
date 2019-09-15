@@ -81,7 +81,7 @@
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="StreamExtended, Version=1.0.190.0, Culture=neutral, PublicKeyToken=bbfa0f1d54f50043, processorArchitecture=MSIL">
       <HintPath>..\packages\StreamExtended.1.0.190\lib\net45\StreamExtended.dll</HintPath>
@@ -126,6 +126,12 @@
     <Compile Include="Core\Streaming\TimeLines\TlHome.cs" />
     <Compile Include="Core\Streaming\TwitterClient.cs" />
     <Compile Include="Core\Streaming\UserCache.cs" />
+    <Compile Include="Core\Windows\ConfigWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Core\Windows\ConfigWindow.Designer.cs">
+      <DependentUpon>ConfigWindow.cs</DependentUpon>
+    </Compile>
     <Compile Include="Core\Windows\LoginWindowWeb.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -161,6 +167,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Core\Windows\ConfigWindow.resx">
+      <DependentUpon>ConfigWindow.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

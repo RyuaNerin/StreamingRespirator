@@ -23,8 +23,6 @@ namespace StreamingRespirator.Core.Streaming
 {
     internal class RespiratorServer
     {
-        public const int ProxyPort = 8811;
-
         private const int StreamingPortMin     =  1000;
         private const int StreamingPortDefault = 51443;
         private const int StreamingPortMax     = 65000;
@@ -33,6 +31,10 @@ namespace StreamingRespirator.Core.Streaming
         private readonly ExplicitProxyEndPoint m_proxyEndPoint;
 
         private readonly HttpListener m_httpStreamingListener;
+
+        private readonly int m_port;
+        private readonly bool m_useHttps;
+
         private string m_streamingUrl;
 
         private readonly HashSet<StreamingConnection> m_connections = new HashSet<StreamingConnection>();
@@ -41,10 +43,13 @@ namespace StreamingRespirator.Core.Streaming
 
         public RespiratorServer()
         {
-            this.m_proxyEndPoint = new ExplicitProxyEndPoint(IPAddress.Loopback, ProxyPort);
+            this.m_port     = Config.Proxy.Port;
+            this.m_useHttps = Config.Proxy.UseHTTPS;
+
+            this.m_proxyEndPoint = new ExplicitProxyEndPoint(IPAddress.Loopback, this.m_port);
             this.m_proxyEndPoint.BeforeTunnelConnectRequest += this.EntPoint_BeforeTunnelConnectRequest;
 
-            this.m_proxy = new ProxyServer();
+            this.m_proxy = new ProxyServer(this.m_useHttps);
             this.m_proxy.CertificateManager.RootCertificateIssuerName = "Streaming-Respirator";
             this.m_proxy.CertificateManager.RootCertificateName = "Streaming-Respirator Root Certificate Authority";
             this.m_proxy.CertificateManager.RootCertificate = new X509Certificate2(Properties.Resources.pfx, string.Empty, X509KeyStorageFlags.Exportable);
@@ -117,6 +122,11 @@ namespace StreamingRespirator.Core.Streaming
 
         private Task EntPoint_BeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
         {
+            if (!this.m_useHttps)
+            {
+                return Task.FromResult(false);
+            }
+
             if (e.HttpClient.Request.RequestUri.Host == "userstream.twitter.com" ||
                 e.HttpClient.Request.RequestUri.Host == "api.twitter.com")
             {

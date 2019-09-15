@@ -12,12 +12,10 @@ namespace StreamingRespirator.Core
         public const string MutexName = "{5FF75362-95BA-4399-8C77-C1A0C5B8A291}";
 
         public static readonly string ConfigPath;
-        public static readonly string PfxFilePath;
 
         static Program()
         {
             ConfigPath  = Path.ChangeExtension(Application.ExecutablePath, ".cnf");
-            PfxFilePath = Path.ChangeExtension(Application.ExecutablePath, ".pfx");
         }
 
         [STAThread]
@@ -40,9 +38,22 @@ namespace StreamingRespirator.Core
                     return;
 #endif
 
-                var context = new MainContext();
-                Application.Run(context);
-                Config.Save();
+                Config.Load();
+
+                MainContext context = null;
+                try
+                {
+                    context = new MainContext();
+                }
+                catch
+                {
+                }
+
+                if (context != null)
+                {
+                    Application.Run(context);
+                    Config.Save();
+                }
 
                 context.StopProxy();
             }

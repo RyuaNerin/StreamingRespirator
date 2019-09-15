@@ -20,6 +20,16 @@ namespace StreamingRespirator.Core
             public bool ShowMyRetweet { get; set; } = true;
         }
 
+        public static ConfigProxy Proxy { get; } = new ConfigProxy();
+        public class ConfigProxy
+        {
+            [JsonProperty("port")]
+            public int Port { get; set; } = 8811;
+
+            [JsonProperty("use_https")]
+            public bool UseHTTPS { get; set; } = false;
+        }
+
         public static void Load()
         {
             try
@@ -61,6 +71,9 @@ namespace StreamingRespirator.Core
 
             [JsonProperty("filter")]
             public static ConfigFilter Filter => Config.Filter;
+
+            [JsonProperty("proxy")]
+            public static ConfigProxy Proxy => Config.Proxy;
 
             [JsonProperty("startup")]
             public static bool StartWithWindows
