@@ -18,8 +18,6 @@ namespace StreamingRespirator.Core.Streaming
 
     static class TwitterClientFactory
     {
-        public static readonly Uri CookieUri = new Uri("https://twitter.com/");
-
         private static readonly Dictionary<long, TwitterClient> Instances = new Dictionary<long, TwitterClient>();
 
         public static int AccountCount

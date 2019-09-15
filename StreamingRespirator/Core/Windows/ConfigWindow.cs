@@ -32,7 +32,7 @@ namespace StreamingRespirator.Core.Windows
 
             if (this.ctlUseHTTPS.Checked)
             {
-                MessageBox.Show(this, "HTTPS 프록시를 사용할 경우 보안에 취약해질 수 있습니다.", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, "HTTPS 프록시를 사용할 경우 보안에 취약해질 수 있습니다.", this.Text, MessageBoxButtons.OK, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             }
         }
 

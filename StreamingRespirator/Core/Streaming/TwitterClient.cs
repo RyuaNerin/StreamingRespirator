@@ -133,12 +133,15 @@ namespace StreamingRespirator.Core.Streaming
         }
         public void SendFriendsPacket(StreamingConnection connection)
         {
-            var GetFriendsPacket = new PacketFriends
+            Task.Factory.StartNew(() =>
             {
-                Friends = this.GetFriendsPacket(),
-            };
+                var GetFriendsPacket = new PacketFriends
+                {
+                    Friends = this.GetFriendsPacket(),
+                };
 
-            Task.Run(() => connection.SendToStream(GetFriendsPacket));
+                connection.SendToStream(GetFriendsPacket);
+            });
         }
         private long[] GetFriendsPacket()
         {

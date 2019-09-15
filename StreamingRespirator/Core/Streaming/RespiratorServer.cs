@@ -83,12 +83,12 @@ namespace StreamingRespirator.Core.Streaming
                     this.m_httpStreamingListener.Start();
                     break;
                 }
-                catch (Exception ex)
+                catch
                 {
                     port = rnd.Next(StreamingPortMin, StreamingPortMax);
 
                     if (tried == 3)
-                        throw ex;
+                        throw;
                 }
             }
 

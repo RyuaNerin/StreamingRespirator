@@ -81,9 +81,7 @@ namespace StreamingRespirator.Core.Streaming
                 {
                     using (var stream = res.GetResponseStream())
                     {
-                        var buff = new byte[4096];
-                        int read;
-                        while ((read = stream.Read(buff, 0, 4096)) > 0);
+                        stream.CopyTo(res);
                     }
 
                     return true;
@@ -158,7 +156,7 @@ namespace StreamingRespirator.Core.Streaming
                 webEx.Response?.Dispose();
 
                 if (webEx.Status != WebExceptionStatus.Success)
-                    throw webEx;
+                    throw;
 
                 return false;
             }

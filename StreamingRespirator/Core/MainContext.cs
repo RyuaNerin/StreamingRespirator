@@ -200,8 +200,6 @@ namespace StreamingRespirator.Core
                         }
                         else
                         {
-                            var now = DateTime.Now;
-
                             if (data.ScreenName != null) cts.RootItem.Text = data.ScreenName;
                             if (data.Connected.HasValue)
                             {
@@ -255,7 +253,7 @@ namespace StreamingRespirator.Core
             }
             catch
             {
-                MessageBox.Show("호흡기 작동중에 오류가 발생하였습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("호흡기 작동중에 오류가 발생하였습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
                 return false;
             }
         }

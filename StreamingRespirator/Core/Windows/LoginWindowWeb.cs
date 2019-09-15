@@ -30,23 +30,27 @@ namespace StreamingRespirator.Core.Windows
         {
             this.SuspendLayout();
 
-            this.m_webBrowser = new WebBrowser();
-            this.m_webBrowser.AllowWebBrowserDrop            = false;
-            this.m_webBrowser.CausesValidation               = false;
-            this.m_webBrowser.Dock                           = DockStyle.Fill;
-            this.m_webBrowser.IsWebBrowserContextMenuEnabled = false;
-            this.m_webBrowser.ScrollBarsEnabled              = false;
-            this.m_webBrowser.Visible                        = false;
+            this.m_webBrowser = new WebBrowser
+            {
+                AllowWebBrowserDrop            = false,
+                CausesValidation               = false,
+                Dock                           = DockStyle.Fill,
+                IsWebBrowserContextMenuEnabled = false,
+                ScrollBarsEnabled              = false,
+                Visible                        = false
+            };
 
             this.m_webBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(this.ctlWeb_DocumentCompleted);
             this.m_webBrowser.Navigating        += new WebBrowserNavigatingEventHandler(this.ctlWeb_Navigating);
             this.m_webBrowser.VisibleChanged    += (s, e) => this.m_label.Visible = !this.m_webBrowser.Visible;
 
-            this.m_label = new Label();
-            this.m_label.Dock = DockStyle.Fill;
-            this.m_label.Visible = true;
-            this.m_label.TextAlign = ContentAlignment.MiddleCenter;
-            this.m_label.Text = "로딩중입니다.\n잠시만 기다려주세요.";
+            this.m_label = new Label
+            {
+                Dock      = DockStyle.Fill,
+                Visible   = true,
+                TextAlign = ContentAlignment.MiddleCenter,
+                Text      = "로딩중입니다.\n잠시만 기다려주세요."
+            };
 
             this.AutoScaleDimensions = new SizeF(96F, 96F);
             this.AutoScaleMode       = AutoScaleMode.Dpi;
@@ -145,13 +149,13 @@ namespace StreamingRespirator.Core.Windows
 
                     if (twitCred != null)
                     {
-                        this.Invoke(new Action(() => MessageBox.Show(this, twitCred.ScreenName + "가 추가되었습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information)));
+                        this.Invoke(new Action(() => MessageBox.Show(this, twitCred.ScreenName + "가 추가되었습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly)));
 
                         this.TwitterCredential = twitCred;
                     }
                     else
                     {
-                        this.Invoke(new Action(() => MessageBox.Show(this, "인증에 실패하였습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation)));
+                        this.Invoke(new Action(() => MessageBox.Show(this, "인증에 실패하였습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly)));
                     }
 
                     this.Invoke(new Action(this.Close));
@@ -184,7 +188,7 @@ namespace StreamingRespirator.Core.Windows
                 {
                     var msg = elem.innerText;
                     if (!string.IsNullOrWhiteSpace(msg))
-                        MessageBox.Show(this, msg, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(this, msg, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
                     elem.RemoveElement();
                 }
 
@@ -204,14 +208,14 @@ namespace StreamingRespirator.Core.Windows
 
         private static class NativeMethods
         {
-            [DllImport("wininet.dll")]
+            [DllImport("wininet.dll", CharSet = CharSet.Unicode)]
             private static extern bool InternetSetOption(
-                int hInternet,
+                IntPtr hInternet,
                 int dwOption,
                 IntPtr lpBuffer,
                 int dwBufferLength);
 
-            [DllImport("wininet.dll")]
+            [DllImport("wininet.dll", CharSet = CharSet.Unicode)]
             private static extern bool InternetGetCookieEx(
                 string url,
                 string cookieName,
@@ -231,7 +235,7 @@ namespace StreamingRespirator.Core.Windows
                     optionPtr = Marshal.AllocHGlobal(4);
                     Marshal.WriteInt32(optionPtr, 3);
 
-                    InternetSetOption(0, INTERNET_OPTION_SUPPRESS_BEHAVIOR, optionPtr, 4);
+                    InternetSetOption(IntPtr.Zero, INTERNET_OPTION_SUPPRESS_BEHAVIOR, optionPtr, 4);
                 }
                 finally
                 {
