@@ -102,9 +102,6 @@ namespace StreamingRespirator.Core.Streaming
             if (!this.IsRunning)
                 return;
 
-            this.m_proxy.Stop();
-            this.m_httpStreamingListener.Stop();
-
             Parallel.ForEach(
                 this.m_connections.ToArray(),
                 e =>
@@ -118,12 +115,16 @@ namespace StreamingRespirator.Core.Streaming
                     }
                     e.Stream.WaitHandle.WaitOne();
                 });
+
+            this.m_proxy.Stop();
+            this.m_httpStreamingListener.Stop();
         }
 
         private Task EntPoint_BeforeTunnelConnectRequest(object sender, TunnelConnectSessionEventArgs e)
         {
             if (!this.m_useHttps)
             {
+                e.DecryptSsl = false;
                 return Task.FromResult(false);
             }
 
@@ -139,36 +140,36 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
-        private static bool TryGetOwnerId(Uri uri, HeaderCollection headers, string reqeustBody, out long ownerId)
+        private class AuthorizationValue
         {
-            return
-                (
-                    headers.Headers.TryGetValue("Authorization", out var head) &&
-                    TryParseOwnerId(head.Value, out ownerId)
-                )
-                || TryParseOwnerId(uri.Query,   out ownerId) 
-                || TryParseOwnerId(reqeustBody, out ownerId);
+            public string Value { get; private set; }
+
+            public static implicit operator AuthorizationValue(HeaderCollection collection)
+                => new AuthorizationValue { Value = collection.Headers["Authorization"].Value };
+
+            public static implicit operator AuthorizationValue(NameValueCollection collection)
+                => new AuthorizationValue { Value = collection["Authorization"] };
         }
-        private static bool TryGetOwnerId(Uri uri, NameValueCollection headers, string reqeustBody, out long ownerId)
+        private static bool TryGetOwnerId(Uri uri, AuthorizationValue authorizationValue, string reqeustBody, out long ownerId)
         {
-            return
-                   TryParseOwnerId(headers.Get("Authorization"), out ownerId)
-                || TryParseOwnerId(uri.Query,                    out ownerId)
-                || TryParseOwnerId(reqeustBody,                  out ownerId);
+            return TryParseOwnerId(authorizationValue?.Value, out ownerId)
+                || TryParseOwnerId(uri.Query                , out ownerId) 
+                || TryParseOwnerId(reqeustBody              , out ownerId);
+
+            bool TryParseOwnerId(string authorizationHeader, out long value)
+            {
+                value = 0;
+                if (string.IsNullOrWhiteSpace(authorizationHeader))
+                    return false;
+
+                var m = Regex.Match(authorizationHeader, "oauth_token=\"?([0-9]+)\\-");
+                if (!m.Success)
+                    return false;
+
+                return m.Success && long.TryParse(m.Groups[1].Value, out value);
+            }
         }
 
-        private static bool TryParseOwnerId(string authorizationHeader, out long value)
-        {
-            value = 0;
-            if (string.IsNullOrWhiteSpace(authorizationHeader))
-                return false;
-
-            var m = Regex.Match(authorizationHeader, "oauth_token=\"?([0-9]+)\\-");
-            if (!m.Success)
-                return false;
-
-            return m.Success && long.TryParse(m.Groups[1].Value, out value);
-        }
 
         private Task Proxy_BeforeRequest(object sender, SessionEventArgs e)
         {
@@ -198,6 +199,11 @@ namespace StreamingRespirator.Core.Streaming
 
             else if (uri.Host == "api.twitter.com")
             {
+                if (!this.m_useHttps)
+                {
+                    uri = e.HttpClient.Request.RequestUri = new UriBuilder(uri) { Scheme = "https" }.Uri;
+                }
+
                 // 삭제 패킷 전송
                 // POST https://api.twitter.com/1.1/statuses/destroy/:id.json
                 // POST https://api.twitter.com/1.1/statuses/unretweet/:id.json
@@ -221,7 +227,7 @@ namespace StreamingRespirator.Core.Streaming
 
             return Task.FromResult(true);
         }
-        private static bool GetInstance(SessionEventArgs e, string requestBodyStr, out long ownerId, out TwitterClient twitClient)
+        private static bool TryGetTwitterClient(SessionEventArgs e, string requestBodyStr, out long ownerId, out TwitterClient twitClient)
         {
             twitClient = null;
             if (!TryGetOwnerId(e.HttpClient.Request.RequestUri, e.HttpClient.Request.Headers, requestBodyStr, out ownerId))
@@ -244,7 +250,7 @@ namespace StreamingRespirator.Core.Streaming
             if (!SendResponse(e, reqeustBody, out var statusCode, out var body))
                 return;
 
-            if (GetInstance(e, reqeustBodyStr, out var ownerId, out var twitClient))
+            if (TryGetTwitterClient(e, reqeustBodyStr, out var ownerId, out var twitClient))
             {
                 if (statusCode == 404)
                     twitClient.StatusMaybeDestroyed(ParseJsonId(e.HttpClient.Request.RequestUri));
@@ -256,6 +262,15 @@ namespace StreamingRespirator.Core.Streaming
                         twitClient.SendStatus(status);
                 }
             }
+
+            long ParseJsonId(Uri uri)
+            {
+                var idStr = uri.AbsolutePath;
+                idStr = idStr.Substring(idStr.LastIndexOf('/') + 1);
+                idStr = idStr.Substring(0, idStr.IndexOf('.'));
+
+                return long.TryParse(idStr, out var id) ? id : 0;
+            }
         }
         private static void ProxyDestroyOrUnretweet(SessionEventArgs e)
         {
@@ -264,7 +279,7 @@ namespace StreamingRespirator.Core.Streaming
             if (!SendResponse(e, reqeustBody, out var statusCode, out var body))
                 return;
 
-            if (GetInstance(e, reqeustBodyStr, out var ownerId, out var twitClient))
+            if (TryGetTwitterClient(e, reqeustBodyStr, out var ownerId, out var twitClient))
             {
                 if (statusCode == 200)
                 {
@@ -293,7 +308,7 @@ namespace StreamingRespirator.Core.Streaming
             if (!SendResponse(e, reqeustBody, out statusCode, out var body))
                 return;
 
-            if (GetInstance(e, reqeustBodyStr, out var ownerId, out var twitClient))
+            if (TryGetTwitterClient(e, reqeustBodyStr, out var ownerId, out var twitClient))
             {
                 if (statusCode == 401)
                 {
@@ -329,10 +344,10 @@ namespace StreamingRespirator.Core.Streaming
             requestBodyStr = null;
             return null;
         }
-        private static bool SendResponse(SessionEventArgs e, byte[] requestBody, out int statusCode, out string body)
+        private static bool SendResponse(SessionEventArgs e, byte[] requestBody, out int responseStatusCode, out string responseBodyStr)
         {
-            statusCode = 0;
-            body = null;
+            responseStatusCode = 0;
+            responseBodyStr = null;
 
             var reqProxy = e.HttpClient.Request;
 
@@ -387,23 +402,19 @@ namespace StreamingRespirator.Core.Streaming
             
             using (resHttp)
             {
-                statusCode = (int)resHttp.StatusCode;
+                responseStatusCode = (int)resHttp.StatusCode;
 
                 using (var mem = new MemoryStream(Math.Min((int)resHttp.ContentLength, 4096)))
                 {
                     using (var stream = resHttp.GetResponseStream())
                     {
-                        var buff = new byte[4096];
-                        var count = 0;
-
-                        while ((count = stream.Read(buff, 0, 4096)) > 0)
-                            mem.Write(buff, 0, count);
+                        stream.CopyTo(mem);
                     }
 
                     mem.Position = 0;
 
                     using (var reader = new StreamReader(mem))
-                        body = reader.ReadToEnd();
+                        responseBodyStr = reader.ReadToEnd();
 
                     var resProxy = new Response(mem.ToArray())
                     {
@@ -456,7 +467,7 @@ namespace StreamingRespirator.Core.Streaming
             var screenName = m.Groups[1].Value;
             var text = m.Groups[2].Value;
             
-            if (!GetInstance(e, reqeustBodyStr, out var ownerId, out var twitClient))
+            if (!TryGetTwitterClient(e, reqeustBodyStr, out var ownerId, out var twitClient))
                 return false;
 
             var userId = twitClient.UserCache.GetUserIdByScreenName(screenName);
@@ -490,15 +501,6 @@ namespace StreamingRespirator.Core.Streaming
             e.Respond(resProxy);
 
             return true;
-        }
-
-        private static long ParseJsonId(Uri uri)
-        {
-            var idStr = uri.AbsolutePath;
-            idStr = idStr.Substring(idStr.LastIndexOf('/') + 1);
-            idStr = idStr.Substring(0, idStr.IndexOf('.'));
-
-            return long.TryParse(idStr, out var id) ? id : 0;
         }
 
         private void Listener_GetHttpContext(IAsyncResult ar)
