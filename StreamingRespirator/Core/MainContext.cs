@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using StreamingRespirator.Core.Streaming;
 using StreamingRespirator.Core.Windows;
+using StreamingRespirator.Properties;
+using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core
 {
@@ -33,12 +35,13 @@ namespace StreamingRespirator.Core
             TwitterClientFactory.ClientUpdated += this.TwitterClientFactory_ClientUpdated;
 
             this.InitializeComponent();
+            LocalizationHelper.ApplyLang(this);
 
             if (!this.StartProxy())
                 throw new Exception();
 
             if (TwitterClientFactory.AccountCount == 0)
-                this.m_notifyIcon.ShowBalloonTip(10000, "스트리밍 호흡기", "계정이 추가되어있지 않습니다!\n\n계정을 추가해주세요!", ToolTipIcon.Info);
+                this.m_notifyIcon.ShowBalloonTip(10000, Lang.Name, Lang.MainContext_NoAccount, ToolTipIcon.Info);
             else
             {
                 foreach (var user in TwitterClientFactory.Accounts)
@@ -118,7 +121,7 @@ namespace StreamingRespirator.Core
         {
             var st = new ClientToolStripItems
             {
-                Remove = new ToolStripMenuItem("삭제")
+                Remove = new ToolStripMenuItem(Lang.MainContext_Client_Remove)
                 {
                     Tag = id,
                 },
@@ -147,7 +150,7 @@ namespace StreamingRespirator.Core
 
             st.Remove.Click += new EventHandler(this.StripRemoveClient_Click);
 
-            var refreshButton = new ToolStripMenuItem("지금 새로고침")
+            var refreshButton = new ToolStripMenuItem(Lang.MainContext_Client_Refresh)
             {
                 Tag = id,
             };
@@ -253,7 +256,7 @@ namespace StreamingRespirator.Core
             }
             catch
             {
-                MessageBox.Show("호흡기 작동중에 오류가 발생하였습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                MessageBox.Show(Lang.MainContext_StartError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return false;
             }
         }
@@ -281,7 +284,6 @@ namespace StreamingRespirator.Core
         
         private void StripExit_Click(object sender, EventArgs e)
         {
-            //Application.Exit();
             this.ExitThreadCore();
         }
     }

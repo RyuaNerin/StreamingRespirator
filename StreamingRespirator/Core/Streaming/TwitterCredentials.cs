@@ -81,7 +81,10 @@ namespace StreamingRespirator.Core.Streaming
                 {
                     using (var stream = res.GetResponseStream())
                     {
-                        stream.CopyTo(res);
+                        var buff = new byte[4096];
+                        while (stream.Read(buff, 0, 4096) > 0)
+                        {
+                        }
                     }
 
                     return true;

@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Windows.Forms;
+using StreamingRespirator.Properties;
 
 namespace StreamingRespirator.Core
 {
@@ -63,7 +64,7 @@ namespace StreamingRespirator.Core
         {
             if (GithubLatestRelease.CheckNewVersion())
             {
-                MessageBox.Show("새로운 업데이트가 있습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                MessageBox.Show(Lang.NewUpdate, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 try
                 {

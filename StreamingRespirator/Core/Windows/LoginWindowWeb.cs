@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using mshtml;
 using StreamingRespirator.Core.Streaming;
+using StreamingRespirator.Properties;
+using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core.Windows
 {
@@ -15,8 +17,8 @@ namespace StreamingRespirator.Core.Windows
     {
         static readonly Uri TwitterUri = new Uri("https://twitter.com/");
 
-        private readonly Label m_label;
-        private readonly WebBrowser m_webBrowser;
+        private Label m_label;
+        private WebBrowser m_webBrowser;
         private SHDocVw.WebBrowser m_webBrowserSh;
 
         public TwitterCredential TwitterCredential { get; private set; }
@@ -28,43 +30,49 @@ namespace StreamingRespirator.Core.Windows
 
         public LoginWindowWeb()
         {
+            this.InitializeComponent();
+            LocalizationHelper.ApplyLang(this);
+        }
+
+        private void InitializeComponent()
+        {
             this.SuspendLayout();
 
             this.m_webBrowser = new WebBrowser
             {
-                AllowWebBrowserDrop            = false,
-                CausesValidation               = false,
-                Dock                           = DockStyle.Fill,
+                AllowWebBrowserDrop = false,
+                CausesValidation = false,
+                Dock = DockStyle.Fill,
                 IsWebBrowserContextMenuEnabled = false,
-                ScrollBarsEnabled              = false,
-                Visible                        = false
+                ScrollBarsEnabled = false,
+                Visible = false
             };
 
             this.m_webBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(this.ctlWeb_DocumentCompleted);
-            this.m_webBrowser.Navigating        += new WebBrowserNavigatingEventHandler(this.ctlWeb_Navigating);
-            this.m_webBrowser.VisibleChanged    += (s, e) => this.m_label.Visible = !this.m_webBrowser.Visible;
+            this.m_webBrowser.Navigating += new WebBrowserNavigatingEventHandler(this.ctlWeb_Navigating);
+            this.m_webBrowser.VisibleChanged += (s, e) => this.m_label.Visible = !this.m_webBrowser.Visible;
 
             this.m_label = new Label
             {
-                Dock      = DockStyle.Fill,
-                Visible   = true,
+                Dock = DockStyle.Fill,
+                Visible = true,
                 TextAlign = ContentAlignment.MiddleCenter,
-                Text      = "로딩중입니다.\n잠시만 기다려주세요."
+                Text = "로딩중입니다.\n잠시만 기다려주세요."
             };
 
             this.AutoScaleDimensions = new SizeF(96F, 96F);
-            this.AutoScaleMode       = AutoScaleMode.Dpi;
-            this.BackColor           = Color.White;
-            this.ClientSize          = new Size(380, 240);
-            this.FormBorderStyle     = FormBorderStyle.FixedSingle;
-            this.MaximizeBox         = false;
-            this.MinimizeBox         = false;
-            this.StartPosition       = FormStartPosition.CenterScreen;
+            this.AutoScaleMode = AutoScaleMode.Dpi;
+            this.BackColor = Color.White;
+            this.ClientSize = new Size(380, 240);
+            this.FormBorderStyle = FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.StartPosition = FormStartPosition.CenterScreen;
 
             this.Controls.Add(this.m_label);
             this.Controls.Add(this.m_webBrowser);
 
-            this.Text = "스트리밍 호흡기 로그인";
+            this.Text = "새 계정 추가";
 
             this.ResumeLayout(false);
         }
@@ -149,13 +157,13 @@ namespace StreamingRespirator.Core.Windows
 
                     if (twitCred != null)
                     {
-                        this.Invoke(new Action(() => MessageBox.Show(this, twitCred.ScreenName + "가 추가되었습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly)));
+                        this.Invoke(new Action(() => MessageBox.Show(this, string.Format(Lang.LoginWindowWeb_AddSuccess, twitCred.ScreenName), Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information)));
 
                         this.TwitterCredential = twitCred;
                     }
                     else
                     {
-                        this.Invoke(new Action(() => MessageBox.Show(this, "인증에 실패하였습니다.", "스트리밍 호흡기", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly)));
+                        this.Invoke(new Action(() => MessageBox.Show(this, Lang.LoginWindowWeb_AddError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)));
                     }
 
                     this.Invoke(new Action(this.Close));
@@ -209,6 +217,7 @@ namespace StreamingRespirator.Core.Windows
         private static class NativeMethods
         {
             [DllImport("wininet.dll", CharSet = CharSet.Unicode)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             private static extern bool InternetSetOption(
                 IntPtr hInternet,
                 int dwOption,
@@ -216,6 +225,7 @@ namespace StreamingRespirator.Core.Windows
                 int dwBufferLength);
 
             [DllImport("wininet.dll", CharSet = CharSet.Unicode)]
+            [return: MarshalAs(UnmanagedType.Bool)]
             private static extern bool InternetGetCookieEx(
                 string url,
                 string cookieName,
