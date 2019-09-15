@@ -138,7 +138,7 @@ namespace StreamingRespirator.Core.Streaming
                 Friends = this.GetFriendsPacket(),
             };
 
-            Parallel.ForEach(connection, e => e.SendToStream(GetFriendsPacket));
+            Task.Run(() => connection.SendToStream(GetFriendsPacket));
         }
         private long[] GetFriendsPacket()
         {
