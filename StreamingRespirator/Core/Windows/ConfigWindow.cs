@@ -85,6 +85,8 @@ namespace StreamingRespirator.Core.Windows
             Config.Proxy.Port                   = (int)this.ctlPort.Value;
             Config.Proxy.UseHTTPS               = this.ctlUseHTTPS.Checked;
 
+            Config.StartWithWindows             = this.ctlAutoStartup.Checked;
+
             Config.Filter.ShowRetweetedMyStatus = this.ctlShowRetweet.Checked;
             Config.Filter.ShowMyRetweet         = this.ctlShowMyRetweet.Checked;
 
