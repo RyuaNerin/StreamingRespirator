@@ -159,7 +159,11 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             if (int.TryParse(headers.Get("x-rate-limit-remaining"), out int remaining) &&
                 int.TryParse(headers.Get("x-rate-limit-reset"    ), out int reset))
             {
-                next = (int)((reset - (DateTime.UtcNow - ForTimeStamp).TotalSeconds) / remaining * 1000);
+                if (Config.ReduceApiCall)
+                    next = (int)((reset - (DateTime.UtcNow - ForTimeStamp).TotalSeconds) / (remaining / 2) * 1000);
+                else
+                    next = (int)((reset - (DateTime.UtcNow - ForTimeStamp).TotalSeconds) / remaining * 1000);
+
                 next = Math.Max(1000, next);
             }
         }

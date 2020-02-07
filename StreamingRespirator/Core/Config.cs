@@ -30,6 +30,8 @@ namespace StreamingRespirator.Core
             public bool UseHTTPS { get; set; } = false;
         }
 
+        public static bool ReduceApiCall { get; set; }
+
         public static void Load()
         {
             try
@@ -80,6 +82,13 @@ namespace StreamingRespirator.Core
             {
                 get => Config.StartWithWindows;
                 set => Config.StartWithWindows = value;
+            }
+
+            [JsonProperty("reduce_api_call")]
+            public static bool ReduceApiCall
+            {
+                get => Config.ReduceApiCall;
+                set => Config.ReduceApiCall = value;
             }
         }
     }

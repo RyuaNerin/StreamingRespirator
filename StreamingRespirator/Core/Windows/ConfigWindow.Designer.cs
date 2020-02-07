@@ -42,6 +42,7 @@
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.ctlOK = new System.Windows.Forms.Button();
             this.ctlCancel = new System.Windows.Forms.Button();
+            this.chkReduceApiCall = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel1.SuspendLayout();
             this.ctlProxyGroup.SuspendLayout();
             this.ctlProxyGroupPanel.SuspendLayout();
@@ -71,7 +72,7 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(237, 232);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(237, 257);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // ctlProxyGroup
@@ -170,7 +171,7 @@
             this.ctlStreamingGroup.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ctlStreamingGroup.Location = new System.Drawing.Point(8, 115);
             this.ctlStreamingGroup.Name = "ctlStreamingGroup";
-            this.ctlStreamingGroup.Size = new System.Drawing.Size(221, 72);
+            this.ctlStreamingGroup.Size = new System.Drawing.Size(221, 97);
             this.ctlStreamingGroup.TabIndex = 3;
             this.ctlStreamingGroup.TabStop = false;
             this.ctlStreamingGroup.Text = "스트리밍 옵션";
@@ -181,16 +182,17 @@
             this.ctlStreamingGroupPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ctlStreamingGroupPanel.ColumnCount = 1;
             this.ctlStreamingGroupPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.ctlStreamingGroupPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.ctlStreamingGroupPanel.Controls.Add(this.chkReduceApiCall, 0, 2);
             this.ctlStreamingGroupPanel.Controls.Add(this.ctlShowMyRetweet, 0, 1);
             this.ctlStreamingGroupPanel.Controls.Add(this.ctlShowRetweet, 0, 0);
             this.ctlStreamingGroupPanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.ctlStreamingGroupPanel.Location = new System.Drawing.Point(3, 19);
             this.ctlStreamingGroupPanel.Name = "ctlStreamingGroupPanel";
-            this.ctlStreamingGroupPanel.RowCount = 2;
+            this.ctlStreamingGroupPanel.RowCount = 3;
             this.ctlStreamingGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.ctlStreamingGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.ctlStreamingGroupPanel.Size = new System.Drawing.Size(215, 50);
+            this.ctlStreamingGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.ctlStreamingGroupPanel.Size = new System.Drawing.Size(215, 75);
             this.ctlStreamingGroupPanel.TabIndex = 0;
             // 
             // ctlShowMyRetweet
@@ -223,7 +225,7 @@
             this.tableLayoutPanel2.Controls.Add(this.ctlOK, 0, 0);
             this.tableLayoutPanel2.Controls.Add(this.ctlCancel, 1, 0);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(95, 193);
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(95, 218);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 1;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
@@ -259,6 +261,16 @@
             this.ctlCancel.Text = "취소";
             this.ctlCancel.UseVisualStyleBackColor = true;
             this.ctlCancel.Click += new System.EventHandler(this.ctlCancel_Click);
+            // 
+            // chkReduceApiCall
+            // 
+            this.chkReduceApiCall.AutoSize = true;
+            this.chkReduceApiCall.Location = new System.Drawing.Point(3, 53);
+            this.chkReduceApiCall.Name = "chkReduceApiCall";
+            this.chkReduceApiCall.Size = new System.Drawing.Size(128, 19);
+            this.chkReduceApiCall.TabIndex = 4;
+            this.chkReduceApiCall.Text = "API 호출 수 줄이기";
+            this.chkReduceApiCall.UseVisualStyleBackColor = true;
             // 
             // ConfigWindow
             // 
@@ -311,5 +323,6 @@
         private System.Windows.Forms.CheckBox ctlUseHTTPS;
         private System.Windows.Forms.Label ctlPortLabel;
         private System.Windows.Forms.NumericUpDown ctlPort;
+        private System.Windows.Forms.CheckBox chkReduceApiCall;
     }
 }
