@@ -37,12 +37,12 @@
             this.ctlAutoStartup = new System.Windows.Forms.CheckBox();
             this.ctlStreamingGroup = new System.Windows.Forms.GroupBox();
             this.ctlStreamingGroupPanel = new System.Windows.Forms.TableLayoutPanel();
+            this.ctlReduceApiCall = new System.Windows.Forms.CheckBox();
             this.ctlShowMyRetweet = new System.Windows.Forms.CheckBox();
             this.ctlShowRetweet = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.ctlOK = new System.Windows.Forms.Button();
             this.ctlCancel = new System.Windows.Forms.Button();
-            this.chkReduceApiCall = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel1.SuspendLayout();
             this.ctlProxyGroup.SuspendLayout();
             this.ctlProxyGroupPanel.SuspendLayout();
@@ -182,7 +182,7 @@
             this.ctlStreamingGroupPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ctlStreamingGroupPanel.ColumnCount = 1;
             this.ctlStreamingGroupPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.ctlStreamingGroupPanel.Controls.Add(this.chkReduceApiCall, 0, 2);
+            this.ctlStreamingGroupPanel.Controls.Add(this.ctlReduceApiCall, 0, 2);
             this.ctlStreamingGroupPanel.Controls.Add(this.ctlShowMyRetweet, 0, 1);
             this.ctlStreamingGroupPanel.Controls.Add(this.ctlShowRetweet, 0, 0);
             this.ctlStreamingGroupPanel.Dock = System.Windows.Forms.DockStyle.Top;
@@ -194,6 +194,16 @@
             this.ctlStreamingGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.ctlStreamingGroupPanel.Size = new System.Drawing.Size(215, 75);
             this.ctlStreamingGroupPanel.TabIndex = 0;
+            // 
+            // ctlReduceApiCall
+            // 
+            this.ctlReduceApiCall.AutoSize = true;
+            this.ctlReduceApiCall.Location = new System.Drawing.Point(3, 53);
+            this.ctlReduceApiCall.Name = "ctlReduceApiCall";
+            this.ctlReduceApiCall.Size = new System.Drawing.Size(128, 19);
+            this.ctlReduceApiCall.TabIndex = 4;
+            this.ctlReduceApiCall.Text = "API 호출 수 줄이기";
+            this.ctlReduceApiCall.UseVisualStyleBackColor = true;
             // 
             // ctlShowMyRetweet
             // 
@@ -262,16 +272,6 @@
             this.ctlCancel.UseVisualStyleBackColor = true;
             this.ctlCancel.Click += new System.EventHandler(this.ctlCancel_Click);
             // 
-            // chkReduceApiCall
-            // 
-            this.chkReduceApiCall.AutoSize = true;
-            this.chkReduceApiCall.Location = new System.Drawing.Point(3, 53);
-            this.chkReduceApiCall.Name = "chkReduceApiCall";
-            this.chkReduceApiCall.Size = new System.Drawing.Size(128, 19);
-            this.chkReduceApiCall.TabIndex = 4;
-            this.chkReduceApiCall.Text = "API 호출 수 줄이기";
-            this.chkReduceApiCall.UseVisualStyleBackColor = true;
-            // 
             // ConfigWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -323,6 +323,6 @@
         private System.Windows.Forms.CheckBox ctlUseHTTPS;
         private System.Windows.Forms.Label ctlPortLabel;
         private System.Windows.Forms.NumericUpDown ctlPort;
-        private System.Windows.Forms.CheckBox chkReduceApiCall;
+        private System.Windows.Forms.CheckBox ctlReduceApiCall;
     }
 }
