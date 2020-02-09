@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using StreamingRespirator.Core.Streaming.Twitter;
 using StreamingRespirator.Core.Streaming.Twitter.Packet;
 
@@ -18,8 +18,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         void ForceRefresh();
     }
 
-    internal abstract class BaseTimeLine<T> : ITimeLine, IDisposable
-        where T : IPacket
+    internal abstract class BaseTimeLine<TApiResult, TItem> : ITimeLine, IDisposable
+        where TItem : IPacket
     {
         protected readonly TwitterClient m_twitterClient;
         private readonly Timer m_timer;
@@ -71,7 +71,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         protected abstract void Clear();
 
         protected abstract string GetUrl();
-        protected abstract (IEnumerable<T> items, IEnumerable<TwitterUser> users) ParseHtml(string html);
+        protected abstract void ParseHtml(TApiResult data, List<TItem> lstItems, HashSet<TwitterUser> lstUsers);
         protected abstract void UpdateStatus(float nextTime);
 
         public void ForceRefresh()
@@ -79,21 +79,23 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             this.m_timer.Change(0, Timeout.Infinite);
         }
 
+        private static readonly JsonSerializer Serializer = new JsonSerializer();
         private static readonly DateTime ForTimeStamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private void Refresh(object state)
         {
             var next = 15 * 1000;
 
             var req = this.m_twitterClient.Credential.CreateReqeust(this.Method, this.GetUrl());
-            IEnumerable<T> items = null;
-            IEnumerable<TwitterUser> users = null;
+            var setItems = new List<TItem>();
+            var setUsers = new HashSet<TwitterUser>();
             try
             {
                 using (var res = req.GetResponse() as HttpWebResponse)
                 {
                     using (var stream = res.GetResponseStream())
-                    using (var reader = new StreamReader(stream, Encoding.UTF8))
-                        (items, users) = this.ParseHtml(reader.ReadToEnd());
+                    using (var streamReader = new StreamReader(stream, Encoding.UTF8))
+                    using (var jsonReader = new JsonTextReader(streamReader))                        
+                        this.ParseHtml(Serializer.Deserialize<TApiResult>(jsonReader), setItems, setUsers);
 
                     CalcNextRefresh(res.Headers, ref next);
                 }
@@ -114,22 +116,19 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             var userCacheTask = Task.Factory.StartNew(() =>
             {
-                if (users != null)
-                {
-                    foreach (var user in users)
-                        if (this.m_twitterClient.UserCache.IsUpdated(user))
-                            this.UserUpdatedEvent(user);
-                }
+                foreach (var user in setUsers)
+                    if (this.m_twitterClient.UserCache.IsUpdated(user))
+                        this.UserUpdatedEvent(user);
             });
 
-            if (items != null && items.Count() > 0)
+            if (setItems.Count > 0)
             {
                 try
                 {
                     Parallel.ForEach(this.m_twitterClient.GetConnections(),
                         connection =>
                         {
-                            foreach (var item in items)
+                            foreach (var item in setItems)
                                 connection.SendToStream(item);
                         });
                 }

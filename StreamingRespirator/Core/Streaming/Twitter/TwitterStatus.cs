@@ -13,9 +13,8 @@ namespace StreamingRespirator.Core.Streaming.Twitter
     [DebuggerDisplay("{Id} | @{User.ScreenName}: {Text}")]
     internal class TwitterStatus : IPacket
     {
-        public TwitterStatus()
-        {
-        }
+        [JsonProperty("display_text_range")]
+        public int[] DisplayTextRange { get; set; }
 
         [JsonProperty("id")]
         public long Id { get; set; }
@@ -34,6 +33,12 @@ namespace StreamingRespirator.Core.Streaming.Twitter
                     : null
                     )
                 )?.Value<string>().Replace("\n", "");
+
+        [JsonProperty("retweeted_status", NullValueHandling = NullValueHandling.Ignore)]
+        public TwitterStatus RetweetedStatus { get; set; }
+
+        [JsonProperty("quoted_status", NullValueHandling = NullValueHandling.Ignore)]
+        public TwitterStatus QuotedStatus { get; set; }
 
         [JsonExtensionData]
         public IDictionary<string, JToken> AdditionalData { get; set; }

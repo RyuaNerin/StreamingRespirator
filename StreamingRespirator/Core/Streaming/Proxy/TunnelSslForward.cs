@@ -15,7 +15,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         {
             using (var remoteClient = new TcpClient())
             {
-                remoteClient.ReceiveTimeout = 30 * 1000;
+                remoteClient.ReceiveTimeout = 10 * 1000;
 
                 try
                 {

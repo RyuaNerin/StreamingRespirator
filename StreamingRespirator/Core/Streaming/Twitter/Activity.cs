@@ -20,5 +20,8 @@ namespace StreamingRespirator.Core.Streaming.Twitter
 
         [JsonProperty("targets")]
         public TwitterStatus[] Targets { get; set; }
+
+        [JsonProperty("sources", NullValueHandling = NullValueHandling.Ignore)]
+        public TwitterUser[] Sources { get; set; }
     }
 }

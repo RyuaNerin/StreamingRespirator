@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 using StreamingRespirator.Core.Streaming.Twitter;
 
 namespace StreamingRespirator.Core.Streaming.TimeLines
 {
-    internal class TlHome : BaseTimeLine<TwitterStatus>
+    internal class TlHome : BaseTimeLine<TwitterStatusList, TwitterStatus>
     {
         public TlHome(TwitterClient twitterClient)
             : base(twitterClient)
@@ -43,23 +42,23 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 return BaseUrl + "&count=200&since_id=" + this.m_cursor;
         }
 
-        protected override (IEnumerable<TwitterStatus> items, IEnumerable<TwitterUser> users) ParseHtml(string html)
+        protected override void ParseHtml(TwitterStatusList data, List<TwitterStatus> lstItems, HashSet<TwitterUser> lstUsers)
         {
-            var list = JsonConvert.DeserializeObject<TwitterStatusList>(html);
-            if (list.Count == 0)
-                return (null, null);
+            if (data.Count == 0)
+                return;
 
-            var items = list.OrderBy(e => e.Id)
-                            .ToArray();
-            var users = items.Select(e => e.User);
+            foreach (var item in data)
+            {
+                item.AddUserToHashSet(lstUsers);
+                lstItems.Add(item);
+            }
+            lstItems.Sort((a, b) => a.Id.CompareTo(b.Id));
 
             var curCursor = this.m_cursor;
-            this.m_cursor = list.Max(e => e.Id);
+            this.m_cursor = data.Max(e => e.Id);
 
             if (curCursor == 0)
-                items = null;
-
-            return (items, users);
+                lstItems.Clear();
         }
 
         protected override void UpdateStatus(float waitTime)

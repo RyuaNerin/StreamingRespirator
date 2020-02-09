@@ -15,7 +15,7 @@ namespace StreamingRespirator.Core.Streaming.Twitter
         public UserItem UserEvents { get; set; }
 
         [JsonIgnore]
-        public UserItem Item => this.UserEvents ?? this.UserInbox;
+        public UserItem Items => this.UserEvents ?? this.UserInbox;
 
         [DebuggerDisplay("Entries : {Entries?.Length}")]
         public class UserItem

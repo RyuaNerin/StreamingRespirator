@@ -1,12 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 using StreamingRespirator.Core.Streaming.Twitter;
 using StreamingRespirator.Core.Streaming.Twitter.Packet;
 
 namespace StreamingRespirator.Core.Streaming.TimeLines
 {
-    internal class TlDirectMessage : BaseTimeLine<PacketDirectMessage>
+    internal class TlDirectMessage : BaseTimeLine<DirectMessage, PacketDirectMessage>
     {
         public TlDirectMessage(TwitterClient twitterClient)
             : base(twitterClient)
@@ -44,40 +43,42 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 return BaseUrl + "&cursor=" + this.m_cursor;
         }
 
-        protected override (IEnumerable<PacketDirectMessage> items, IEnumerable<TwitterUser> users) ParseHtml(string html)
+        protected override void ParseHtml(DirectMessage data, List<PacketDirectMessage> lstItems, HashSet<TwitterUser> lstUsers)
         {
-            var dm = JsonConvert.DeserializeObject<DirectMessage>(html);
-            if (!(dm?.Item?.Entries?.Length > 0))
-                return (null, null);
+            if ((data?.Items?.Entries?.Length ?? 0) == 0)
+                return;
 
-            var items = dm.Item
-                          .Entries
-                          .Where(e => e.Message != null)
-                          .Select(e => ToPacket(dm, e))
-                          .OrderBy(e => e.Item.Id)
-                          .ToArray();
+            foreach (var item in data.Items.Entries.Where(e => e.Message != null))
+            {
+                lstItems.Add(ToPacket(data, item));
+            }
+            foreach (var user in data.Items.Users.Values)
+            {
+                lstUsers.Add(user);
+            }
 
-            var users = items.Select(e => e.Item.Sender);
+            lstItems.Sort((a, b) => a.Item.Id.CompareTo(b.Item.Id));
 
             var curCursor = this.m_cursor;
-            this.m_cursor = dm.Item.Cursor;
+            this.m_cursor = data.Items.Cursor;
 
             if (curCursor == null)
-                items = null;
-
-            return (items, users);
+                lstItems.Clear();
         }
 
         private static PacketDirectMessage ToPacket(DirectMessage dm, DirectMessage.Entry e)
         {
-            var packet = new PacketDirectMessage();
-            packet.Item.Id = e.Message.Data.Id;
-            packet.Item.Text = e.Message.Data.Text;
-            packet.Item.CreatedAt = e.Message.Data.CreatedAt;
-            packet.Item.Sender = dm.Item.Users[e.Message.Data.Sender_Id];
-            packet.Item.Recipient = dm.Item.Users[e.Message.Data.Recipiend_Id];
-
-            return packet;
+            return new PacketDirectMessage
+            {
+                Item = new PacketDirectMessage.DirectMessageItem
+                {
+                    Id        = e.Message.Data.Id,
+                    Text      = e.Message.Data.Text,
+                    CreatedAt = e.Message.Data.CreatedAt,
+                    Sender    = dm.Items.Users[e.Message.Data.Sender_Id],
+                    Recipient = dm.Items.Users[e.Message.Data.Recipiend_Id],
+                },
+            };
         }
 
         protected override void UpdateStatus(float waitTime)

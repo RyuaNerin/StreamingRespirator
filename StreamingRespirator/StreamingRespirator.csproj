@@ -115,6 +115,7 @@
     <Compile Include="Core\Streaming\Proxy\TunnelSslForward.cs" />
     <Compile Include="Core\Streaming\Proxy\TunnelSslMitm.cs" />
     <Compile Include="Core\Streaming\RespiratorServer.cs" />
+    <Compile Include="Core\Streaming\TimeLines\Extensions.cs" />
     <Compile Include="Core\Streaming\TwitterClientFactory.cs" />
     <Compile Include="Core\Streaming\TwitterCredentials.cs" />
     <Compile Include="Core\Streaming\Twitter\DirectMessageCreate.cs" />

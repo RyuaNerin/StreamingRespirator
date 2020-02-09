@@ -8,7 +8,7 @@ namespace StreamingRespirator.Core.Streaming.Twitter.Packet
     internal class PacketDirectMessage : IPacket
     {
         [JsonProperty("direct_message")]
-        public DirectMessageItem Item { get; set; } = new DirectMessageItem();
+        public DirectMessageItem Item { get; set; }
 
         public override string ToString()
             => $"{this.Item.Sender.ScreenName} -> {this.Item.Recipient.ScreenName} : {this.Item.Text}";

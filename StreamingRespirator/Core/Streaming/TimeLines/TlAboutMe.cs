@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 using StreamingRespirator.Core.Streaming.Twitter;
 
 namespace StreamingRespirator.Core.Streaming.TimeLines
 {
-    internal class TlAboutMe : BaseTimeLine<TwitterStatus>
+    internal class TlAboutMe : BaseTimeLine<ActivityList, TwitterStatus>
     {
         public TlAboutMe(TwitterClient twitterClient)
             : base(twitterClient)
@@ -44,27 +43,56 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 return BaseUrl + "&count=200&since_id=" + this.m_cursor;
         }
 
-        protected override (IEnumerable<TwitterStatus> items, IEnumerable<TwitterUser> users) ParseHtml(string html)
+        protected override void ParseHtml(ActivityList data, List<TwitterStatus> lstItems, HashSet<TwitterUser> lstUsers)
         {
-            var list = JsonConvert.DeserializeObject<ActivityList>(html);
-            if (list.Count == 0)
-                return (null, null);
+            if (data.Count == 0)
+                return;
 
-            var items = list.Where(e => (Config.Filter.ShowRetweetedMyStatus  && e.Action == "retweet")
-                                     || (Config.Filter.ShowRetweetWithComment && e.Action == "quote")
-                                      || e.Action == "reply")
-                            .SelectMany(e => e.Targets)
-                            .OrderBy(e => e.Id)
-                            .ToArray();
-            var users = items.Select(e => e.User);
+            var itemsList = new List<TwitterStatus>();
+            var usersList = new HashSet<TwitterUser>();
+
+            foreach (var activity in data)
+            {
+                foreach (var user in activity.Sources)
+                    usersList.Add(user);
+
+                foreach (var tweet in activity.Targets)
+                    tweet.AddUserToHashSet(lstUsers);
+
+                if ((Config.Filter.ShowRetweetedMyStatus && activity.Action == "retweet")
+                    || (Config.Filter.ShowRetweetWithComment && activity.Action == "quote")
+                    || activity.Action == "reply")
+                {
+                    var isRetweeted = activity.Action == "retweet";
+
+                    foreach (var tweet in activity.Targets)
+                    {
+                        // Retweet 일 때 full_text 가 잘려서 도착하는 문제가 있다
+                        // retweeted_status 를 기반으로 후처리한다
+                        if (isRetweeted && tweet.RetweetedStatus != null)
+                        {
+                            var retweet = tweet.RetweetedStatus;
+
+                            if (tweet.DisplayTextRange[1] < retweet.DisplayTextRange[0])
+                            {
+                                tweet.AdditionalData["entities"] = retweet.AdditionalData["entities"];
+                                tweet.DisplayTextRange = retweet.DisplayTextRange;
+
+                                tweet.AdditionalData["full_text"] = $"RT @{tweet.User.ScreenName}: {retweet.AdditionalData["full_text"]}";
+                            }
+                        }
+
+                        lstItems.Add(tweet);
+                    }
+                }
+            }
+
+            itemsList.Sort((a, b) => a.Id.CompareTo(b.Id));
 
             var curCursor = this.m_cursor;
-            this.m_cursor = list.Max(e => e.MaxPosition);
-
+            this.m_cursor = data.Max(e => e.MaxPosition);
             if (curCursor == 0)
-                items = null;
-
-            return (items, users);
+                itemsList.Clear();
         }
 
         protected override void UpdateStatus(float waitTime)

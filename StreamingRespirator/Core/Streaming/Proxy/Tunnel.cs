@@ -1,6 +1,7 @@
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading;
 
 namespace StreamingRespirator.Core.Streaming.Proxy
 {
@@ -13,6 +14,12 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         {
             this.m_request = preq;
             this.m_proxyStream = stream;
+        }
+
+        private static CancellationTokenSource CancelSource = new CancellationTokenSource();
+        public static void Exit()
+        {
+            CancelSource.Cancel();
         }
 
         /// <summary>
