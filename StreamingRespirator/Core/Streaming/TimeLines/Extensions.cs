@@ -7,7 +7,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
     {
         public static void AddUserToHashSet(this TwitterStatus status, ICollection<TwitterUser> lstUsers)
         {
-            lstUsers.Add(status.User);
+            if (status.User != null)
+                lstUsers.Add(status.User);
 
             status.RetweetedStatus?.AddUserToHashSet(lstUsers);
             status.QuotedStatus?.AddUserToHashSet(lstUsers);
