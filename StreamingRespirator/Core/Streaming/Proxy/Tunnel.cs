@@ -4,6 +4,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using StreamingRespirator.Core.Streaming.Proxy.Streams;
 
 namespace StreamingRespirator.Core.Streaming.Proxy
 {
@@ -63,13 +64,21 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         public abstract void Handle();
 
         protected Task CopyToAsync(Stream dst, Stream src)
-            => src.CopyToAsync(dst, CopyToBufferSize, this.CancelSource.Token)
+        {
+            var srcSafe = new SafeAsyncStream(src);
+            var dstSafe = new SafeAsyncStream(dst);
+
+            return srcSafe.CopyToAsync(dstSafe, CopyToBufferSize, this.CancelSource.Token)
                   .ContinueWith(
                     e =>
                     {
+                        srcSafe.Dispose();
+                        dstSafe.Dispose();
+
                         if (!e.IsFaulted && !e.IsCanceled)
                             this.CancelSource.Cancel();
                     });
+        }
 
         protected IPEndPoint GetEndPoint()
         {

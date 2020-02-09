@@ -27,13 +27,12 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                     throw;
                 }
 
+                this.ProxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
 
                 using (var remoteStream = remoteClient.GetStream())
                 {
                     var taskToProxy  = this.CopyToAsync(this.ProxyStream, remoteStream    );
                     var taskToRemote = this.CopyToAsync(remoteStream    , this.ProxyStream);
-
-                    this.ProxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
 
                     try
                     {

@@ -109,6 +109,7 @@
   <ItemGroup>
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\Streaming\Proxy\ProxyResponse.cs" />
+    <Compile Include="Core\Streaming\Proxy\Streams\SafeAsyncStream.cs" />
     <Compile Include="Core\Streaming\Proxy\Streams\RequestStreamReader.cs" />
     <Compile Include="Core\Streaming\Proxy\Tunnel.cs" />
     <Compile Include="Core\Streaming\Proxy\TunnelPlain.cs" />
