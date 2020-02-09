@@ -20,14 +20,14 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
                 using (var remoteStream = remoteClient.GetStream())
                 {
-                    var taskRemoteToProxy = remoteStream.CopyToAsync(this.m_proxyStream);
+                    var taskToProxy = this.CopyToAsync(this.ProxyStream, remoteStream);
 
-                    this.m_request.Headers.Set("Connection", "close");
-                    this.m_request.WriteRawRequest(remoteStream);
+                    this.Reqeust.Headers.Set("Connection", "close");
+                    this.Reqeust.WriteRawRequest(remoteStream);
 
                     try
                     {
-                        Task.WaitAll(taskRemoteToProxy);
+                        Task.WaitAll(taskToProxy);
                     }
                     catch
                     {

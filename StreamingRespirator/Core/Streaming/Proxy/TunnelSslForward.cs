@@ -23,20 +23,20 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 }
                 catch
                 {
-                    this.m_proxyStream.Write(ConnectionFailed, 0, ConnectionFailed.Length);
+                    this.ProxyStream.Write(ConnectionFailed, 0, ConnectionFailed.Length);
                     throw;
                 }
 
                 using (var remoteStream = remoteClient.GetStream())
                 {
-                    var taskRemoteToProxy =       remoteStream.CopyToAsync(this.m_proxyStream, 4096);
-                    var taskProxyToRemote = this.m_proxyStream.CopyToAsync(remoteStream, 4096);
+                    var taskToProxy  = this.CopyToAsync(this.ProxyStream, remoteStream    );
+                    var taskToRemote = this.CopyToAsync(remoteStream    , this.ProxyStream);
 
-                    this.m_proxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
+                    this.ProxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
 
                     try
                     {
-                        Task.WaitAll(taskRemoteToProxy, taskProxyToRemote);
+                        Task.WaitAll(taskToProxy, taskToRemote);
                     }
                     catch
                     {

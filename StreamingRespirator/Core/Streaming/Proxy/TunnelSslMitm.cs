@@ -26,9 +26,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
         public override void Handle()
         {
-            using (var proxyStreamSsl = new SslStream(this.m_proxyStream))
+            using (var proxyStreamSsl = new SslStream(this.ProxyStream))
             {
-                this.m_proxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
+                this.ProxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
 
                 proxyStreamSsl.AuthenticateAsServer(this.m_certificate, false, SslProtocol, false);
 
@@ -79,13 +79,13 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                         {
                             remoteStreamSsl.AuthenticateAsClient(reqSSL.RemoteHost);
 
-                            var taskRemoteToProxy = remoteStreamSsl.CopyToAsync(proxyStreamSsl, 4096);
+                            var taskToProxy = this.CopyToAsync(proxyStreamSsl, remoteStreamSsl);
 
                             reqSSL.WriteRawRequest(remoteStreamSsl);
 
                             try
                             {
-                                Task.WaitAll(taskRemoteToProxy);
+                                Task.WaitAll(taskToProxy);
                             }
                             catch
                             {

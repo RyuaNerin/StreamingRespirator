@@ -47,24 +47,22 @@ namespace StreamingRespirator.Core
 
                 Config.Load();
 
-                MainContext context = null;
+                RespiratorServer server;
                 try
                 {
-                    context = new MainContext();
+                    server = new RespiratorServer();
                 }
                 catch
                 {
+                    MessageBox.Show(Lang.MainContext_StartError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
                 }
 
-                if (context != null)
+                using (server)
                 {
-                    Application.Run(context);
+                    Application.Run(new MainContext(server));
                     Config.Save();
                 }
-
-                context.StopProxy();
-
-                Application.Exit();
             }
         }
 

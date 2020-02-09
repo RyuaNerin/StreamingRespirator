@@ -26,20 +26,17 @@ namespace StreamingRespirator.Core
         private ToolStripSeparator m_stripSepExit;
         private ToolStripMenuItem m_stripExit;
 
-        public MainContext()
+        public MainContext(RespiratorServer server)
         {
             this.m_invoker = new Control();
             this.m_invoker.CreateControl();
 
-            this.m_server = new RespiratorServer();
+            this.m_server = server;
 
             TwitterClientFactory.ClientUpdated += this.TwitterClientFactory_ClientUpdated;
 
             this.InitializeComponent();
             LocalizationHelper.ApplyLang(this);
-
-            if (!this.StartProxy())
-                throw new Exception();
 
             if (TwitterClientFactory.AccountCount == 0)
                 this.m_notifyIcon.ShowBalloonTip(10000, Lang.Name, Lang.MainContext_NoAccount, ToolTipIcon.Info);
@@ -98,6 +95,13 @@ namespace StreamingRespirator.Core
                 Visible = true,
             };
             this.m_notifyIcon.BalloonTipClicked += this.NotifyIcon_BalloonTipClicked;
+        }
+
+        protected override void ExitThreadCore()
+        {
+            this.m_notifyIcon.Visible = false;
+
+            base.ExitThreadCore();
         }
 
         private void StripConfig_Click(object sender, EventArgs e)
@@ -241,28 +245,6 @@ namespace StreamingRespirator.Core
             TwitterClientFactory.RemoveClient((long)item.Tag);
         }
 
-        public void StopProxy()
-        {
-            this.m_server.Stop();
-
-            this.m_notifyIcon.Visible = false;
-        }
-
-        private bool StartProxy()
-        {
-            try
-            {
-                this.m_server.Start();
-                return true;
-            }
-            catch
-            {
-                MessageBox.Show(Lang.MainContext_StartError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return false;
-            }
-        }
-
-
         private void NotifyIcon_BalloonTipClicked(object sender, EventArgs e)
         {
             Task.Factory.StartNew(() => TwitterClientFactory.AddClient(this.m_invoker));
@@ -285,6 +267,7 @@ namespace StreamingRespirator.Core
 
         private void StripExit_Click(object sender, EventArgs e)
         {
+            this.m_notifyIcon.Visible = false;
             this.ExitThreadCore();
         }
     }

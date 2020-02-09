@@ -19,7 +19,10 @@ using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core.Streaming
 {
-    internal class RespiratorServer
+    /// <summary>
+    /// Constructor 실행 시 서버 바로 시작됨. Dispose 하면 서버 정지됨.
+    /// </summary>
+    internal class RespiratorServer : IDisposable
     {
         private readonly TcpListener m_tcpListener;
 
@@ -30,39 +33,54 @@ namespace StreamingRespirator.Core.Streaming
         public RespiratorServer()
         {
             this.m_tcpListener = new TcpListener(new IPEndPoint(IPAddress.Loopback, Config.Proxy.Port));
-        }
 
-        public void Start()
-        {
             if (this.IsRunning)
                 return;
             this.IsRunning = true;
 
-            this.m_tcpListener.Start();
+            this.m_tcpListener.Start(64);
             this.m_tcpListener.BeginAcceptTcpClient(this.AcceptClient, null);
         }
-
-        public void Stop()
+        ~RespiratorServer()
         {
-            if (!this.IsRunning)
-                return;
+            this.Dispose(false);
+        }
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            this.Dispose(true);
+        }
 
-            Parallel.ForEach(
-                this.m_connections.ToArray(),
-                client =>
+        private bool m_disposed;
+        protected void Dispose(bool disposing)
+        {
+            if (this.m_disposed) return;
+            this.m_disposed = true;
+
+            if (disposing)
+            {
+                Tunnel.CancelAllTunnel();
+
+                this.m_tcpListener.Stop();
+
+                lock (this.m_connections)
                 {
-                    try
-                    {
-                        client.Client.Shutdown(SocketShutdown.Both);
-                        client.Client.Disconnect(true);
-                        client.Close();
-                    }
-                    catch
-                    {
-                    }
-                });
-
-            this.m_tcpListener.Stop();
+                    Parallel.ForEach(
+                        this.m_connections.ToArray(),
+                        client =>
+                        {
+                            try
+                            {
+                                client.Client.Shutdown(SocketShutdown.Both);
+                                client.Client.Disconnect(true);
+                                client.Close();
+                            }
+                            catch
+                            {
+                            }
+                        });
+                }
+            }
         }
 
         private void AcceptClient(IAsyncResult ar)
@@ -156,7 +174,8 @@ namespace StreamingRespirator.Core.Streaming
                     t = new TunnelPlain(req, clientStream);
                 }
 
-                t.Handle();
+                using (t)
+                    t.Handle();
             }
         }
 
