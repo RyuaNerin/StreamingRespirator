@@ -48,6 +48,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         public string RemoteHost { get; private set; }
         public int    RemotePort { get; private set; }
 
+        /// <summary>
+        /// POST PUT PATCH 일 때만 생성됨
+        /// </summary>
         public Stream RequestBodyReader { get; private set; }
 
         public WebHeaderCollection Headers { get; } = new WebHeaderCollection();

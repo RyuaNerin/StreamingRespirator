@@ -409,6 +409,18 @@ namespace StreamingRespirator.Core.Streaming
 
             var reqHttp = ctx.Request.CreateRequest((method, uri) => client?.Credential.CreateReqeust(method, uri), client == null);
 
+            if (proxyReqBody == null)
+            {
+                var v = ctx.Request.Headers.Get("Content-Length");
+                if (v != null)
+                {
+                    ctx.Response.Headers.Set("Content-Length", v);
+                }
+            }
+            else if (proxyReqBody is MemoryStream mem)
+            {
+                ctx.Response.Headers.Set("Content-Length", mem.Length.ToString());
+            }
 
             proxyReqBody?.CopyTo(reqHttp.GetRequestStream());
 
