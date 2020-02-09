@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Windows.Forms;
+using StreamingRespirator.Core.Streaming;
 using StreamingRespirator.Properties;
 
 namespace StreamingRespirator.Core
@@ -12,12 +13,7 @@ namespace StreamingRespirator.Core
     {
         public const string MutexName = "{5FF75362-95BA-4399-8C77-C1A0C5B8A291}";
 
-        public static readonly string ConfigPath;
-
-        static Program()
-        {
-            ConfigPath  = Path.ChangeExtension(Application.ExecutablePath, ".cnf");
-        }
+        public static readonly string ConfigPath = Path.ChangeExtension(Application.ExecutablePath, ".cnf");
 
         [STAThread]
         static void Main()
@@ -34,10 +30,20 @@ namespace StreamingRespirator.Core
 
 #if !DEBUG
                 System.Net.WebRequest.DefaultWebProxy = null;
+#endif
 
+                CrashReport.Init();
+
+#if !DEBUG
                 if (!CheckUpdate())
                     return;
 #endif
+
+                if (!Certificates.InstallCACertificates())
+                {
+                    MessageBox.Show(Lang.CertificateError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    return;
+                }
 
                 Config.Load();
 
@@ -57,6 +63,8 @@ namespace StreamingRespirator.Core
                 }
 
                 context.StopProxy();
+
+                Application.Exit();
             }
         }
 

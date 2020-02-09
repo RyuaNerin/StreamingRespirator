@@ -18,8 +18,8 @@ namespace StreamingRespirator.Core.Streaming
         private readonly Timer m_keepAlive;
         private readonly Timer m_friends;
 
-        public WaitableStream Stream      { get; }
-        public TwitterClient  Client      { get; }
+        public WaitableStream Stream { get; }
+        public TwitterClient Client { get; }
 
         public long OwnerId
             => this.Client.Credential.Id;
@@ -30,7 +30,7 @@ namespace StreamingRespirator.Core.Streaming
             this.Client = client;
 
             this.m_keepAlive = new Timer(this.SendKeepAlive, null, KeepAlivePeriod, KeepAlivePeriod);
-            this.m_friends   = new Timer(this.SendFriends  , null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
+            this.m_friends = new Timer(this.SendFriends, null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
         }
 
         ~StreamingConnection()
@@ -52,11 +52,11 @@ namespace StreamingRespirator.Core.Streaming
 
             if (disposing)
             {
-                this.m_friends  .Dispose();
+                this.m_friends.Dispose();
                 this.m_keepAlive.Dispose();
             }
         }
-        
+
         private static readonly byte[] KeepAlivePacket = Encoding.UTF8.GetBytes("\r\n");
         private void SendKeepAlive(object sender)
         {
@@ -88,7 +88,6 @@ namespace StreamingRespirator.Core.Streaming
             try
             {
                 this.Stream.Write(data, 0, data.Length);
-                this.Stream.Flush();
             }
             catch
             {

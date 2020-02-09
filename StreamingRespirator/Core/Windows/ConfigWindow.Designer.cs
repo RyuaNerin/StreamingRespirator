@@ -1,4 +1,4 @@
-﻿namespace StreamingRespirator.Core.Windows
+namespace StreamingRespirator.Core.Windows
 {
     partial class ConfigWindow
     {
@@ -31,9 +31,7 @@
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.ctlProxyGroup = new System.Windows.Forms.GroupBox();
             this.ctlProxyGroupPanel = new System.Windows.Forms.TableLayoutPanel();
-            this.ctlUseHTTPS = new System.Windows.Forms.CheckBox();
             this.ctlPortLabel = new System.Windows.Forms.Label();
-            this.ctlPort = new System.Windows.Forms.NumericUpDown();
             this.ctlAutoStartup = new System.Windows.Forms.CheckBox();
             this.ctlStreamingGroup = new System.Windows.Forms.GroupBox();
             this.ctlStreamingGroupPanel = new System.Windows.Forms.TableLayoutPanel();
@@ -43,13 +41,14 @@
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.ctlOK = new System.Windows.Forms.Button();
             this.ctlCancel = new System.Windows.Forms.Button();
+            this.ctlPort = new System.Windows.Forms.NumericUpDown();
             this.tableLayoutPanel1.SuspendLayout();
             this.ctlProxyGroup.SuspendLayout();
             this.ctlProxyGroupPanel.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.ctlPort)).BeginInit();
             this.ctlStreamingGroup.SuspendLayout();
             this.ctlStreamingGroupPanel.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ctlPort)).BeginInit();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -72,7 +71,7 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(237, 257);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(237, 232);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // ctlProxyGroup
@@ -83,7 +82,7 @@
             this.ctlProxyGroup.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ctlProxyGroup.Location = new System.Drawing.Point(8, 33);
             this.ctlProxyGroup.Name = "ctlProxyGroup";
-            this.ctlProxyGroup.Size = new System.Drawing.Size(221, 76);
+            this.ctlProxyGroup.Size = new System.Drawing.Size(221, 51);
             this.ctlProxyGroup.TabIndex = 1;
             this.ctlProxyGroup.TabStop = false;
             this.ctlProxyGroup.Text = "프록시 설정";
@@ -95,29 +94,15 @@
             this.ctlProxyGroupPanel.ColumnCount = 2;
             this.ctlProxyGroupPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.ctlProxyGroupPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.ctlProxyGroupPanel.Controls.Add(this.ctlUseHTTPS, 0, 1);
             this.ctlProxyGroupPanel.Controls.Add(this.ctlPortLabel, 0, 0);
             this.ctlProxyGroupPanel.Controls.Add(this.ctlPort, 1, 0);
             this.ctlProxyGroupPanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.ctlProxyGroupPanel.Location = new System.Drawing.Point(3, 19);
             this.ctlProxyGroupPanel.Name = "ctlProxyGroupPanel";
-            this.ctlProxyGroupPanel.RowCount = 2;
+            this.ctlProxyGroupPanel.RowCount = 1;
             this.ctlProxyGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.ctlProxyGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.ctlProxyGroupPanel.Size = new System.Drawing.Size(215, 54);
+            this.ctlProxyGroupPanel.Size = new System.Drawing.Size(215, 29);
             this.ctlProxyGroupPanel.TabIndex = 0;
-            // 
-            // ctlUseHTTPS
-            // 
-            this.ctlUseHTTPS.AutoSize = true;
-            this.ctlProxyGroupPanel.SetColumnSpan(this.ctlUseHTTPS, 2);
-            this.ctlUseHTTPS.Location = new System.Drawing.Point(3, 32);
-            this.ctlUseHTTPS.Name = "ctlUseHTTPS";
-            this.ctlUseHTTPS.Size = new System.Drawing.Size(129, 19);
-            this.ctlUseHTTPS.TabIndex = 9;
-            this.ctlUseHTTPS.Text = "HTTPS 프록시 사용";
-            this.ctlUseHTTPS.UseVisualStyleBackColor = true;
-            this.ctlUseHTTPS.CheckedChanged += new System.EventHandler(this.ctlUseHTTPS_CheckedChanged);
             // 
             // ctlPortLabel
             // 
@@ -130,28 +115,6 @@
             this.ctlPortLabel.TabIndex = 7;
             this.ctlPortLabel.Text = "프록시 포트";
             this.ctlPortLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // ctlPort
-            // 
-            this.ctlPort.Location = new System.Drawing.Point(87, 3);
-            this.ctlPort.Maximum = new decimal(new int[] {
-            65535,
-            0,
-            0,
-            0});
-            this.ctlPort.Minimum = new decimal(new int[] {
-            1000,
-            0,
-            0,
-            0});
-            this.ctlPort.Name = "ctlPort";
-            this.ctlPort.Size = new System.Drawing.Size(91, 23);
-            this.ctlPort.TabIndex = 8;
-            this.ctlPort.Value = new decimal(new int[] {
-            1000,
-            0,
-            0,
-            0});
             // 
             // ctlAutoStartup
             // 
@@ -169,7 +132,7 @@
             this.ctlStreamingGroup.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ctlStreamingGroup.Controls.Add(this.ctlStreamingGroupPanel);
             this.ctlStreamingGroup.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ctlStreamingGroup.Location = new System.Drawing.Point(8, 115);
+            this.ctlStreamingGroup.Location = new System.Drawing.Point(8, 90);
             this.ctlStreamingGroup.Name = "ctlStreamingGroup";
             this.ctlStreamingGroup.Size = new System.Drawing.Size(221, 97);
             this.ctlStreamingGroup.TabIndex = 3;
@@ -235,7 +198,7 @@
             this.tableLayoutPanel2.Controls.Add(this.ctlOK, 0, 0);
             this.tableLayoutPanel2.Controls.Add(this.ctlCancel, 1, 0);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(95, 218);
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(95, 193);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 1;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
@@ -272,6 +235,28 @@
             this.ctlCancel.UseVisualStyleBackColor = true;
             this.ctlCancel.Click += new System.EventHandler(this.ctlCancel_Click);
             // 
+            // ctlPort
+            // 
+            this.ctlPort.Location = new System.Drawing.Point(87, 3);
+            this.ctlPort.Maximum = new decimal(new int[] {
+            65535,
+            0,
+            0,
+            0});
+            this.ctlPort.Minimum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.ctlPort.Name = "ctlPort";
+            this.ctlPort.Size = new System.Drawing.Size(91, 23);
+            this.ctlPort.TabIndex = 8;
+            this.ctlPort.Value = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            // 
             // ConfigWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -288,20 +273,19 @@
             this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "스트리밍 호흡기 설정";
-            this.Load += new System.EventHandler(this.ConfigWindow_Load);
             this.tableLayoutPanel1.ResumeLayout(false);
             this.tableLayoutPanel1.PerformLayout();
             this.ctlProxyGroup.ResumeLayout(false);
             this.ctlProxyGroup.PerformLayout();
             this.ctlProxyGroupPanel.ResumeLayout(false);
             this.ctlProxyGroupPanel.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.ctlPort)).EndInit();
             this.ctlStreamingGroup.ResumeLayout(false);
             this.ctlStreamingGroup.PerformLayout();
             this.ctlStreamingGroupPanel.ResumeLayout(false);
             this.ctlStreamingGroupPanel.PerformLayout();
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ctlPort)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -320,9 +304,8 @@
         private System.Windows.Forms.Button ctlCancel;
         private System.Windows.Forms.GroupBox ctlProxyGroup;
         private System.Windows.Forms.TableLayoutPanel ctlProxyGroupPanel;
-        private System.Windows.Forms.CheckBox ctlUseHTTPS;
         private System.Windows.Forms.Label ctlPortLabel;
-        private System.Windows.Forms.NumericUpDown ctlPort;
         private System.Windows.Forms.CheckBox ctlReduceApiCall;
+        private System.Windows.Forms.NumericUpDown ctlPort;
     }
 }

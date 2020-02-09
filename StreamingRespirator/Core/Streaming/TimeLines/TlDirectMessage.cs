@@ -71,10 +71,10 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         private static PacketDirectMessage ToPacket(DirectMessage dm, DirectMessage.Entry e)
         {
             var packet = new PacketDirectMessage();
-            packet.Item.Id        = e.Message.Data.Id;
-            packet.Item.Text      = e.Message.Data.Text;
+            packet.Item.Id = e.Message.Data.Id;
+            packet.Item.Text = e.Message.Data.Text;
             packet.Item.CreatedAt = e.Message.Data.CreatedAt;
-            packet.Item.Sender    = dm.Item.Users[e.Message.Data.Sender_Id];
+            packet.Item.Sender = dm.Item.Users[e.Message.Data.Sender_Id];
             packet.Item.Recipient = dm.Item.Users[e.Message.Data.Recipiend_Id];
 
             return packet;

@@ -28,7 +28,7 @@ namespace StreamingRespirator.Core.Streaming.Twitter
             => (
                 this.AdditionalData.ContainsKey("full_text")
                 ? this.AdditionalData["full_text"]
-                :   (
+                : (
                     this.AdditionalData.ContainsKey("text")
                     ? this.AdditionalData["text"]
                     : null

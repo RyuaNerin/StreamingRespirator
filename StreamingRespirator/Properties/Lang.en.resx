@@ -117,110 +117,114 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CertificateError" xml:space="preserve">
+    <value>Failed to install certificate for Streaming-Respirator</value>
+    <comment>스트리밍 호흡기 작동에 필요한 인증서를 설치하지 못하였습니다</comment>
+  </data>
   <data name="ConfigWindow_ApplyAfterRestart" xml:space="preserve">
-    <value>프록시 옵션은 재시작 후 적용됩니다!</value>
+    <value>Proxy-related settings take effect after restart.</value>
     <comment>프록시 옵션은 재시작 후 적용됩니다!</comment>
   </data>
   <data name="ConfigWindow_HttpsWarning" xml:space="preserve">
-    <value>HTTPS 프록시를 사용할 경우 보안에 취약해질 수 있습니다.</value>
+    <value>When using an HTTPS proxy, security vulnerabilities can exist.</value>
     <comment>HTTPS 프록시를 사용할 경우 보안에 취약해질 수 있습니다.</comment>
   </data>
   <data name="ConfigWindow__ctlAutoStartup__Text" xml:space="preserve">
-    <value>윈도우 시작 시 자동 시작</value>
+    <value>Startup with windows</value>
     <comment>윈도우 시작 시 자동 시작</comment>
   </data>
   <data name="ConfigWindow__ctlCancel__Text" xml:space="preserve">
-    <value>취소</value>
+    <value>Cancel</value>
     <comment>취소</comment>
   </data>
   <data name="ConfigWindow__ctlOK__Text" xml:space="preserve">
-    <value>확인</value>
+    <value>OK</value>
     <comment>확인</comment>
   </data>
   <data name="ConfigWindow__ctlPortLabel__Text" xml:space="preserve">
-    <value>프록시 포트</value>
+    <value>Proxy Port</value>
     <comment>프록시 포트</comment>
   </data>
   <data name="ConfigWindow__ctlProxyGroup__Text" xml:space="preserve">
-    <value>프록시 설정</value>
+    <value>Proxy option</value>
     <comment>프록시 설정</comment>
   </data>
+  <data name="ConfigWindow__ctlReduceApiCall__Text" xml:space="preserve">
+    <value>Reduce API Calls</value>
+    <comment>API 호출 수 줄이기</comment>
+  </data>
   <data name="ConfigWindow__ctlShowMyRetweet__Text" xml:space="preserve">
-    <value>내 리트윗 다시 표시</value>
+    <value>Show my retweet</value>
     <comment>내 리트윗 다시 표시</comment>
   </data>
   <data name="ConfigWindow__ctlShowRetweet__Text" xml:space="preserve">
-    <value>리트윗된 내 트윗 표시</value>
+    <value>Show my retweeted tweets</value>
     <comment>리트윗된 내 트윗 표시</comment>
   </data>
   <data name="ConfigWindow__ctlStreamingGroup__Text" xml:space="preserve">
-    <value>스트리밍 옵션</value>
+    <value>Streamin option</value>
     <comment>스트리밍 옵션</comment>
   </data>
-  <data name="ConfigWindow__ctlUseHTTPS__Text" xml:space="preserve">
-    <value>HTTPS 프록시 사용</value>
-    <comment>HTTPS 프록시 사용</comment>
-  </data>
   <data name="ConfigWindow__Text" xml:space="preserve">
-    <value>스트리밍 호흡기 설정</value>
+    <value>Streaming Respirator Setting</value>
     <comment>스트리밍 호흡기 설정</comment>
   </data>
   <data name="LoginWindowWeb_AddError" xml:space="preserve">
-    <value>인증에 실패하였습니다</value>
+    <value>Failed to add account</value>
     <comment>인증에 실패하였습니다</comment>
   </data>
   <data name="LoginWindowWeb_AddSuccess" xml:space="preserve">
-    <value>{0}가 추가되었습니다.</value>
+    <value>New account {0} has been added.</value>
     <comment>{0}가 추가되었습니다.</comment>
   </data>
   <data name="LoginWindowWeb__m_label__Text" xml:space="preserve">
-    <value>로딩중입니다.
-잠시만 기다려주세요.</value>
+    <value>Loading.
+Please wait a moment.</value>
     <comment>로딩중입니다.
 잠시만 기다려주세요.</comment>
   </data>
   <data name="LoginWindowWeb__Text" xml:space="preserve">
-    <value>새 계정 추가</value>
+    <value>Add twitter account</value>
     <comment>새 계정 추가</comment>
   </data>
   <data name="MainContext_Client_Refresh" xml:space="preserve">
-    <value>지금 새로고침</value>
+    <value>Refresh</value>
     <comment>지금 새로고침</comment>
   </data>
   <data name="MainContext_Client_Remove" xml:space="preserve">
-    <value>삭제</value>
+    <value>Remove account</value>
     <comment>삭제</comment>
   </data>
   <data name="MainContext_NoAccount" xml:space="preserve">
-    <value>계정이 추가되어있지 않습니다!
+    <value>No account has been added.
 
-계정을 추가해주세요!</value>
+Please add an account.</value>
     <comment>계정이 추가되어있지 않습니다!
 
 계정을 추가해주세요!</comment>
   </data>
   <data name="MainContext_StartError" xml:space="preserve">
-    <value>스트리밍 호흡기 시작 중 오류가 발생하였습니다.</value>
+    <value>An error occurred while staring the Streaming Respirator.</value>
     <comment>스트리밍 호흡기 시작 중 오류가 발생하였습니다.</comment>
   </data>
   <data name="MainContext__m_stripAdd__Text" xml:space="preserve">
-    <value>계정 추가</value>
+    <value>Add account</value>
     <comment>계정 추가</comment>
   </data>
   <data name="MainContext__m_stripConfig__Text" xml:space="preserve">
-    <value>호흡기 설정</value>
+    <value>Setting</value>
     <comment>호흡기 설정</comment>
   </data>
   <data name="MainContext__m_stripExit__Text" xml:space="preserve">
-    <value>종료</value>
+    <value>Quit</value>
     <comment>종료</comment>
   </data>
   <data name="Name" xml:space="preserve">
-    <value>스트리밍 호흡기</value>
+    <value>Streaming Respirator</value>
     <comment>스트리밍 호흡기</comment>
   </data>
   <data name="NewUpdate" xml:space="preserve">
-    <value>새로운 업데이트가 있습니다.</value>
+    <value>There's a new update available.</value>
     <comment>새로운 업데이트가 있습니다.</comment>
   </data>
 </root>

@@ -10,11 +10,11 @@ namespace StreamingRespirator.Core.Streaming
     {
         private class UserInfo
         {
-            public long     Id;
+            public long Id;
             public DateTime LastAccess;
-            public string   Name;
-            public string   ScreenName;
-            public string   ProfileImage;
+            public string Name;
+            public string ScreenName;
+            public string ProfileImage;
         }
 
         private readonly TimeSpan CacheExpires = TimeSpan.FromHours(1);
@@ -84,9 +84,9 @@ namespace StreamingRespirator.Core.Streaming
                     var info = this.Cache[user.Id];
 
                     var modified = false;
-                    if (info.Name           != user.Name            ) { modified = true; info.Name         = user.Name;             }
-                    if (info.ScreenName     != user.ScreenName      ) { modified = true; info.ScreenName   = user.ScreenName;       }
-                    if (info.ProfileImage   != user.ProfileFimageUrl) { modified = true; info.ProfileImage = user.ProfileFimageUrl; }
+                    if (info.Name != user.Name) { modified = true; info.Name = user.Name; }
+                    if (info.ScreenName != user.ScreenName) { modified = true; info.ScreenName = user.ScreenName; }
+                    if (info.ProfileImage != user.ProfileFimageUrl) { modified = true; info.ProfileImage = user.ProfileFimageUrl; }
 
                     info.LastAccess = DateTime.Now;
 
@@ -94,12 +94,13 @@ namespace StreamingRespirator.Core.Streaming
                 }
                 else
                 {
-                    this.Cache.Add(user.Id, new UserInfo {
-                        Id           = user.Id,
-                        Name         = user.Name,
-                        ScreenName   = user.ScreenName,
+                    this.Cache.Add(user.Id, new UserInfo
+                    {
+                        Id = user.Id,
+                        Name = user.Name,
+                        ScreenName = user.ScreenName,
                         ProfileImage = user.ProfileFimageUrl,
-                        LastAccess   = DateTime.Now,
+                        LastAccess = DateTime.Now,
                     });
 
                     return false;

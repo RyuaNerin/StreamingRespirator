@@ -14,7 +14,7 @@ namespace StreamingRespirator.Core.Streaming.Twitter.Packet
 
         [JsonProperty("target")]
         public object Target { get; set; }
-                
+
         [JsonProperty("source")]
         public object Source { get; set; }
     }

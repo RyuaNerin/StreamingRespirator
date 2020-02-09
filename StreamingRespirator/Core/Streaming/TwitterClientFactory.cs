@@ -8,12 +8,12 @@ namespace StreamingRespirator.Core.Streaming
 {
     internal struct StateUpdateData
     {
-        public bool         IsRemoved;
-        public string       ScreenName;
-        public bool?        Connected;
-        public float?       WaitTimeHome;
-        public float?       WaitTimeAboutMe;
-        public float?       WaitTimeDm;
+        public bool IsRemoved;
+        public string ScreenName;
+        public bool? Connected;
+        public float? WaitTimeHome;
+        public float? WaitTimeAboutMe;
+        public float? WaitTimeDm;
     }
 
     static class TwitterClientFactory
@@ -68,18 +68,7 @@ namespace StreamingRespirator.Core.Streaming
 
                 var befScreenName = inst.Credential.ScreenName;
 
-                bool verified;
-
-                try
-                {
-                    verified = inst.Credential.VerifyCredentials();
-                }
-                catch
-                {
-                    return null;
-                }
-
-                if (!verified)
+                if (!inst.Credential.VerifyCredentials())
                 {
                     RemoveClient(id);
                     return null;
@@ -132,7 +121,7 @@ namespace StreamingRespirator.Core.Streaming
                 {
                     twitClient = Instances[twitCred.Id];
                     twitClient.Credential.ScreenName = twitCred.ScreenName;
-                    twitClient.Credential.Cookie     = twitCred.Cookie;
+                    twitClient.Credential.Cookie = twitCred.Cookie;
                 }
 
                 ClientStatusUpdatedEvent(twitCred.Id, new StateUpdateData { ScreenName = twitCred.ScreenName });

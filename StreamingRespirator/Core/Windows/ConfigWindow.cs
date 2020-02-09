@@ -13,32 +13,14 @@ namespace StreamingRespirator.Core.Windows
             this.InitializeComponent();
             LocalizationHelper.ApplyLang(this);
 
-            this.ctlAutoStartup.Checked   = Config.StartWithWindows;
+            this.ctlAutoStartup.Checked = Config.StartWithWindows;
 
-            this.ctlPort.Value            = Config.Proxy.Port;
-            this.ctlUseHTTPS.Checked      = Config.Proxy.UseHTTPS;
+            this.ctlPort.Value = Config.Proxy.Port;
 
             this.ctlReduceApiCall.Checked = Config.ReduceApiCall;
 
-            this.ctlShowRetweet.Checked   = Config.Filter.ShowRetweetedMyStatus;
+            this.ctlShowRetweet.Checked = Config.Filter.ShowRetweetedMyStatus;
             this.ctlShowMyRetweet.Checked = Config.Filter.ShowMyRetweet;
-        }
-
-        private bool m_loaded = false;
-        private void ConfigWindow_Load(object sender, EventArgs e)
-        {
-            this.m_loaded = true;
-        }
-
-        private void ctlUseHTTPS_CheckedChanged(object sender, EventArgs e)
-        {
-            if (!this.m_loaded)
-                return;
-
-            if (this.ctlUseHTTPS.Checked)
-            {
-                MessageBox.Show(this, Lang.ConfigWindow_HttpsWarning, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
         }
 
         private void ctlOK_Click(object sender, EventArgs e)
@@ -74,21 +56,19 @@ namespace StreamingRespirator.Core.Windows
                 }
             }
 
-            if (Config.Proxy.Port != (int)this.ctlPort.Value ||
-                Config.Proxy.UseHTTPS != this.ctlUseHTTPS.Checked)
+            if (Config.Proxy.Port != (int)this.ctlPort.Value)
             {
                 MessageBox.Show(this, Lang.ConfigWindow_ApplyAfterRestart, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
-            Config.StartWithWindows             = this.ctlAutoStartup.Checked;
+            Config.StartWithWindows = this.ctlAutoStartup.Checked;
 
-            Config.Proxy.Port                   = (int)this.ctlPort.Value;
-            Config.Proxy.UseHTTPS               = this.ctlUseHTTPS.Checked;
+            Config.Proxy.Port = (int)this.ctlPort.Value;
 
-            Config.ReduceApiCall                = this.ctlReduceApiCall.Checked;
+            Config.ReduceApiCall = this.ctlReduceApiCall.Checked;
 
             Config.Filter.ShowRetweetedMyStatus = this.ctlShowRetweet.Checked;
-            Config.Filter.ShowMyRetweet         = this.ctlShowMyRetweet.Checked;
+            Config.Filter.ShowMyRetweet = this.ctlShowMyRetweet.Checked;
 
             Config.Save();
 

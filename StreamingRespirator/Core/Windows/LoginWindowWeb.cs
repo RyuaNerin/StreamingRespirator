@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using mshtml;
+using Sentry;
 using StreamingRespirator.Core.Streaming;
 using StreamingRespirator.Properties;
 using StreamingRespirator.Utilities;
@@ -209,8 +210,9 @@ namespace StreamingRespirator.Core.Windows
 
                 this.m_webBrowser.Visible = true;
             }
-            catch
+            catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
             }
         }
 

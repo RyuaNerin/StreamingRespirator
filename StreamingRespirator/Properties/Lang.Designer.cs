@@ -19,7 +19,7 @@ namespace StreamingRespirator.Properties {
     // 클래스에서 자동으로 생성되었습니다.
     // 멤버를 추가하거나 제거하려면 .ResX 파일을 편집한 다음 /str 옵션을 사용하여 ResGen을
     // 다시 실행하거나 VS 프로젝트를 다시 빌드하십시오.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Lang {
@@ -61,7 +61,16 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Startup with windows과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   스트리밍 호흡기 작동에 필요한 인증서를 설치하지 못하였습니다과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string CertificateError {
+            get {
+                return ResourceManager.GetString("CertificateError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   윈도우 시작 시 자동 시작과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow__ctlAutoStartup__Text {
             get {
@@ -70,7 +79,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Cancel과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   취소과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow__ctlCancel__Text {
             get {
@@ -79,7 +88,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   OK과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   확인과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow__ctlOK__Text {
             get {
@@ -88,7 +97,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Proxy Port과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   프록시 포트과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow__ctlPortLabel__Text {
             get {
@@ -97,7 +106,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Proxy option과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   프록시 설정과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow__ctlProxyGroup__Text {
             get {
@@ -106,7 +115,16 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Show my retweet과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   API 호출 수 줄이기과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string ConfigWindow__ctlReduceApiCall__Text {
+            get {
+                return ResourceManager.GetString("ConfigWindow__ctlReduceApiCall__Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   내 리트윗 다시 표시과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow__ctlShowMyRetweet__Text {
             get {
@@ -115,7 +133,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Show my retweeted tweets과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   리트윗된 내 트윗 표시과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow__ctlShowRetweet__Text {
             get {
@@ -124,7 +142,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Streamin option과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   스트리밍 옵션과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow__ctlStreamingGroup__Text {
             get {
@@ -133,16 +151,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Use HTTPS proxy과(와) 유사한 지역화된 문자열을 찾습니다.
-        /// </summary>
-        internal static string ConfigWindow__ctlUseHTTPS__Text {
-            get {
-                return ResourceManager.GetString("ConfigWindow__ctlUseHTTPS__Text", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Streaming Respirator Setting과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   스트리밍 호흡기 설정과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow__Text {
             get {
@@ -151,7 +160,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Proxy-related settings take effect after restart.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   프록시 옵션은 재시작 후 적용됩니다!과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow_ApplyAfterRestart {
             get {
@@ -160,7 +169,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   When using an HTTPS proxy, security vulnerabilities can exist.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   HTTPS 프록시를 사용할 경우 보안에 취약해질 수 있습니다.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow_HttpsWarning {
             get {
@@ -169,8 +178,8 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Loading.
-        ///Please wait a moment.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   로딩중입니다.
+        ///잠시만 기다려주세요.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string LoginWindowWeb__m_label__Text {
             get {
@@ -179,7 +188,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Add twitter account과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   새 계정 추가과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string LoginWindowWeb__Text {
             get {
@@ -188,7 +197,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Failed to add account과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   인증에 실패하였습니다과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string LoginWindowWeb_AddError {
             get {
@@ -197,7 +206,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   New account {0} has been added.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   {0}가 추가되었습니다.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string LoginWindowWeb_AddSuccess {
             get {
@@ -206,7 +215,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Add account과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   계정 추가과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string MainContext__m_stripAdd__Text {
             get {
@@ -215,7 +224,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Setting과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   호흡기 설정과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string MainContext__m_stripConfig__Text {
             get {
@@ -224,7 +233,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Quit과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   종료과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string MainContext__m_stripExit__Text {
             get {
@@ -233,7 +242,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Refresh과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   지금 새로고침과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string MainContext_Client_Refresh {
             get {
@@ -242,7 +251,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Remove account과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   삭제과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string MainContext_Client_Remove {
             get {
@@ -251,9 +260,9 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   No account has been added.
+        ///   계정이 추가되어있지 않습니다!
         ///
-        ///Please add an account.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///계정을 추가해주세요!과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string MainContext_NoAccount {
             get {
@@ -262,7 +271,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   An error occurred while staring the Streaming Respirator.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   스트리밍 호흡기 시작 중 오류가 발생하였습니다.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string MainContext_StartError {
             get {
@@ -271,7 +280,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   Streaming Respirator과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   스트리밍 호흡기과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string Name {
             get {
@@ -280,7 +289,7 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
-        ///   There&apos;s a new update available.과(와) 유사한 지역화된 문자열을 찾습니다.
+        ///   새로운 업데이트가 있습니다.과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string NewUpdate {
             get {

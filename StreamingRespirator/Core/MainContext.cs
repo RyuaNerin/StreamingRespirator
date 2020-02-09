@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Sentry;
 using StreamingRespirator.Core.Streaming;
 using StreamingRespirator.Core.Windows;
 using StreamingRespirator.Properties;
@@ -16,14 +17,14 @@ namespace StreamingRespirator.Core
 
         private readonly RespiratorServer m_server;
 
-        private NotifyIcon         m_notifyIcon;
-        private ContextMenuStrip   m_contextMenuStrip;
-        private ToolStripMenuItem  m_stripAbout;
-        private ToolStripMenuItem  m_stripConfig;
+        private NotifyIcon m_notifyIcon;
+        private ContextMenuStrip m_contextMenuStrip;
+        private ToolStripMenuItem m_stripAbout;
+        private ToolStripMenuItem m_stripConfig;
         private ToolStripSeparator m_stripSepAccount;
-        private ToolStripMenuItem  m_stripAdd;
+        private ToolStripMenuItem m_stripAdd;
         private ToolStripSeparator m_stripSepExit;
-        private ToolStripMenuItem  m_stripExit;
+        private ToolStripMenuItem m_stripExit;
 
         public MainContext()
         {
@@ -92,9 +93,9 @@ namespace StreamingRespirator.Core
 
             this.m_notifyIcon = new NotifyIcon
             {
-                Icon             = Properties.Resources.icon,
+                Icon = Properties.Resources.icon,
                 ContextMenuStrip = this.m_contextMenuStrip,
-                Visible          = true,
+                Visible = true,
             };
             this.m_notifyIcon.BalloonTipClicked += this.NotifyIcon_BalloonTipClicked;
         }
@@ -154,10 +155,10 @@ namespace StreamingRespirator.Core
             {
                 Tag = id,
             };
-            refreshButton.Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(true , true , true ));
-            st.TlHome    .Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(true , false, false));
-            st.TlAbountMe.Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(false, true , false));
-            st.TlDm      .Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(false, false, true ));
+            refreshButton.Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(true, true, true));
+            st.TlHome.Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(true, false, false));
+            st.TlAbountMe.Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(false, true, false));
+            st.TlDm.Click += new EventHandler((s, e) => TwitterClientFactory.GetInsatnce((long)(s as ToolStripMenuItem).Tag)?.ForceRefresh(false, false, true));
 
             st.RootItem.DropDownItems.AddRange(new ToolStripItem[]
             {
@@ -210,28 +211,28 @@ namespace StreamingRespirator.Core
 
                                 if (!data.Connected.Value)
                                 {
-                                    cts.TlHome    .Text = "-";
+                                    cts.TlHome.Text = "-";
                                     cts.TlAbountMe.Text = "-";
-                                    cts.TlDm      .Text = "-";
+                                    cts.TlDm.Text = "-";
                                 }
                             }
 
-                            if (data.WaitTimeHome   .HasValue) cts.TlHome    .Text    = FormatWaitTime(data.WaitTimeHome   .Value);
-                            if (data.WaitTimeAboutMe.HasValue) cts.TlAbountMe.Text    = FormatWaitTime(data.WaitTimeAboutMe.Value);
-                            if (data.WaitTimeDm     .HasValue) cts.TlDm      .Text    = FormatWaitTime(data.WaitTimeDm     .Value);
+                            if (data.WaitTimeHome.HasValue) cts.TlHome.Text = FormatWaitTime(data.WaitTimeHome.Value);
+                            if (data.WaitTimeAboutMe.HasValue) cts.TlAbountMe.Text = FormatWaitTime(data.WaitTimeAboutMe.Value);
+                            if (data.WaitTimeDm.HasValue) cts.TlDm.Text = FormatWaitTime(data.WaitTimeDm.Value);
                         }
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
             }
         }
 
         private static string FormatWaitTime(double waitTime)
         {
-            var now = DateTime.Now;
-            return string.Format("{0:HH:mm:ss} ({1:##0.0}s)", now.AddSeconds(waitTime), waitTime);
+            return string.Format("{0:HH:mm:ss} ({1:##0.0}s)", DateTime.Now.AddSeconds(waitTime), waitTime);
         }
 
         private void StripRemoveClient_Click(object sender, EventArgs e)
@@ -281,7 +282,7 @@ namespace StreamingRespirator.Core
             {
             }
         }
-        
+
         private void StripExit_Click(object sender, EventArgs e)
         {
             this.ExitThreadCore();

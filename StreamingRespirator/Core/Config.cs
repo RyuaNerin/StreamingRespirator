@@ -25,9 +25,6 @@ namespace StreamingRespirator.Core
         {
             [JsonProperty("port")]
             public int Port { get; set; } = 8811;
-
-            [JsonProperty("use_https")]
-            public bool UseHTTPS { get; set; } = false;
         }
 
         public static bool ReduceApiCall { get; set; }
@@ -36,7 +33,7 @@ namespace StreamingRespirator.Core
         {
             try
             {
-                using (var file   = File.OpenRead(Program.ConfigPath))
+                using (var file = File.OpenRead(Program.ConfigPath))
                 using (var reader = new StreamReader(file, Encoding.UTF8))
                 {
                     new JsonSerializer().Populate(reader, new ConfigInstance());
@@ -51,7 +48,7 @@ namespace StreamingRespirator.Core
         {
             try
             {
-                using (var file   = File.OpenWrite(Program.ConfigPath))
+                using (var file = File.OpenWrite(Program.ConfigPath))
                 using (var writer = new StreamWriter(file, Encoding.UTF8))
                 {
                     new JsonSerializer().Serialize(writer, new ConfigInstance());

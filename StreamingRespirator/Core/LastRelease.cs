@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using Newtonsoft.Json;
+using Sentry;
 
 namespace StreamingRespirator.Core
 {
@@ -22,15 +23,16 @@ namespace StreamingRespirator.Core
                     using (var rStream = res.GetResponseStream())
                     {
                         var sReader = new StreamReader(rStream);
-                        
+
                         last = JsonConvert.DeserializeObject<LatestRealease>(sReader.ReadToEnd());
                     }
                 }
 
                 return new Version(last.TagName) > Assembly.GetExecutingAssembly().GetName().Version;
             }
-            catch
+            catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
                 return false;
             }
         }

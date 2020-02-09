@@ -19,7 +19,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
     }
 
     internal abstract class BaseTimeLine<T> : ITimeLine, IDisposable
-        where T: IPacket
+        where T : IPacket
     {
         protected readonly TwitterClient m_twitterClient;
         private readonly Timer m_timer;
@@ -111,7 +111,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             catch
             {
             }
-            
+
             var userCacheTask = Task.Factory.StartNew(() =>
             {
                 if (users != null)
@@ -124,12 +124,18 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             if (items != null && items.Count() > 0)
             {
-                Parallel.ForEach(this.m_twitterClient.GetConnections(),
-                    connection =>
-                    {
-                        foreach (var item in items)
-                            connection.SendToStream(item);
-                    });
+                try
+                {
+                    Parallel.ForEach(this.m_twitterClient.GetConnections(),
+                        connection =>
+                        {
+                            foreach (var item in items)
+                                connection.SendToStream(item);
+                        });
+                }
+                catch
+                {
+                }
             }
 
             userCacheTask.Wait();
@@ -157,7 +163,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             */
 
             if (int.TryParse(headers.Get("x-rate-limit-remaining"), out int remaining) &&
-                int.TryParse(headers.Get("x-rate-limit-reset"    ), out int reset))
+                int.TryParse(headers.Get("x-rate-limit-reset"), out int reset))
             {
                 if (Config.ReduceApiCall)
                     next = (int)((reset - (DateTime.UtcNow - ForTimeStamp).TotalSeconds) / (remaining / 2) * 1000);

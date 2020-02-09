@@ -10,6 +10,9 @@ insert_final_newline = true
 indent_style = space
 indent_size = 4
 
+# CA1031: Do not catch general exception types
+dotnet_diagnostic.CA1031.severity = none
+
 [*.xaml]
 indent_style = space
 indent_size = 4

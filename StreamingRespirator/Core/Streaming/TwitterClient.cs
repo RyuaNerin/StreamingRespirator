@@ -18,18 +18,18 @@ namespace StreamingRespirator.Core.Streaming
         private readonly ITimeLine m_tlHome;
         private readonly ITimeLine m_tlAboutMe;
         private readonly ITimeLine m_tlDm;
-        
+
         public TwitterCredential Credential { get; }
-        
+
         public UserCache UserCache { get; } = new UserCache();
 
         public TwitterClient(TwitterCredential credential)
         {
             this.Credential = credential;
 
-            this.m_tlHome    = new TlHome         (this);
-            this.m_tlAboutMe = new TlAboutMe      (this);
-            this.m_tlDm      = new TlDirectMessage(this);
+            this.m_tlHome = new TlHome(this);
+            this.m_tlAboutMe = new TlAboutMe(this);
+            this.m_tlDm = new TlDirectMessage(this);
         }
 
         ~TwitterClient()
@@ -51,9 +51,9 @@ namespace StreamingRespirator.Core.Streaming
 
             if (disposing)
             {
-                this.m_tlHome   .Dispose();
+                this.m_tlHome.Dispose();
                 this.m_tlAboutMe.Dispose();
-                this.m_tlDm     .Dispose();
+                this.m_tlDm.Dispose();
 
                 this.UserCache.Dispose();
             }
@@ -88,7 +88,7 @@ namespace StreamingRespirator.Core.Streaming
                 var befCount = this.m_connections.Count;
 
                 this.m_connections.Remove(connection);
-                
+
                 if (befCount == 1)
                     this.StopTimeLine();
             }
@@ -96,18 +96,18 @@ namespace StreamingRespirator.Core.Streaming
 
         private void StartTimeLine()
         {
-            this.m_tlHome   .Start();
+            this.m_tlHome.Start();
             this.m_tlAboutMe.Start();
-            this.m_tlDm     .Start();
+            this.m_tlDm.Start();
 
             this.ClientUpdated?.Invoke(this.Credential.Id, new StateUpdateData { Connected = true });
         }
 
         private void StopTimeLine()
         {
-            this.m_tlHome   .Stop();
+            this.m_tlHome.Stop();
             this.m_tlAboutMe.Stop();
-            this.m_tlDm     .Stop();
+            this.m_tlDm.Stop();
 
             this.ClientUpdated?.Invoke(this.Credential.Id, new StateUpdateData { Connected = false });
 
@@ -121,9 +121,9 @@ namespace StreamingRespirator.Core.Streaming
 
         public void ForceRefresh(bool home, bool aboutMe, bool dm)
         {
-            if (home   ) this.m_tlHome   .ForceRefresh();
+            if (home) this.m_tlHome.ForceRefresh();
             if (aboutMe) this.m_tlAboutMe.ForceRefresh();
-            if (dm     ) this.m_tlDm     .ForceRefresh();
+            if (dm) this.m_tlDm.ForceRefresh();
         }
 
         private class FriendsCursor
@@ -145,7 +145,7 @@ namespace StreamingRespirator.Core.Streaming
         }
         private long[] GetFriendsPacket()
         {
-            return this.Credential.Reqeust<FriendsCursor>("GET", $"https://api.twitter.com/1.1/friends/ids.json?count=5000user_id={this.Credential.Id}")?.Ids;
+            return this.Credential.Reqeust<FriendsCursor>("GET", $"https://api.twitter.com/1.1/friends/ids.json?count=5000user_id={this.Credential.Id}", null, out _)?.Ids;
         }
 
         public StreamingConnection[] GetConnections()
@@ -184,7 +184,7 @@ namespace StreamingRespirator.Core.Streaming
         }
         private TwitterStatus ShowStatus(long id)
         {
-            return this.Credential.Reqeust<TwitterStatus>("GET", "https://api.twitter.com/1.1/statuses/show.json?id=" + id);
+            return this.Credential.Reqeust<TwitterStatus>("GET", "https://api.twitter.com/1.1/statuses/show.json?id=" + id, null, out _);
         }
 
         public void SendStatus(TwitterStatus stauts)

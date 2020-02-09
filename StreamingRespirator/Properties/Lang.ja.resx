@@ -117,6 +117,10 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CertificateError" xml:space="preserve">
+    <value>Streaming Respiratorの動作に必要な証明書をインストールしていませんでした</value>
+    <comment>스트리밍 호흡기 작동에 필요한 인증서를 설치하지 못하였습니다</comment>
+  </data>
   <data name="ConfigWindow_ApplyAfterRestart" xml:space="preserve">
     <value>プロキシ関連の設定は、再起動後に有効になります。</value>
     <comment>프록시 옵션은 재시작 후 적용됩니다!</comment>
@@ -145,6 +149,10 @@
     <value>プロキシの設定</value>
     <comment>프록시 설정</comment>
   </data>
+  <data name="ConfigWindow__ctlReduceApiCall__Text" xml:space="preserve">
+    <value>API呼び出しの数を減らす</value>
+    <comment>API 호출 수 줄이기</comment>
+  </data>
   <data name="ConfigWindow__ctlShowMyRetweet__Text" xml:space="preserve">
     <value>リツイートを表示</value>
     <comment>내 리트윗 다시 표시</comment>
@@ -156,10 +164,6 @@
   <data name="ConfigWindow__ctlStreamingGroup__Text" xml:space="preserve">
     <value>ストリームオプション</value>
     <comment>스트리밍 옵션</comment>
-  </data>
-  <data name="ConfigWindow__ctlUseHTTPS__Text" xml:space="preserve">
-    <value>HTTPSプロキシを使用する</value>
-    <comment>HTTPS 프록시 사용</comment>
   </data>
   <data name="ConfigWindow__Text" xml:space="preserve">
     <value>Streaming Respirator 設定</value>

@@ -8,7 +8,7 @@ namespace StreamingRespirator.Core.Streaming.Twitter.Packet
     {
         [JsonProperty("delete")]
         public DeleteItem Delete { get; } = new DeleteItem();
-        
+
         public class DeleteItem
         {
             [JsonProperty("status")]
