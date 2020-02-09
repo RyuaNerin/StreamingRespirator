@@ -9,7 +9,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
     /// </summary>
     internal sealed class RequestStreamReader : Stream
     {
-        private readonly MemoryStream m_buffStream = new MemoryStream(4096);
+        public readonly MemoryStream m_buffStream = new MemoryStream(4096);
         private readonly byte[]       m_buff       = new byte[4096];
 
         private readonly Stream m_baseStream;
@@ -50,7 +50,6 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
             this.m_buffStream.SetLength(0);
 
             read = this.m_baseStream.Read(this.m_buff, 0, this.m_buff.Length);
-            Console.WriteLine("Read : " + BitConverter.ToString(this.m_buff, 0, read).Replace('-', ' '));
             if (read == 0)
                 return 0;
 
@@ -85,9 +84,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
                                 if (i > 0)
                                 {
                                     mem.Write(buff, 0, i);
-
-                                    this.m_buffStream.Position -= buffLen - i - 2;
                                 }
+                                
+                                this.m_buffStream.Position -= buffLen - i - 2;
 
                                 return this.Encoding.GetString(mem.ToArray());
                             }

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
 using StreamingRespirator.Core.Streaming.Proxy.Streams;
@@ -263,7 +264,6 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 {
                     read = this.m_request.m_streamReader.Read(buffer, offset, Math.Min(count, this.m_remainContentLength.Value));
 
-                    Debug.WriteLine(Encoding.ASCII.GetString(buffer, offset, read));
                     this.m_remainContentLength -= read;
                     if (this.m_remainContentLength < 0)
                         this.m_remainContentLength = 0;

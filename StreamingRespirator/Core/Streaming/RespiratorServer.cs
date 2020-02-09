@@ -155,7 +155,7 @@ namespace StreamingRespirator.Core.Streaming
                 {
                     t = new TunnelPlain(req, clientStream);
                 }
-                
+
                 t.Handle();
             }
         }
@@ -312,14 +312,6 @@ namespace StreamingRespirator.Core.Streaming
                 {
                     postData = HttpUtility.ParseQueryString(bodyStr, Encoding.UTF8);
 
-                    foreach (var key in postData.AllKeys)
-                    {
-                        if (key.StartsWith("oauth_"))
-                        {
-                            postData.Remove(key);
-                        }
-                    }
-
                     var status = postData["status"];
                     if (status != null)
                     {
@@ -335,35 +327,12 @@ namespace StreamingRespirator.Core.Streaming
                             return true;
                         }
                     }
-
-                    mem.SetLength(0);
-                    using (var writer = new StreamWriter(mem, Encoding.UTF8, 4096, true))
-                    {
-                        var first = false;
-
-                        foreach (var key in postData.AllKeys)
-                        {
-                            foreach (var value in postData.GetValues(key))
-                            {
-                                if (first)
-                                {
-                                    first = false;
-                                }
-                                else
-                                {
-                                    writer.Write('&');
-                                }
-
-                                writer.Write($"{0}={1}", HttpUtility.UrlEncode(key), HttpUtility.UrlEncode(value));
-                            }
-                        }
-
-                        writer.Flush();
-                    }
                 }
 
+                // client 를 넘겨주지 않아서 Client 의 App Name 을 표시.
+                // client 를 넘겨주면 via Tweetdeck 으로 고정된다.
                 mem.Position = 0;
-                if (!TryCallAPIThenSetContext(ctx, mem, twitClient, out var statusCode, out _))
+                if (!TryCallAPIThenSetContext(ctx, mem, null, out var statusCode, out _))
                 {
                     ctx.Response.StatusCode = HttpStatusCode.InternalServerError;
                     return true;
@@ -438,7 +407,8 @@ namespace StreamingRespirator.Core.Streaming
             responseStatusCode = 0;
             responseBodyStr = null;
 
-            var reqHttp = ctx.Request.CreateRequest((method, uri) => client.Credential.CreateReqeust(method, uri));
+            var reqHttp = ctx.Request.CreateRequest((method, uri) => client?.Credential.CreateReqeust(method, uri));
+
 
             (proxyReqBody ?? proxyReqBody)?.CopyTo(reqHttp.GetRequestStream());
 
