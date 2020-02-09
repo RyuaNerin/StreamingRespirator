@@ -76,5 +76,3 @@
 	- `streaming.twitter.com`
 	- `api.twitter.com`
 
-- 시스템의 보안을 위해서 다음 EndPoint 의 경우에는 **http scheme** 로 연결해주세요.
-	- 기존 그대로 https scheme 로 연결해주시면, 호흡기 설정에서 `HTTPS 프록시 사용` 기능을 켜야합니다.
