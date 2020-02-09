@@ -233,6 +233,8 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
+        private static readonly JsonSerializer JsonSerializer = new JsonSerializer();
+
         private static bool HandleDestroyOrUnretweet(ProxyContext ctx)
         {
             if (!TryGetTwitterClient(ctx, null, out var twitClient))
@@ -259,23 +261,96 @@ namespace StreamingRespirator.Core.Streaming
             if (!TryGetTwitterClient(ctx, null, out var twitClient))
                 return false;
 
-            if (!TryCallAPIThenSetContext(ctx, null, twitClient, out var statusCode, out var responseBody))
+            // 내 리트윗 다시 표시 기능을 끄면 별도 처리를 해줄 필요가 없음.
+            if (!Config.Filter.ShowMyRetweet)
+            {
+                if (!TryCallAPIThenSetContext(ctx, null, twitClient, out var _, out var _))
+                    ctx.Response.StatusCode = HttpStatusCode.InternalServerError;
+
+                return true;
+            }
+
+            // Azurea 기준으로 Retweet 후에 full_text 값이 날아오지 않는다.
+            // 1. full_text 값을 얻기 위해
+            // 2. 리트윗 API 호출 한 다음
+            // 3. (2) 의 호출을 그대로 전송하고
+            // 4. (2) 가 성공하면 리트윗 한 트윗을 statuses/show.json 한 후 그 결과값을 리턴한다.
+
+            var res = CallAPI(ctx, null, twitClient);
+            if (res == null)
             {
                 ctx.Response.StatusCode = HttpStatusCode.InternalServerError;
                 return true;
             }
 
-            // 트윗이 삭제된 경우 404 반환됨.
-            if (statusCode == HttpStatusCode.NotFound)
-            {
-                twitClient.StatusMaybeDestroyed(ParseJsonId(ctx.Request.RequestUri));
-            }
-            else if (Config.Filter.ShowMyRetweet)
-            {
-                var status = JsonConvert.DeserializeObject<TwitterStatus>(responseBody);
+            TwitterStatus status = null;
 
-                if (status != null)
-                    twitClient.SendStatus(status);
+            using (res)
+            {
+                using (var stream = res.GetResponseStream())
+                {
+                    if (res.StatusCode != HttpStatusCode.OK)
+                    {
+                        // 트윗이 삭제된 경우 404 반환됨.
+                        if (res.StatusCode == HttpStatusCode.NotFound)
+                        {
+                            twitClient.StatusMaybeDestroyed(ParseJsonId(ctx.Request.RequestUri));
+                        }
+
+                        ctx.Response.FromHttpWebResponse(res, stream);
+                        return true;
+                    }
+
+                    using (var mem = new MemoryStream(4096))
+                    {
+                        stream.CopyTo(mem);
+
+                        using (var streamReader = new StreamReader(mem, Encoding.UTF8))
+                        using (var jsonReader = new JsonTextReader(streamReader))
+                        {
+                            mem.Position = 0;
+                            ctx.Response.FromHttpWebResponse(res, mem);
+
+                            mem.Position = 0;
+                            status = JsonSerializer.Deserialize<TwitterStatus>(jsonReader);
+                        }
+                    }
+
+                }
+            }
+
+            if (status == null || status.AdditionalData.ContainsKey("full_text"))
+            {
+                twitClient.SendStatus(status);
+                return true;
+            }
+
+            try
+            {
+                var reqShow = twitClient.Credential.CreateReqeust("GET", $"https://api.twitter.com/1.1/statuses/show.json?id={status.Id}&include_entities=1");
+
+                using (var resShow = (HttpWebResponse)reqShow.GetResponse())
+                {
+                    if (resShow.StatusCode == HttpStatusCode.OK)
+                    {
+                        using (var stream = resShow.GetResponseStream())
+                        using (var streamReader = new StreamReader(stream, Encoding.UTF8))
+                        using (var jsonReader = new JsonTextReader(streamReader))
+                        {
+                            var newStatus = JsonSerializer.Deserialize<TwitterStatus>(jsonReader);
+                            if (newStatus != null)
+                            {
+                                twitClient.SendStatus(newStatus);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+
+                twitClient.SendStatus(status);
             }
 
             return true;
@@ -407,6 +482,38 @@ namespace StreamingRespirator.Core.Streaming
             responseStatusCode = 0;
             responseBodyStr = null;
 
+            var resHttp = CallAPI(ctx, proxyReqBody, client);
+
+            if (resHttp == null)
+            {
+                return false;
+            }
+
+            using (resHttp)
+            {
+                responseStatusCode = resHttp.StatusCode;
+
+                using (var mem = new MemoryStream(Math.Min((int)resHttp.ContentLength, 4096)))
+                using (var reader = new StreamReader(mem, Encoding.UTF8))
+                {
+                    using (var stream = resHttp.GetResponseStream())
+                    {
+                        stream.CopyTo(mem);
+                    }
+
+                    mem.Position = 0;
+                    ctx.Response.FromHttpWebResponse(resHttp, mem);
+
+                    mem.Position = 0;
+                    responseBodyStr = reader.ReadToEnd();
+
+                    return true;
+                }
+            }
+        }
+
+        private static HttpWebResponse CallAPI(ProxyContext ctx, Stream proxyReqBody, TwitterClient client)
+        {
             var reqHttp = ctx.Request.CreateRequest((method, uri) => client?.Credential.CreateReqeust(method, uri), client == null);
 
             if (proxyReqBody == null)
@@ -438,39 +545,7 @@ namespace StreamingRespirator.Core.Streaming
             {
             }
 
-            if (resHttp == null)
-            {
-                return false;
-            }
-
-            using (resHttp)
-            {
-                responseStatusCode = resHttp.StatusCode;
-
-                using (var mem = new MemoryStream(Math.Min((int)resHttp.ContentLength, 4096)))
-                using (var reader = new StreamReader(mem, Encoding.UTF8))
-                {
-                    using (var stream = resHttp.GetResponseStream())
-                    {
-                        stream.CopyTo(mem);
-                    }
-
-                    ctx.Response.StatusCode = resHttp.StatusCode;
-
-                    foreach (var headerName in resHttp.Headers.AllKeys)
-                    {
-                        ctx.Response.Headers.Set(headerName, resHttp.Headers.Get(headerName));
-                    }
-
-                    mem.Position = 0;
-                    mem.CopyTo(ctx.Response.ResponseStream);
-
-                    mem.Position = 0;
-                    responseBodyStr = reader.ReadToEnd();
-
-                    return true;
-                }
-            }
+            return resHttp;
         }
 
         private static readonly JsonSerializerSettings Jss = new JsonSerializerSettings

@@ -92,6 +92,18 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             }
         }
 
+        public void FromHttpWebResponse(HttpWebResponse resHttp, Stream stream)
+        {
+            this.StatusCode = resHttp.StatusCode;
+
+            foreach (var headerName in resHttp.Headers.AllKeys)
+            {
+                this.Headers.Set(headerName, resHttp.Headers.Get(headerName));
+            }
+
+            stream.CopyTo(this.ResponseStream);
+        }
+
         private sealed class ProxyResponseWriter : Stream
         {
             private readonly ProxyResponse m_resp;
