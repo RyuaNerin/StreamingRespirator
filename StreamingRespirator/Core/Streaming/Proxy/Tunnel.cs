@@ -15,6 +15,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             this.m_proxyStream = stream;
         }
 
+        /// <summary>
+        /// 내부 Exception 모두 throw 함
+        /// </summary>
         public abstract void Handle();
 
         protected IPEndPoint GetEndPoint()

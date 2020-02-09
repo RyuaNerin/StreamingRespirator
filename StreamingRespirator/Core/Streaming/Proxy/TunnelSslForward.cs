@@ -29,8 +29,8 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
                 using (var remoteStream = remoteClient.GetStream())
                 {
-                    var taskRemoteToProxy = remoteStream.CopyToAsync(this.m_proxyStream);
-                    var taskProxyToRemote = this.m_proxyStream.CopyToAsync(remoteStream);
+                    var taskRemoteToProxy =       remoteStream.CopyToAsync(this.m_proxyStream, 4096);
+                    var taskProxyToRemote = this.m_proxyStream.CopyToAsync(remoteStream, 4096);
 
                     this.m_proxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
 

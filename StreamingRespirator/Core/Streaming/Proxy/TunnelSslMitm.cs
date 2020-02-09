@@ -1,9 +1,12 @@
+using System;
 using System.IO;
+using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Sentry;
 
 namespace StreamingRespirator.Core.Streaming.Proxy
 {
@@ -33,8 +36,21 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 {
                     using (var resp = new ProxyResponse(proxyStreamSsl))
                     {
-                        if (this.m_handler(new ProxyContext(reqSSL, resp)))
-                            return;
+                        try
+                        {
+                            if (this.m_handler(new ProxyContext(reqSSL, resp)))
+                                return;
+                        }
+                        catch
+                        {
+                            if (!resp.HeaderSent)
+                            {
+                                using (var respErr = new ProxyResponse(proxyStreamSsl))
+                                    respErr.StatusCode = HttpStatusCode.InternalServerError;
+                            }
+
+                            throw;
+                        }
 
                         if (resp.HeaderSent)
                             return;
@@ -46,14 +62,24 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                     {
                         remoteClient.ReceiveTimeout = 30 * 1000;
 
-                        remoteClient.Connect(this.GetEndPoint());
+                        try
+                        {
+                            remoteClient.Connect(this.GetEndPoint());
+                        }
+                        catch
+                        {
+                            using (var respErr = new ProxyResponse(proxyStreamSsl))
+                                respErr.StatusCode = HttpStatusCode.InternalServerError;
+
+                            throw;
+                        }
 
                         using (var remoteStream = remoteClient.GetStream())
                         using (var remoteStreamSsl = new SslStream(remoteStream))
                         {
                             remoteStreamSsl.AuthenticateAsClient(reqSSL.RemoteHost);
 
-                            var taskRemoteToProxy = remoteStreamSsl.CopyToAsync(proxyStreamSsl);
+                            var taskRemoteToProxy = remoteStreamSsl.CopyToAsync(proxyStreamSsl, 4096);
 
                             reqSSL.WriteRawRequest(remoteStreamSsl);
 
