@@ -26,6 +26,7 @@ namespace StreamingRespirator.Core.Streaming
     {
         private readonly TcpListener m_tcpListener;
 
+        private readonly Barrier m_connectionsBarrier = new Barrier(0);
         private readonly LinkedList<TcpClient> m_connections = new LinkedList<TcpClient>();
 
         public bool IsRunning { get; private set; }
@@ -63,23 +64,36 @@ namespace StreamingRespirator.Core.Streaming
 
                 this.m_tcpListener.Stop();
 
+                TcpClient[] currentConnections;
                 lock (this.m_connections)
                 {
-                    Parallel.ForEach(
-                        this.m_connections.ToArray(),
-                        client =>
-                        {
-                            try
-                            {
-                                client.Client.Shutdown(SocketShutdown.Both);
-                                client.Client.Disconnect(true);
-                                client.Close();
-                            }
-                            catch
-                            {
-                            }
-                        });
+                    currentConnections = this.m_connections.ToArray();
                 }
+
+                Parallel.ForEach(
+                    currentConnections,
+                    client =>
+                    {
+                        try
+                        {
+                            client.Client.Shutdown(SocketShutdown.Both);
+                            client.Client.Disconnect(false);
+                        }
+                        catch
+                        {
+                        }
+
+                        try
+                        {
+                            client.Close();
+                        }
+                        catch
+                        {
+                        }
+                    });
+
+                this.m_connectionsBarrier.SignalAndWait();
+                this.m_connectionsBarrier.Dispose();
             }
         }
 
@@ -108,7 +122,6 @@ namespace StreamingRespirator.Core.Streaming
 
         private void SocketThread(object socketObject)
         {
-
             using (var client = (TcpClient)socketObject)
             using (var clientStream = client.GetStream())
             {
@@ -116,6 +129,7 @@ namespace StreamingRespirator.Core.Streaming
 
                 LinkedListNode<TcpClient> clientNode;
 
+                this.m_connectionsBarrier.AddParticipant();
                 lock (this.m_connections)
                 {
                     clientNode = this.m_connections.AddLast(client);
@@ -136,7 +150,21 @@ namespace StreamingRespirator.Core.Streaming
                     this.m_connections.Remove(clientNode);
                     Debug.WriteLine($"Disconnected {desc} {this.m_connections.Count}");
                 }
-                client.Close();
+                try
+                {
+                    client.Close();
+                }
+                catch
+                {
+                }
+
+                try
+                {
+                    this.m_connectionsBarrier.RemoveParticipant();
+                }
+                catch
+                {
+                }
             }
         }
 

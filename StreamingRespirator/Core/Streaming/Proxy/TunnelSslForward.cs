@@ -15,7 +15,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         {
             using (var remoteClient = new TcpClient())
             {
-                remoteClient.ReceiveTimeout = 10 * 1000;
+                this.CancelSource.Token.Register(remoteClient.Close);
 
                 try
                 {
@@ -26,6 +26,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                     this.ProxyStream.Write(ConnectionFailed, 0, ConnectionFailed.Length);
                     throw;
                 }
+
 
                 using (var remoteStream = remoteClient.GetStream())
                 {

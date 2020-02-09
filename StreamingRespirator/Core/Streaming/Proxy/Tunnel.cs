@@ -27,6 +27,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             this.ProxyStream = stream;
 
             this.CancelSource = CancellationTokenSource.CreateLinkedTokenSource(GlobalCancelSource.Token);
+            this.CancelSource.Token.Register(stream.Close);
         }
         ~Tunnel()
         {
@@ -62,7 +63,13 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         public abstract void Handle();
 
         protected Task CopyToAsync(Stream dst, Stream src)
-            => src.CopyToAsync(dst, CopyToBufferSize, this.CancelSource.Token).ContinueWith(e => this.CancelSource.Cancel());
+            => src.CopyToAsync(dst, CopyToBufferSize, this.CancelSource.Token)
+                  .ContinueWith(
+                    e =>
+                    {
+                        if (!e.IsFaulted && !e.IsCanceled)
+                            this.CancelSource.Cancel();
+                    });
 
         protected IPEndPoint GetEndPoint()
         {

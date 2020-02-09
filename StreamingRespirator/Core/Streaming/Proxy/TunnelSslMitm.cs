@@ -60,7 +60,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
                     using (var remoteClient = new TcpClient())
                     {
-                        remoteClient.ReceiveTimeout = 30 * 1000;
+                        this.CancelSource.Token.Register(remoteClient.Close);
 
                         try
                         {
@@ -82,10 +82,11 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                             var taskToProxy = this.CopyToAsync(proxyStreamSsl, remoteStreamSsl);
 
                             reqSSL.WriteRawRequest(remoteStreamSsl);
+                            var taskToRemote = this.CopyToAsync(remoteStreamSsl, proxyStreamSsl);
 
                             try
                             {
-                                Task.WaitAll(taskToProxy);
+                                Task.WaitAll(taskToProxy, taskToRemote);
                             }
                             catch
                             {
