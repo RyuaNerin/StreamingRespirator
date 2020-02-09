@@ -410,7 +410,7 @@ namespace StreamingRespirator.Core.Streaming
             var reqHttp = ctx.Request.CreateRequest((method, uri) => client?.Credential.CreateReqeust(method, uri), client == null);
 
 
-            (proxyReqBody ?? proxyReqBody)?.CopyTo(reqHttp.GetRequestStream());
+            proxyReqBody?.CopyTo(reqHttp.GetRequestStream());
 
             HttpWebResponse resHttp = null;
             try
