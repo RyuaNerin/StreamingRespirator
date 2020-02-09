@@ -142,6 +142,15 @@ namespace StreamingRespirator.Properties {
         }
         
         /// <summary>
+        ///   내 트윗이 첨부된 트윗과(와) 유사한 지역화된 문자열을 찾습니다.
+        /// </summary>
+        internal static string ConfigWindow__ctlShowRetweetWithComment__Text {
+            get {
+                return ResourceManager.GetString("ConfigWindow__ctlShowRetweetWithComment__Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   스트리밍 옵션과(와) 유사한 지역화된 문자열을 찾습니다.
         /// </summary>
         internal static string ConfigWindow__ctlStreamingGroup__Text {

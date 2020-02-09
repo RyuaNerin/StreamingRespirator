@@ -16,6 +16,9 @@ namespace StreamingRespirator.Core
             [JsonProperty("retweeted")]
             public bool ShowRetweetedMyStatus { get; set; } = true;
 
+            [JsonProperty("retweet_with_comment")]
+            public bool ShowRetweetWithComment { get; set; } = true;
+
             [JsonProperty("my_retweet")]
             public bool ShowMyRetweet { get; set; } = true;
         }

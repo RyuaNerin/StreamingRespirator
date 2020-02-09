@@ -20,6 +20,7 @@ namespace StreamingRespirator.Core.Windows
             this.ctlReduceApiCall.Checked = Config.ReduceApiCall;
 
             this.ctlShowRetweet.Checked = Config.Filter.ShowRetweetedMyStatus;
+            this.ctlShowRetweetWithComment.Checked = Config.Filter.ShowRetweetWithComment;
             this.ctlShowMyRetweet.Checked = Config.Filter.ShowMyRetweet;
         }
 
@@ -68,6 +69,7 @@ namespace StreamingRespirator.Core.Windows
             Config.ReduceApiCall = this.ctlReduceApiCall.Checked;
 
             Config.Filter.ShowRetweetedMyStatus = this.ctlShowRetweet.Checked;
+            Config.Filter.ShowRetweetWithComment = this.ctlShowRetweetWithComment.Checked;
             Config.Filter.ShowMyRetweet = this.ctlShowMyRetweet.Checked;
 
             Config.Save();

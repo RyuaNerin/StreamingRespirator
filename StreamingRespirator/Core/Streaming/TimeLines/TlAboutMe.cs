@@ -50,7 +50,9 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             if (list.Count == 0)
                 return (null, null);
 
-            var items = list.Where(e => (Config.Filter.ShowRetweetedMyStatus && e.Action == "retweet") || e.Action == "reply")
+            var items = list.Where(e => (Config.Filter.ShowRetweetedMyStatus  && e.Action == "retweet")
+                                     || (Config.Filter.ShowRetweetWithComment && e.Action == "quote")
+                                      || e.Action == "reply")
                             .SelectMany(e => e.Targets)
                             .OrderBy(e => e.Id)
                             .ToArray();

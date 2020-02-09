@@ -32,6 +32,7 @@ namespace StreamingRespirator.Core.Windows
             this.ctlProxyGroup = new System.Windows.Forms.GroupBox();
             this.ctlProxyGroupPanel = new System.Windows.Forms.TableLayoutPanel();
             this.ctlPortLabel = new System.Windows.Forms.Label();
+            this.ctlPort = new System.Windows.Forms.NumericUpDown();
             this.ctlAutoStartup = new System.Windows.Forms.CheckBox();
             this.ctlStreamingGroup = new System.Windows.Forms.GroupBox();
             this.ctlStreamingGroupPanel = new System.Windows.Forms.TableLayoutPanel();
@@ -41,14 +42,14 @@ namespace StreamingRespirator.Core.Windows
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.ctlOK = new System.Windows.Forms.Button();
             this.ctlCancel = new System.Windows.Forms.Button();
-            this.ctlPort = new System.Windows.Forms.NumericUpDown();
+            this.ctlShowRetweetWithComment = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel1.SuspendLayout();
             this.ctlProxyGroup.SuspendLayout();
             this.ctlProxyGroupPanel.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ctlPort)).BeginInit();
             this.ctlStreamingGroup.SuspendLayout();
             this.ctlStreamingGroupPanel.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.ctlPort)).BeginInit();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -71,7 +72,7 @@ namespace StreamingRespirator.Core.Windows
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(237, 232);
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(237, 257);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // ctlProxyGroup
@@ -116,6 +117,28 @@ namespace StreamingRespirator.Core.Windows
             this.ctlPortLabel.Text = "프록시 포트";
             this.ctlPortLabel.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
+            // ctlPort
+            // 
+            this.ctlPort.Location = new System.Drawing.Point(87, 3);
+            this.ctlPort.Maximum = new decimal(new int[] {
+            65535,
+            0,
+            0,
+            0});
+            this.ctlPort.Minimum = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            this.ctlPort.Name = "ctlPort";
+            this.ctlPort.Size = new System.Drawing.Size(91, 23);
+            this.ctlPort.TabIndex = 8;
+            this.ctlPort.Value = new decimal(new int[] {
+            1000,
+            0,
+            0,
+            0});
+            // 
             // ctlAutoStartup
             // 
             this.ctlAutoStartup.AutoSize = true;
@@ -134,7 +157,7 @@ namespace StreamingRespirator.Core.Windows
             this.ctlStreamingGroup.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ctlStreamingGroup.Location = new System.Drawing.Point(8, 90);
             this.ctlStreamingGroup.Name = "ctlStreamingGroup";
-            this.ctlStreamingGroup.Size = new System.Drawing.Size(221, 97);
+            this.ctlStreamingGroup.Size = new System.Drawing.Size(221, 122);
             this.ctlStreamingGroup.TabIndex = 3;
             this.ctlStreamingGroup.TabStop = false;
             this.ctlStreamingGroup.Text = "스트리밍 옵션";
@@ -145,23 +168,25 @@ namespace StreamingRespirator.Core.Windows
             this.ctlStreamingGroupPanel.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ctlStreamingGroupPanel.ColumnCount = 1;
             this.ctlStreamingGroupPanel.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.ctlStreamingGroupPanel.Controls.Add(this.ctlReduceApiCall, 0, 2);
-            this.ctlStreamingGroupPanel.Controls.Add(this.ctlShowMyRetweet, 0, 1);
+            this.ctlStreamingGroupPanel.Controls.Add(this.ctlReduceApiCall, 0, 3);
             this.ctlStreamingGroupPanel.Controls.Add(this.ctlShowRetweet, 0, 0);
+            this.ctlStreamingGroupPanel.Controls.Add(this.ctlShowRetweetWithComment, 0, 2);
+            this.ctlStreamingGroupPanel.Controls.Add(this.ctlShowMyRetweet, 0, 1);
             this.ctlStreamingGroupPanel.Dock = System.Windows.Forms.DockStyle.Top;
             this.ctlStreamingGroupPanel.Location = new System.Drawing.Point(3, 19);
             this.ctlStreamingGroupPanel.Name = "ctlStreamingGroupPanel";
-            this.ctlStreamingGroupPanel.RowCount = 3;
+            this.ctlStreamingGroupPanel.RowCount = 4;
             this.ctlStreamingGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.ctlStreamingGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.ctlStreamingGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.ctlStreamingGroupPanel.Size = new System.Drawing.Size(215, 75);
+            this.ctlStreamingGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.ctlStreamingGroupPanel.Size = new System.Drawing.Size(215, 100);
             this.ctlStreamingGroupPanel.TabIndex = 0;
             // 
             // ctlReduceApiCall
             // 
             this.ctlReduceApiCall.AutoSize = true;
-            this.ctlReduceApiCall.Location = new System.Drawing.Point(3, 53);
+            this.ctlReduceApiCall.Location = new System.Drawing.Point(3, 78);
             this.ctlReduceApiCall.Name = "ctlReduceApiCall";
             this.ctlReduceApiCall.Size = new System.Drawing.Size(128, 19);
             this.ctlReduceApiCall.TabIndex = 4;
@@ -198,7 +223,7 @@ namespace StreamingRespirator.Core.Windows
             this.tableLayoutPanel2.Controls.Add(this.ctlOK, 0, 0);
             this.tableLayoutPanel2.Controls.Add(this.ctlCancel, 1, 0);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(95, 193);
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(95, 218);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 1;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
@@ -235,27 +260,15 @@ namespace StreamingRespirator.Core.Windows
             this.ctlCancel.UseVisualStyleBackColor = true;
             this.ctlCancel.Click += new System.EventHandler(this.ctlCancel_Click);
             // 
-            // ctlPort
+            // ctlShowRetweetWithComment
             // 
-            this.ctlPort.Location = new System.Drawing.Point(87, 3);
-            this.ctlPort.Maximum = new decimal(new int[] {
-            65535,
-            0,
-            0,
-            0});
-            this.ctlPort.Minimum = new decimal(new int[] {
-            1000,
-            0,
-            0,
-            0});
-            this.ctlPort.Name = "ctlPort";
-            this.ctlPort.Size = new System.Drawing.Size(91, 23);
-            this.ctlPort.TabIndex = 8;
-            this.ctlPort.Value = new decimal(new int[] {
-            1000,
-            0,
-            0,
-            0});
+            this.ctlShowRetweetWithComment.AutoSize = true;
+            this.ctlShowRetweetWithComment.Location = new System.Drawing.Point(3, 53);
+            this.ctlShowRetweetWithComment.Name = "ctlShowRetweetWithComment";
+            this.ctlShowRetweetWithComment.Size = new System.Drawing.Size(146, 19);
+            this.ctlShowRetweetWithComment.TabIndex = 5;
+            this.ctlShowRetweetWithComment.Text = "내 트윗이 첨부된 트윗";
+            this.ctlShowRetweetWithComment.UseVisualStyleBackColor = true;
             // 
             // ConfigWindow
             // 
@@ -279,13 +292,13 @@ namespace StreamingRespirator.Core.Windows
             this.ctlProxyGroup.PerformLayout();
             this.ctlProxyGroupPanel.ResumeLayout(false);
             this.ctlProxyGroupPanel.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ctlPort)).EndInit();
             this.ctlStreamingGroup.ResumeLayout(false);
             this.ctlStreamingGroup.PerformLayout();
             this.ctlStreamingGroupPanel.ResumeLayout(false);
             this.ctlStreamingGroupPanel.PerformLayout();
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.ctlPort)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -307,5 +320,6 @@ namespace StreamingRespirator.Core.Windows
         private System.Windows.Forms.Label ctlPortLabel;
         private System.Windows.Forms.CheckBox ctlReduceApiCall;
         private System.Windows.Forms.NumericUpDown ctlPort;
+        private System.Windows.Forms.CheckBox ctlShowRetweetWithComment;
     }
 }

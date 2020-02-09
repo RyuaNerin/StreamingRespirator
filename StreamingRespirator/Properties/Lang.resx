@@ -157,6 +157,10 @@
     <value>내 리트윗 다시 표시</value>
     <comment>내 리트윗 다시 표시</comment>
   </data>
+  <data name="ConfigWindow__ctlShowRetweetWithComment__Text" xml:space="preserve">
+    <value>내 트윗이 첨부된 트윗</value>
+    <comment>내 트윗이 첨부된 트윗</comment>
+  </data>
   <data name="ConfigWindow__ctlShowRetweet__Text" xml:space="preserve">
     <value>리트윗된 내 트윗 표시</value>
     <comment>리트윗된 내 트윗 표시</comment>
