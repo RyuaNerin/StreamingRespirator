@@ -136,7 +136,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 switch (key.ToLower())
                 {
                     case "accept"           : req.Accept           = value;             break;
-                    case "connection"       : req.Connection       = value;             break;
+                    case "connection"       :                                           break;
                     //case "content-length" : req.ContentLength    = long.Parse(value); break;
                     case "content-length"   :                                           break;
                     case "content-type"     : req.ContentType      = value;             break;
