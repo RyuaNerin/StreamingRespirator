@@ -121,7 +121,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             return req;
         }
 
-        public WebRequest CreateRequest(Func<string, Uri, WebRequest> create)
+        public WebRequest CreateRequest(Func<string, Uri, WebRequest> create, bool copyAuthorization)
         {
             var req = (create?.Invoke(this.Method, this.RequestUri) ?? WebRequest.Create(this.RequestUri)) as HttpWebRequest;
             req.Method = this.Method;
@@ -133,7 +133,6 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 switch (key.ToLower())
                 {
                     case "accept"           : req.Accept           = value;             break;
-                    case "authorization"    :                                           break;
                     case "connection"       : req.Connection       = value;             break;
                     //case "content-length" : req.ContentLength    = long.Parse(value); break;
                     case "content-length"   :                                           break;
@@ -144,6 +143,11 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                     case "referer"          : req.Referer          = value;             break;
                     case "transfer-encoding": req.TransferEncoding = value;             break;
                     case "user-agent"       : req.UserAgent        = value;             break;
+
+                    case "authorization":
+                        if (copyAuthorization)
+                            req.Headers.Set(key, value);
+                        break;
 
                     default:
                         req.Headers.Set(key, value);

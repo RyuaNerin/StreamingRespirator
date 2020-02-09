@@ -407,7 +407,7 @@ namespace StreamingRespirator.Core.Streaming
             responseStatusCode = 0;
             responseBodyStr = null;
 
-            var reqHttp = ctx.Request.CreateRequest((method, uri) => client?.Credential.CreateReqeust(method, uri));
+            var reqHttp = ctx.Request.CreateRequest((method, uri) => client?.Credential.CreateReqeust(method, uri), client == null);
 
 
             (proxyReqBody ?? proxyReqBody)?.CopyTo(reqHttp.GetRequestStream());
