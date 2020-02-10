@@ -16,9 +16,8 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         public ProxyResponse(Stream stream)
         {
             this.m_stream       = stream;
-            this.m_streamWriter = new StreamWriter(this.m_stream, Encoding.ASCII, 256, true)
+            this.m_streamWriter = new StreamWriter(this.m_stream, Encoding.ASCII, 4096, true)
             {
-                AutoFlush = true,
                 NewLine = "\r\n",
             };
 
@@ -89,6 +88,8 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 }
 
                 this.m_streamWriter.WriteLine();
+
+                this.m_streamWriter.Flush();
             }
         }
 
@@ -141,8 +142,10 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 if (this.m_resp.m_chunked)
                 {
                     this.m_resp.m_streamWriter.WriteLine(count.ToString("x"));
+                    this.m_resp.m_streamWriter.Flush();
                     this.m_resp.m_stream.Write(buffer, offset, count);
                     this.m_resp.m_streamWriter.WriteLine();
+                    this.m_resp.m_streamWriter.Flush();
                 }
                 else
                 {
