@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
+using Sentry;
 using StreamingRespirator.Core.Streaming;
 
 namespace StreamingRespirator.Core

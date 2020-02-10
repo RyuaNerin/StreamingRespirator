@@ -14,6 +14,10 @@ namespace StreamingRespirator.Core
             {
                 opt.Dsn = new Dsn("https://30aad3bdbf4c4c0da01be29f7c3b5b1b@sentry.ryuar.in/13");
                 opt.Release = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+
+#if DEBUG
+                opt.Debug = true;
+#endif
             });
 
             AppDomain.CurrentDomain.UnhandledException += (s, e) => SentrySdk.CaptureException(e.ExceptionObject as Exception);
