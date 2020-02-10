@@ -2,14 +2,13 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using StreamingRespirator.Core.Streaming.Proxy.Streams;
 
 namespace StreamingRespirator.Core.Streaming.Proxy
 {
-    [DebuggerDisplay("{Method} {RequestHost} {Version}")]
+    [DebuggerDisplay("{Method} {RequestUriRaw} {Version}")]
     internal sealed class ProxyRequest : IDisposable
     {
         private readonly RequestStreamReader m_streamReader;
