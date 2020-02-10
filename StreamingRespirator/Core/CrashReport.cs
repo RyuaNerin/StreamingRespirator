@@ -13,10 +13,12 @@ namespace StreamingRespirator.Core
             SentrySdk.Init(opt =>
             {
                 opt.Dsn = new Dsn("https://30aad3bdbf4c4c0da01be29f7c3b5b1b@sentry.ryuar.in/13");
-                opt.Release = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 
 #if DEBUG
+                opt.Release = "Debug";
                 opt.Debug = true;
+#else
+                opt.Release = Assembly.GetExecutingAssembly().GetName().Version.ToString();
 #endif
             });
 
