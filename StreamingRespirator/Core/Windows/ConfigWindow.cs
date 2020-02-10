@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Windows.Forms;
+using Sentry;
 using StreamingRespirator.Properties;
 using StreamingRespirator.Utilities;
 
@@ -41,8 +42,9 @@ namespace StreamingRespirator.Core.Windows
                         shortCut.TargetPath = Application.ExecutablePath;
                         shortCut.Save();
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        SentrySdk.CaptureException(ex);
                     }
                 }
                 else
@@ -51,8 +53,9 @@ namespace StreamingRespirator.Core.Windows
                     {
                         File.Delete(path);
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        SentrySdk.CaptureException(ex);
                     }
                 }
             }

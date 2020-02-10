@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Sentry;
 using StreamingRespirator.Core.Streaming.Twitter;
 using StreamingRespirator.Core.Streaming.Twitter.Packet;
 
@@ -109,9 +110,14 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                         CalcNextRefresh(res.Headers, ref next);
                     }
                 }
+                else
+                {
+                    SentrySdk.CaptureException(webEx);
+                }
             }
-            catch
+            catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
             }
 
             var userCacheTask = Task.Factory.StartNew(() =>

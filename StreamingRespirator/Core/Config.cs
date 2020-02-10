@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -42,8 +43,9 @@ namespace StreamingRespirator.Core
                     new JsonSerializer().Populate(reader, new ConfigInstance());
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
             }
         }
 
@@ -57,8 +59,9 @@ namespace StreamingRespirator.Core
                     new JsonSerializer().Serialize(writer, new ConfigInstance());
                 }
             }
-            catch
+            catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
             }
         }
 

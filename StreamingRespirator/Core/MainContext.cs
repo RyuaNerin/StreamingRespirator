@@ -260,8 +260,9 @@ namespace StreamingRespirator.Core
             {
                 Process.Start("https://ryuanerin.kr")?.Dispose();
             }
-            catch
+            catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
             }
         }
 

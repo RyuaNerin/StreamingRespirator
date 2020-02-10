@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Windows.Forms;
+using Sentry;
 using StreamingRespirator.Core.Streaming;
 using StreamingRespirator.Properties;
 
@@ -52,8 +53,10 @@ namespace StreamingRespirator.Core
                 {
                     server = new RespiratorServer();
                 }
-                catch
+                catch (Exception ex)
                 {
+                    SentrySdk.CaptureException(ex);
+
                     MessageBox.Show(Lang.MainContext_StartError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
@@ -76,8 +79,9 @@ namespace StreamingRespirator.Core
                 {
                     Process.Start("https://github.com/RyuaNerin/StreamingRespirator/blob/master/README.md")?.Dispose();
                 }
-                catch
+                catch (Exception ex)
                 {
+                    SentrySdk.CaptureException(ex);
                 }
 
                 return false;

@@ -41,8 +41,9 @@ namespace StreamingRespirator.Core.Streaming
                         {
                             certStore.Remove(cert);
                         }
-                        catch
+                        catch (Exception ex)
                         {
+                            SentrySdk.CaptureException(ex);
                         }
                     }
                 }

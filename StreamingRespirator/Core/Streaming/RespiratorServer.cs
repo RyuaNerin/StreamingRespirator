@@ -105,8 +105,9 @@ namespace StreamingRespirator.Core.Streaming
 
                 new Thread(this.SocketThread).Start(client);
             }
-            catch
+            catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
             }
             finally
             {
@@ -587,9 +588,12 @@ namespace StreamingRespirator.Core.Streaming
             {
                 if (webEx.Response != null)
                     resHttp = webEx.Response as HttpWebResponse;
+                else
+                    SentrySdk.CaptureException(webEx);
             }
-            catch
+            catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
             }
 
             return resHttp;
