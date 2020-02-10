@@ -92,7 +92,14 @@ namespace StreamingRespirator.Core.Streaming
                         }
                     });
 
-                this.m_connectionsBarrier.SignalAndWait();
+                try
+                {
+                    this.m_connectionsBarrier.SignalAndWait();
+                }
+                catch
+                {
+                }
+
                 this.m_connectionsBarrier.Dispose();
             }
         }
@@ -566,6 +573,7 @@ namespace StreamingRespirator.Core.Streaming
 
             if (proxyReqBody == null)
             {
+                proxyReqBody = ctx.Request.RequestBodyReader;
                 var v = ctx.Request.Headers.Get("Content-Length");
                 if (v != null)
                 {
