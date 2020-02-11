@@ -1,15 +1,14 @@
 # 스트리밍 호흡기
 
 [![GitHub license](https://img.shields.io/github/license/RyuaNerin/StreamingRespirator.svg?style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/blob/master/LICENSE)
-[![Github Releases](https://img.shields.io/github/downloads/RyuaNerin/StreamingRespirator/total.svg?style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/releases/latest)
+[![Build status](https://ci.appveyor.com/api/projects/status/14gd475j5omd97mn?svg=true)](https://ci.appveyor.com/project/RyuaNerin/streamingrespirator)
 
 - 이제는 없어져버린 스트리밍에 호흡기를 달아 비슷하게나마 사용 가능하게 해줍니다
 
 - 버그 및 건의사항은 아래 방법으로 연락주세요.
-
-[![](https://img.shields.io/badge/Github-Issue-lightgray.svg?longCache=true&style=flat-square)](https://github.com/RyuaNerin/StreamingRespirator/issues)
-[![](https://img.shields.io/badge/Twitter-RyuaNerin-blue.svg?longCache=true&style=flat-square)](https://twitter.com/RyuaNerin)
-[![](https://img.shields.io/badge/Telegram-unknown5766-blue.svg?longCache=true&style=flat-square)](https://t.me/unknown5766)
+  - [Github Issues](https://github.com/RyuaNerin/StreamingRespirator/issues)
+  - [Twitter @RyuaNerin](https://twitter.com/RyuaNerin)
+  - [Telegram @unknown5766](https://t.me/unknown5766)
 
 
 ## 설명서 업데이트중입니다
