@@ -11,7 +11,11 @@ configuration: Release
 platform: Any CPU
 
 before_build:
-    - cmd: nuget restore
+- cmd: nuget restore
+
+artifacts:
+-  path: bin\Release\StreamingRespirator.exe
+   name: executable
 
 deploy:
 - provider: GitHub
@@ -19,5 +23,6 @@ deploy:
     secure: hTayr5LL8X8BFAdogH7iHegb3vRl9VSTnFEN/F5tWH5Y2hzNMEC6d+R+Pja3T8CL
   prerelease: true
   force_update: false
+  artifact: executable
 
 test: off
