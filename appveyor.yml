@@ -1,4 +1,4 @@
-version: 0.0.{build}
+version: 0.0.0.{build}
 
 branches:
   only:
@@ -21,7 +21,6 @@ deploy:
 - provider: GitHub
   auth_token:
     secure: hTayr5LL8X8BFAdogH7iHegb3vRl9VSTnFEN/F5tWH5Y2hzNMEC6d+R+Pja3T8CL
-  prerelease: true
   force_update: false
   artifact: executable
 
