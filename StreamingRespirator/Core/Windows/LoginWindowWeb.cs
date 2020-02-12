@@ -8,8 +8,6 @@ using System.Windows.Forms;
 using mshtml;
 using Sentry;
 using StreamingRespirator.Core.Streaming;
-using StreamingRespirator.Properties;
-using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core.Windows
 {
@@ -32,7 +30,7 @@ namespace StreamingRespirator.Core.Windows
         public LoginWindowWeb()
         {
             this.InitializeComponent();
-            LocalizationHelper.ApplyLang(this);
+            Lang.ApplyLang(this);
         }
 
         private void InitializeComponent()

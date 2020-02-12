@@ -57,7 +57,7 @@ namespace StreamingRespirator.Core
                 {
                     SentrySdk.CaptureException(ex);
 
-                    MessageBox.Show(Lang.MainContext_StartError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(Lang.StartError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 

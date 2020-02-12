@@ -6,8 +6,6 @@ using System.Windows.Forms;
 using Sentry;
 using StreamingRespirator.Core.Streaming;
 using StreamingRespirator.Core.Windows;
-using StreamingRespirator.Properties;
-using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core
 {
@@ -36,7 +34,7 @@ namespace StreamingRespirator.Core
             TwitterClientFactory.ClientUpdated += this.TwitterClientFactory_ClientUpdated;
 
             this.InitializeComponent();
-            LocalizationHelper.ApplyLang(this);
+            Lang.ApplyLang(this);
 
             if (TwitterClientFactory.AccountCount == 0)
                 this.m_notifyIcon.ShowBalloonTip(10000, Lang.Name, Lang.MainContext_NoAccount, ToolTipIcon.Info);

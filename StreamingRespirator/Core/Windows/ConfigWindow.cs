@@ -2,8 +2,6 @@ using System;
 using System.IO;
 using System.Windows.Forms;
 using Sentry;
-using StreamingRespirator.Properties;
-using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core.Windows
 {
@@ -12,7 +10,7 @@ namespace StreamingRespirator.Core.Windows
         public ConfigWindow()
         {
             this.InitializeComponent();
-            LocalizationHelper.ApplyLang(this);
+            Lang.ApplyLang(this);
 
             this.ctlAutoStartup.Checked = Config.StartWithWindows;
 

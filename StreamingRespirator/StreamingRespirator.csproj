@@ -108,6 +108,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Core\Config.cs" />
+    <Compile Include="Core\Lang.cs" />
     <Compile Include="Core\Streaming\Proxy\ProxyResponse.cs" />
     <Compile Include="Core\Streaming\Proxy\Streams\SafeAsyncStream.cs" />
     <Compile Include="Core\Streaming\Proxy\Streams\RequestStreamReader.cs" />
@@ -140,21 +141,6 @@
     </Compile>
     <Compile Include="Core\Windows\LoginWindowWeb.cs" />
     <Compile Include="Core\CrashReport.cs" />
-    <Compile Include="Properties\Lang.en.Designer.cs">
-      <DependentUpon>Lang.en.resx</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Properties\Lang.ja.Designer.cs">
-      <DependentUpon>Lang.ja.resx</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="Properties\Lang.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Lang.resx</DependentUpon>
-    </Compile>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -168,7 +154,6 @@
     <Compile Include="Core\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\Streaming\Proxy\ProxyRequest.cs" />
-    <Compile Include="Utilities\LocalizationHelper.cs" />
     <Compile Include="Utilities\WaitingStream.cs" />
     <None Include="Certificate\ca.crt" />
     <Compile Include="Core\Streaming\Certificates.cs" />
@@ -197,24 +182,13 @@
     <EmbeddedResource Include="Core\Windows\ConfigWindow.resx">
       <DependentUpon>ConfigWindow.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Lang.ja.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Lang.ja.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Lang.en.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Lang.en.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Properties\Lang.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Lang.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Lang.json" />
     <None Include="Resources\tray.ico" />
   </ItemGroup>
   <ItemGroup>
