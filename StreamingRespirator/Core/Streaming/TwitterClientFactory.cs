@@ -19,6 +19,7 @@ namespace StreamingRespirator.Core.Streaming
     static class TwitterClientFactory
     {
         private static readonly Dictionary<long, TwitterClient> Instances = new Dictionary<long, TwitterClient>();
+        private static ulong CurrentRevision = 0;
 
         public static int AccountCount
         {
@@ -29,25 +30,33 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
-        public static IEnumerable<TwitterCredential> Accounts
+        public static void CopyInstances(TwitterCredentialList lst)
         {
-            get
+            lock (Instances)
             {
-                lock (Instances)
-                    return Instances.Select(e => e.Value.Credential).ToArray();
-            }
-            set
-            {
-                lock (Instances)
+                if (lst.Revision != CurrentRevision)
                 {
-                    foreach (var cred in value)
-                    {
-                        if (string.IsNullOrWhiteSpace(cred.Cookie) ||
-                            string.IsNullOrWhiteSpace(cred.ScreenName))
-                            continue;
+                    lst.Revision = CurrentRevision;
 
-                        AddClient(cred);
-                    }
+                    lst.Clear();
+
+                    foreach (var v in Instances.Values)
+                        lst.Add(v.Credential);
+                }
+            }
+        }
+
+        public static void SetInstances(TwitterCredentialList lst)
+        {
+            lock (Instances)
+            {
+                foreach (var cred in lst)
+                {
+                    if (string.IsNullOrWhiteSpace(cred.Cookie) ||
+                        string.IsNullOrWhiteSpace(cred.ScreenName))
+                        continue;
+
+                    AddClient(cred);
                 }
             }
         }
@@ -96,6 +105,8 @@ namespace StreamingRespirator.Core.Streaming
         {
             lock (Instances)
             {
+                CurrentRevision++;
+
                 Instances[id].Dispose();
                 Instances.Remove(id);
 
@@ -105,10 +116,12 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
-        private static void AddClient(TwitterCredential twitCred)
+        public static void AddClient(TwitterCredential twitCred)
         {
             lock (Instances)
             {
+                CurrentRevision++;
+
                 TwitterClient twitClient;
                 if (!Instances.ContainsKey(twitCred.Id))
                 {

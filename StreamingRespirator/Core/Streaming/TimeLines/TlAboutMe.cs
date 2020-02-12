@@ -59,8 +59,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 foreach (var tweet in activity.Targets)
                     tweet.AddUserToHashSet(lstUsers);
 
-                if ((Config.Filter.ShowRetweetedMyStatus && activity.Action == "retweet")
-                    || (Config.Filter.ShowRetweetWithComment && activity.Action == "quote")
+                if ((Config.Instance.Filter.ShowRetweetedMyStatus && activity.Action == "retweet")
+                    || (Config.Instance.Filter.ShowRetweetWithComment && activity.Action == "quote")
                     || activity.Action == "reply")
                 {
                     var isRetweeted = activity.Action == "retweet";

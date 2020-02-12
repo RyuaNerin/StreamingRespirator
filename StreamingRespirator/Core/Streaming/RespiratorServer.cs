@@ -32,7 +32,7 @@ namespace StreamingRespirator.Core.Streaming
 
         public RespiratorServer()
         {
-            this.m_tcpListener = new TcpListener(new IPEndPoint(IPAddress.Loopback, Config.Proxy.Port));
+            this.m_tcpListener = new TcpListener(new IPEndPoint(IPAddress.Loopback, Config.Instance.Proxy.Port));
 
             if (this.IsRunning)
                 return;
@@ -316,7 +316,7 @@ namespace StreamingRespirator.Core.Streaming
                 return false;
 
             // 내 리트윗 다시 표시 기능을 끄면 별도 처리를 해줄 필요가 없음.
-            if (!Config.Filter.ShowMyRetweet)
+            if (!Config.Instance.Filter.ShowMyRetweet)
             {
                 if (!TryCallAPIThenSetContext(ctx, null, twitClient, out var _, out var _))
                     ctx.Response.StatusCode = HttpStatusCode.InternalServerError;

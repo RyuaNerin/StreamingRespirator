@@ -12,24 +12,24 @@ namespace StreamingRespirator.Core.Windows
             this.InitializeComponent();
             Lang.ApplyLang(this);
 
-            this.ctlAutoStartup.Checked = Config.StartWithWindows;
+            this.ctlAutoStartup.Checked = Config.Instance.StartWithWindows;
 
-            this.ctlPort.Value = Config.Proxy.Port;
+            this.ctlPort.Value = Config.Instance.Proxy.Port;
 
-            this.ctlReduceApiCall.Checked = Config.ReduceApiCall;
+            this.ctlReduceApiCall.Checked = Config.Instance.ReduceApiCall;
 
-            this.ctlShowRetweet.Checked = Config.Filter.ShowRetweetedMyStatus;
-            this.ctlShowRetweetWithComment.Checked = Config.Filter.ShowRetweetWithComment;
-            this.ctlShowMyRetweet.Checked = Config.Filter.ShowMyRetweet;
+            this.ctlShowRetweet.Checked = Config.Instance.Filter.ShowRetweetedMyStatus;
+            this.ctlShowRetweetWithComment.Checked = Config.Instance.Filter.ShowRetweetWithComment;
+            this.ctlShowMyRetweet.Checked = Config.Instance.Filter.ShowMyRetweet;
         }
 
         private void ctlOK_Click(object sender, EventArgs e)
         {
-            if (Config.StartWithWindows != this.ctlAutoStartup.Checked)
+            if (Config.Instance.StartWithWindows != this.ctlAutoStartup.Checked)
             {
                 var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Startup), Path.GetFileNameWithoutExtension(Application.ExecutablePath) + ".lnk");
 
-                if (!Config.StartWithWindows)
+                if (!Config.Instance.StartWithWindows)
                 {
                     try
                     {
@@ -58,20 +58,20 @@ namespace StreamingRespirator.Core.Windows
                 }
             }
 
-            if (Config.Proxy.Port != (int)this.ctlPort.Value)
+            if (Config.Instance.Proxy.Port != (int)this.ctlPort.Value)
             {
                 MessageBox.Show(this, Lang.ConfigWindow_ApplyAfterRestart, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
-            Config.StartWithWindows = this.ctlAutoStartup.Checked;
+            Config.Instance.StartWithWindows = this.ctlAutoStartup.Checked;
 
-            Config.Proxy.Port = (int)this.ctlPort.Value;
+            Config.Instance.Proxy.Port = (int)this.ctlPort.Value;
 
-            Config.ReduceApiCall = this.ctlReduceApiCall.Checked;
+            Config.Instance.ReduceApiCall = this.ctlReduceApiCall.Checked;
 
-            Config.Filter.ShowRetweetedMyStatus = this.ctlShowRetweet.Checked;
-            Config.Filter.ShowRetweetWithComment = this.ctlShowRetweetWithComment.Checked;
-            Config.Filter.ShowMyRetweet = this.ctlShowMyRetweet.Checked;
+            Config.Instance.Filter.ShowRetweetedMyStatus = this.ctlShowRetweet.Checked;
+            Config.Instance.Filter.ShowRetweetWithComment = this.ctlShowRetweetWithComment.Checked;
+            Config.Instance.Filter.ShowMyRetweet = this.ctlShowMyRetweet.Checked;
 
             Config.Save();
 

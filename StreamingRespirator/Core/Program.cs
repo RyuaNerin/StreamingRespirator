@@ -6,7 +6,6 @@ using System.Threading;
 using System.Windows.Forms;
 using Sentry;
 using StreamingRespirator.Core.Streaming;
-using StreamingRespirator.Properties;
 
 namespace StreamingRespirator.Core
 {
@@ -45,8 +44,6 @@ namespace StreamingRespirator.Core
                     MessageBox.Show(Lang.CertificateError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     return;
                 }
-
-                Config.Load();
 
                 RespiratorServer server;
                 try

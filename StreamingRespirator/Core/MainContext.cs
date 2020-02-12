@@ -40,7 +40,7 @@ namespace StreamingRespirator.Core
                 this.m_notifyIcon.ShowBalloonTip(10000, Lang.Name, Lang.MainContext_NoAccount, ToolTipIcon.Info);
             else
             {
-                foreach (var user in TwitterClientFactory.Accounts)
+                foreach (var user in Config.Instance.Accounts)
                 {
                     this.m_clients.Add(user.Id, this.NewClientToolStripItems(user.Id, user.ScreenName));
                 }

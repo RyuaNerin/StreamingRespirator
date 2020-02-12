@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -9,6 +10,11 @@ using StreamingRespirator.Core.Streaming.Twitter;
 
 namespace StreamingRespirator.Core.Streaming
 {
+    internal class TwitterCredentialList : List<TwitterCredential>
+    {
+        public ulong Revision { get; set; }
+    }
+
     internal class TwitterCredential
     {
         public static TwitterCredential GetCredential(string cookie)
