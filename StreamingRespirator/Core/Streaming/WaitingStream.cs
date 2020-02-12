@@ -4,7 +4,7 @@ using System.Runtime.Remoting;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StreamingRespirator.Utilities
+namespace StreamingRespirator.Core.Streaming
 {
     internal class WaitableStream : Stream
     {

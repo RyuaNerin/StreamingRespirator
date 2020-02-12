@@ -154,7 +154,7 @@
     <Compile Include="Core\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core\Streaming\Proxy\ProxyRequest.cs" />
-    <Compile Include="Utilities\WaitingStream.cs" />
+    <Compile Include="Core\Streaming\WaitingStream.cs" />
     <None Include="Certificate\ca.crt" />
     <Compile Include="Core\Streaming\Certificates.cs" />
     <Compile Include="Core\Streaming\Proxy\ProxyContext.cs" />
@@ -217,6 +217,9 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Core\Streaming\NewFolder1\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

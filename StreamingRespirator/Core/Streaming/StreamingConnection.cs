@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
-using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core.Streaming
 {

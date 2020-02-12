@@ -15,7 +15,6 @@ using Newtonsoft.Json;
 using Sentry;
 using StreamingRespirator.Core.Streaming.Proxy;
 using StreamingRespirator.Core.Streaming.Twitter;
-using StreamingRespirator.Utilities;
 
 namespace StreamingRespirator.Core.Streaming
 {
