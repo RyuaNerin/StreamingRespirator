@@ -1,13 +1,11 @@
 version: 0.0.0.{build}
 
-dotnet_csproj:
+assembly_info:
   patch: true
-  file: '**\*.csproj'
-  version: '{version}'
-  package_version: '{version}'
+  file: MyVersion.cs
   assembly_version: '{version}'
-  file_version: '{version}'
-  informational_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}'
 
 branches:
   only:
