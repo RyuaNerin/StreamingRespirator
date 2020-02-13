@@ -100,12 +100,12 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         }
 
         protected string Cursor { get; private set; }
-        private bool m_firstRefresh;
+        private bool m_firstRefresh = true;
 
         protected void Clear()
         {
             this.Cursor = null;
-            this.m_firstRefresh = false;
+            this.m_firstRefresh = true;
         }
 
         protected abstract string GetUrl();
