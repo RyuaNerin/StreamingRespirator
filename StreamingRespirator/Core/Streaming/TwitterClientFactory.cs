@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Windows.Forms;
 using StreamingRespirator.Core.Windows;
 
@@ -76,7 +77,15 @@ namespace StreamingRespirator.Core.Streaming
 
                 var befScreenName = inst.Credential.ScreenName;
 
-                if (!inst.Credential.VerifyCredentials())
+                var verified = false;
+                for (int i = 0; i < 3 && !verified; i++)
+                {
+                    verified = inst.Credential.VerifyCredentials();
+                    if (!verified)
+                        Thread.Sleep(TimeSpan.FromSeconds(1));
+                }
+
+                if (!verified)
                 {
                     RemoveClient(id);
                     return null;
