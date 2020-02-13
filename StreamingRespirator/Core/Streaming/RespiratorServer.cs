@@ -651,7 +651,7 @@ namespace StreamingRespirator.Core.Streaming
                 // 유저 정보를 얻지 못하면 User.ID 를 얻지 못하므로 실패처리했다고 보낸다.
                 // DM 으로 보낼 것 퍼블릭으로 작성하면 안됨.
                 var reqUser = twitClient.Credential.CreateReqeust("GET", $"https://api.twitter.com/1.1/users/show.json?screen_name={Uri.EscapeUriString(screenName)}");
-                if (!reqUser.Do<TwitterUser>(out var reqUserStatusCode, out var user))
+                if (!reqUser.Do<TwitterUser>(out var reqUserStatusCode, out var user) || reqUserStatusCode != HttpStatusCode.OK)
                 {
                     ctx.Response.StatusCode = HttpStatusCode.InternalServerError;
                     return true;
@@ -667,6 +667,8 @@ namespace StreamingRespirator.Core.Streaming
             dmData.Data.MessageCreate.MessageData.Text = text;
 
             var req = twitClient.Credential.CreateReqeust("POST", "https://api.twitter.com/1.1/direct_messages/events/new.json");
+            req.ContentType = "application/json; charset=utf-8";
+
             using (var reqStream = req.GetRequestStream())
             using (var reqStreamWriter = new StreamWriter(reqStream, Encoding.UTF8))
             {

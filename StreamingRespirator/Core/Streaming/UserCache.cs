@@ -112,7 +112,7 @@ namespace StreamingRespirator.Core.Streaming
         {
             lock (this.Cache)
             {
-                var info = this.Cache.Values.FirstOrDefault(e => e.ScreenName == screenName);
+                var info = this.Cache.Values.FirstOrDefault(e => e.ScreenName.Equals(screenName, StringComparison.OrdinalIgnoreCase));
 
                 return info != null ? info.Id : 0;
             }
