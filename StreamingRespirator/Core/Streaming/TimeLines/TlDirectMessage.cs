@@ -53,9 +53,12 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 {
                 }
             }
-            foreach (var user in data.Items.Users.Values)
+            if (data.Items.Users != null)
             {
-                lstUsers.Add(user);
+                foreach (var user in data.Items.Users.Values)
+                {
+                    lstUsers.Add(user);
+                }
             }
 
             lstItems.Sort((a, b) => a.Item.Id.CompareTo(b.Item.Id));
