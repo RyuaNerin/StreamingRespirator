@@ -10,9 +10,9 @@ namespace StreamingRespirator.Core.Streaming
         public bool IsRemoved;
         public string ScreenName;
         public bool? Connected;
-        public float? WaitTimeHome;
-        public float? WaitTimeAboutMe;
-        public float? WaitTimeDm;
+        public TimeSpan? WaitTimeHome;
+        public TimeSpan? WaitTimeAboutMe;
+        public TimeSpan? WaitTimeDm;
     }
 
     static class TwitterClientFactory

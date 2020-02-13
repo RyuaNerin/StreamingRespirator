@@ -232,9 +232,9 @@ namespace StreamingRespirator.Core
             }
         }
 
-        private static string FormatWaitTime(double waitTime)
+        private static string FormatWaitTime(TimeSpan waitTime)
         {
-            return string.Format("{0:HH:mm:ss} ({1:##0.0}s)", DateTime.Now.AddSeconds(waitTime), waitTime);
+            return string.Format("{0:HH:mm:ss} ({1:##0.0}s)", DateTime.Now.Add(waitTime), waitTime.TotalSeconds);
         }
 
         private void StripRemoveClient_Click(object sender, EventArgs e)

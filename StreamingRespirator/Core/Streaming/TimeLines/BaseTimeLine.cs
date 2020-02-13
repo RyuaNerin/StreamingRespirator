@@ -103,7 +103,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
         protected abstract string GetUrl();
         protected abstract void ParseHtml(TApiResult data, List<TItem> lstItems, HashSet<TwitterUser> lstUsers);
-        protected abstract void UpdateStatus(float nextTime);
+        protected abstract void UpdateStatus(TimeSpan nextTime);
 
         public void ForceRefresh()
         {
@@ -111,7 +111,6 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         }
 
         private static readonly JsonSerializer Serializer = new JsonSerializer();
-        private static readonly DateTime ForTimeStamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private void Refresh(object state)
         {
             var next = WaitOnError;
@@ -177,14 +176,15 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             try
             {
-                this.Timer?.Change((int)next.TotalSeconds, Timeout.Infinite);
-                this.UpdateStatus((float)next.TotalSeconds);
+                this.Timer?.Change((int)next.TotalMilliseconds, Timeout.Infinite);
+                this.UpdateStatus(next);
             }
             catch
             {
             }
         }
 
+        private static readonly DateTime ForTimeStamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private static TimeSpan CalcNextRefresh(WebHeaderCollection headers)
         {
             /*
@@ -196,15 +196,25 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             if (int.TryParse(headers.Get("x-rate-limit-remaining"), out int remaining) &&
                 int.TryParse(headers.Get("x-rate-limit-reset"), out int reset))
             {
-                double sec;
+                var resetTime = ForTimeStamp.AddSeconds(reset);
+                var now = DateTime.UtcNow;
 
-                if (Config.Instance.ReduceApiCall)
-                    sec = (reset - (DateTime.UtcNow - ForTimeStamp).TotalSeconds) / (remaining / 2) * 1000;
+                if (remaining == 0)
+                {
+                    return resetTime - now;
+                }
                 else
-                    sec = (reset - (DateTime.UtcNow - ForTimeStamp).TotalSeconds) / (remaining    ) * 1000;
+                {
+                    var sec = (resetTime - now).TotalSeconds;
 
-                var ts = TimeSpan.FromSeconds(sec);
-                return ts > WaitMin ? ts : WaitMin;
+                    if (Config.Instance.ReduceApiCall)
+                        sec /= (remaining / 2);
+                    else
+                        sec /= (remaining);
+
+                    var ts = TimeSpan.FromSeconds(sec);
+                    return ts > WaitMin ? ts : WaitMin;
+                }
             }
 
             return WaitOnError;

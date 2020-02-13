@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using StreamingRespirator.Core.Streaming.Twitter;
@@ -61,7 +62,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 lstItems.Clear();
         }
 
-        protected override void UpdateStatus(float waitTime)
+        protected override void UpdateStatus(TimeSpan waitTime)
         {
             this.m_twitterClient.TimelineUpdated(new StateUpdateData { WaitTimeHome = waitTime });
         }
