@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
-using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
-using Sentry;
 using StreamingRespirator.Core.Streaming.Twitter;
+using StreamingRespirator.Extensions;
 
 namespace StreamingRespirator.Core.Streaming
 {
@@ -73,120 +71,18 @@ namespace StreamingRespirator.Core.Streaming
             return req;
         }
 
-
-        public bool Reqeust(string method, string uriStr, byte[] data, out HttpStatusCode statusCode)
-            => this.Reqeust(method, new Uri(uriStr), data, out statusCode);
-
-        public bool Reqeust(string method, Uri uriStr, byte[] data, out HttpStatusCode statusCode)
-        {
-            var req = this.CreateReqeust(method, uriStr);
-
-            if (method == "POST" && data != null)
-                req.GetRequestStream().Write(data, 0, data.Length);
-
-            try
-            {
-                using (var res = req.GetResponse() as HttpWebResponse)
-                {
-                    statusCode = res.StatusCode;
-
-                    return true;
-                }
-            }
-            catch (WebException webEx)
-            {
-                SentrySdk.CaptureException(webEx);
-
-                webEx.Response?.Dispose();
-            }
-            catch (Exception ex)
-            {
-                SentrySdk.CaptureException(ex);
-            }
-
-            statusCode = 0;
-            return false;
-        }
-
-        public T Reqeust<T>(string method, string uriStr, byte[] data, out HttpStatusCode statusCode)
-            => this.Reqeust<T>(method, new Uri(uriStr), data, out statusCode);
-
-        public T Reqeust<T>(string method, Uri uri, byte[] data, out HttpStatusCode statusCode)
-        {
-            var req = this.CreateReqeust(method, uri);
-
-            if (data != null)
-                req.GetRequestStream().Write(data, 0, data.Length);
-
-            try
-            {
-                using (var res = req.GetResponse() as HttpWebResponse)
-                {
-                    statusCode = res.StatusCode;
-
-                    using (var stream = res.GetResponseStream())
-                    using (var reader = new StreamReader(stream, Encoding.UTF8))
-                    {
-                        return JsonConvert.DeserializeObject<T>(reader.ReadToEnd());
-                    }
-                }
-            }
-            catch (WebException webEx)
-            {
-                SentrySdk.CaptureException(webEx);
-
-                webEx.Response?.Dispose();
-            }
-            catch (Exception ex)
-            {
-                SentrySdk.CaptureException(ex);
-            }
-
-            statusCode = 0;
-            return default;
-        }
-
-        /// <summary>
-        /// 네트워크 에러 발생 시 WebException 을 Throw 함.
-        /// </summary>
-        /// <returns></returns>
         public bool VerifyCredentials()
         {
             var req = this.CreateReqeust("GET", "https://api.twitter.com/1.1/account/verify_credentials.json");
 
-            try
-            {
-                using (var res = req.GetResponse() as HttpWebResponse)
-                {
-                    if (((int)res.StatusCode / 100) != 2)
-                        return false;
-
-                    using (var stream = res.GetResponseStream())
-                    {
-                        var reader = new StreamReader(stream, Encoding.UTF8);
-                        var user = JsonConvert.DeserializeObject<TwitterUser>(reader.ReadToEnd());
-
-                        this.Id = user.Id;
-                        this.ScreenName = user.ScreenName;
-                    }
-                }
-            }
-            catch (WebException webEx)
-            {
-                SentrySdk.CaptureException(webEx);
-
-                webEx.Response?.Dispose();
-
-                if (webEx.Status != WebExceptionStatus.Success)
-                    throw;
-
+            if (!req.Do<TwitterUser>(out var statusCode, out var user))
                 return false;
-            }
-            catch (Exception ex)
-            {
-                SentrySdk.CaptureException(ex);
+
+            if (statusCode != HttpStatusCode.OK)
                 return false;
-            }
+
+            this.Id = user.Id;
+            this.ScreenName = user.ScreenName;
 
             return true;
         }

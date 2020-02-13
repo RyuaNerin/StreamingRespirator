@@ -141,6 +141,7 @@
     </Compile>
     <Compile Include="Core\Windows\LoginWindowWeb.cs" />
     <Compile Include="Core\CrashReport.cs" />
+    <Compile Include="Extensions\WebReqeustExtension.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 using System.Threading;
 using Newtonsoft.Json;
@@ -20,6 +21,8 @@ namespace StreamingRespirator.Core.Streaming
         public WaitableStream Stream { get; }
         public TwitterClient Client { get; }
 
+        private readonly StreamWriter m_streamWriter;
+
         public long OwnerId
             => this.Client.Credential.Id;
 
@@ -27,6 +30,8 @@ namespace StreamingRespirator.Core.Streaming
         {
             this.Stream = item;
             this.Client = client;
+
+            this.m_streamWriter = new StreamWriter(item, Encoding.UTF8, 4096, true);
 
             this.m_keepAlive = new Timer(this.SendKeepAlive, null, KeepAlivePeriod, KeepAlivePeriod);
             this.m_friends = new Timer(this.SendFriends, null, TimeSpan.FromMinutes(10), TimeSpan.FromMinutes(10));
@@ -53,13 +58,27 @@ namespace StreamingRespirator.Core.Streaming
             {
                 this.m_friends.Dispose();
                 this.m_keepAlive.Dispose();
+                this.m_streamWriter.Dispose();
             }
         }
 
-        private static readonly byte[] KeepAlivePacket = Encoding.UTF8.GetBytes("\r\n");
+        private readonly object m_sendLock = new object();
+
         private void SendKeepAlive(object sender)
         {
-            this.SendToStream(KeepAlivePacket);
+            lock (this.m_sendLock)
+            {
+                try
+                {
+                    this.m_streamWriter.WriteLine();
+                    this.m_streamWriter.Flush();
+                }
+                catch
+                {
+                    this.Stream.Close();
+                }
+                this.m_keepAlive.Change(KeepAlivePeriod, KeepAlivePeriod);
+            }
         }
 
         private void SendFriends(object sender)
@@ -67,30 +86,33 @@ namespace StreamingRespirator.Core.Streaming
             this.Client.SendFriendsPacket(this);
         }
 
-        private static readonly JsonSerializerSettings Jss = new JsonSerializerSettings
+        private static readonly JsonSerializer JsonSerializer = new JsonSerializer
         {
-            StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
+            DateFormatString = "ddd MMM dd HH:mm:ss +ffff yyyy",
             Formatting = Formatting.None,
-            DateFormatString = "ddd MMM dd HH:mm:ss +ffff yyyy"
+            StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
         };
         public void SendToStream(IPacket data)
         {
-            Debug.WriteLine(data);
-
-            this.SendToStream(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(data, Jss) + "\r\n\r\n"));
-
-            this.m_keepAlive.Change(KeepAlivePeriod, KeepAlivePeriod);
-        }
-
-        private void SendToStream(byte[] data)
-        {
-            try
+            lock (this.m_sendLock)
             {
-                this.Stream.Write(data, 0, data.Length);
-            }
-            catch
-            {
-                this.Stream.Close();
+                Debug.WriteLine(data);
+
+                try
+                {
+                    // \r\n\r\n
+
+                    JsonSerializer.Serialize(this.m_streamWriter, data);
+                    this.m_streamWriter.WriteLine();
+                    this.m_streamWriter.WriteLine();
+                    this.m_streamWriter.Flush();
+                }
+                catch
+                {
+                    this.Stream.Close();
+                }
+
+                this.m_keepAlive.Change(KeepAlivePeriod, KeepAlivePeriod);
             }
         }
     }

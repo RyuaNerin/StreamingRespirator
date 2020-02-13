@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using Sentry;
 using StreamingRespirator.Core.Streaming.Proxy;
 using StreamingRespirator.Core.Streaming.Twitter;
+using StreamingRespirator.Extensions;
 
 namespace StreamingRespirator.Core.Streaming
 {
@@ -294,7 +295,7 @@ namespace StreamingRespirator.Core.Streaming
             if (!TryGetTwitterClient(ctx, null, out var twitClient))
                 return false;
 
-            if (!TryCallAPIThenSetContext(ctx, null, twitClient, out var statusCode, out var responseBody))
+            if (!TryCallAPIThenSetContext<TwitterStatus>(ctx, null, twitClient, out var statusCode, out var status))
             {
                 ctx.Response.StatusCode = HttpStatusCode.InternalServerError;
                 return true;
@@ -302,9 +303,7 @@ namespace StreamingRespirator.Core.Streaming
 
             if (statusCode == HttpStatusCode.OK)
             {
-                var status = JsonConvert.DeserializeObject<TwitterStatus>(responseBody);
-                if (status != null)
-                    twitClient.StatusDestroyed(status.Id);
+                twitClient.StatusDestroyed(status.Id);
             }
 
             return true;
@@ -318,9 +317,10 @@ namespace StreamingRespirator.Core.Streaming
             // 내 리트윗 다시 표시 기능을 끄면 별도 처리를 해줄 필요가 없음.
             if (!Config.Instance.Filter.ShowMyRetweet)
             {
-                if (!TryCallAPIThenSetContext(ctx, null, twitClient, out var _, out var _))
-                    ctx.Response.StatusCode = HttpStatusCode.InternalServerError;
+                if (TryCallAPIThenSetContext(ctx, null, twitClient, out _))
+                    return true;
 
+                ctx.Response.StatusCode = HttpStatusCode.InternalServerError;
                 return true;
             }
 
@@ -461,7 +461,7 @@ namespace StreamingRespirator.Core.Streaming
                 // client 를 넘겨주지 않아서 Client 의 App Name 을 표시.
                 // client 를 넘겨주면 via Tweetdeck 으로 고정된다.
                 mem.Position = 0;
-                if (!TryCallAPIThenSetContext(ctx, mem, null, out var statusCode, out _))
+                if (!TryCallAPIThenSetContext(ctx, mem, null, out var statusCode))
                 {
                     ctx.Response.StatusCode = HttpStatusCode.InternalServerError;
                     return true;
@@ -486,7 +486,7 @@ namespace StreamingRespirator.Core.Streaming
             if (!TryGetTwitterClient(ctx, null, out var twitClient))
                 return false;
 
-            if (!TryCallAPIThenSetContext(ctx, null, twitClient, out _, out _))
+            if (!TryCallAPIThenSetContext(ctx, null, twitClient, null, out _, out _))
             {
                 ctx.Response.StatusCode = HttpStatusCode.InternalServerError;
                 return true;
@@ -531,10 +531,25 @@ namespace StreamingRespirator.Core.Streaming
         /// Response 전송 하므로 사용에 주의
         /// 오류 발생 시 false 를 반환함. return 해줘야 함.
         /// </summary>
-        private static bool TryCallAPIThenSetContext(ProxyContext ctx, Stream proxyReqBody, TwitterClient client, out HttpStatusCode responseStatusCode, out string responseBodyStr)
+        private static bool TryCallAPIThenSetContext(ProxyContext ctx, Stream proxyReqBody, TwitterClient client, out HttpStatusCode responseStatusCode)
+            => TryCallAPIThenSetContext(ctx, proxyReqBody, client, null, out responseStatusCode, out _);
+
+        /// <summary>
+        /// Response 전송 하므로 사용에 주의
+        /// 오류 발생 시 false 를 반환함. return 해줘야 함.
+        /// </summary>
+        private static bool TryCallAPIThenSetContext<T>(ProxyContext ctx, Stream proxyReqBody, TwitterClient client, out HttpStatusCode responseStatusCode, out T response)
+            where T: class
+        {
+            var res = TryCallAPIThenSetContext(ctx, proxyReqBody, client, typeof(T), out responseStatusCode, out var obj);
+            response = obj as T;
+            return res;
+        }
+
+        private static bool TryCallAPIThenSetContext(ProxyContext ctx, Stream proxyReqBody, TwitterClient client, Type type, out HttpStatusCode responseStatusCode, out object response)
         {
             responseStatusCode = 0;
-            responseBodyStr = null;
+            response = default;
 
             var resHttp = CallAPI(ctx, proxyReqBody, client);
 
@@ -547,23 +562,33 @@ namespace StreamingRespirator.Core.Streaming
             {
                 responseStatusCode = resHttp.StatusCode;
 
-                using (var mem = new MemoryStream(Math.Min((int)resHttp.ContentLength, 4096)))
-                using (var reader = new StreamReader(mem, Encoding.UTF8))
+                using (var stream = resHttp.GetResponseStream())
                 {
-                    using (var stream = resHttp.GetResponseStream())
+                    if (type == null)
                     {
-                        stream.CopyTo(mem);
+                        ctx.Response.FromHttpWebResponse(resHttp, stream);
                     }
+                    else
+                    {
+                        using (var mem = new MemoryStream(Math.Min((int)resHttp.ContentLength, 4096)))
+                        {
+                            stream.CopyTo(mem);
 
-                    mem.Position = 0;
-                    ctx.Response.FromHttpWebResponse(resHttp, mem);
+                            mem.Position = 0;
+                            ctx.Response.FromHttpWebResponse(resHttp, mem);
 
-                    mem.Position = 0;
-                    responseBodyStr = reader.ReadToEnd();
-
-                    return true;
+                            using (var reader = new StreamReader(mem, Encoding.UTF8))
+                            using (var jsonReader = new JsonTextReader(reader))
+                            {
+                                mem.Position = 0;
+                                response = JsonSerializer.Deserialize(jsonReader, type);
+                            }
+                        }
+                    }
                 }
             }
+
+            return true;
         }
 
         private static HttpWebResponse CallAPI(ProxyContext ctx, Stream proxyReqBody, TwitterClient client)
@@ -618,17 +643,22 @@ namespace StreamingRespirator.Core.Streaming
         /// </summary>
         private static bool TrySendDirectMessageThenSetContext(ProxyContext ctx, TwitterClient twitClient, string screenName, string text, out HttpStatusCode statusCode)
         {
+            statusCode = 0;
+
             var userId = twitClient.UserCache.GetUserIdByScreenName(screenName);
             if (userId == 0)
             {
-                var user = twitClient.Credential.Reqeust<TwitterUser>("GET", "https://api.twitter.com/1.1/users/show.json?screen_name=" + Uri.EscapeUriString(screenName), null, out _);
-                if (user == null)
+                // 유저 정보를 얻지 못하면 User.ID 를 얻지 못하므로 실패처리했다고 보낸다.
+                // DM 으로 보낼 것 퍼블릭으로 작성하면 안됨.
+                var reqUser = twitClient.Credential.CreateReqeust("GET", $"https://api.twitter.com/1.1/users/show.json?screen_name={Uri.EscapeUriString(screenName)}");
+                if (!reqUser.Do<TwitterUser>(out var reqUserStatusCode, out var user))
                 {
-                    statusCode = HttpStatusCode.NotFound;
-                    return false;
+                    ctx.Response.StatusCode = HttpStatusCode.InternalServerError;
+                    return true;
                 }
 
                 twitClient.UserCache.IsUpdated(user);
+                userId = user.Id;
             }
 
             var dmData = new DirectMessageNew();
@@ -636,13 +666,19 @@ namespace StreamingRespirator.Core.Streaming
             dmData.Data.MessageCreate.Target.RecipientId = userId.ToString();
             dmData.Data.MessageCreate.MessageData.Text = text;
 
-            var dmDataBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(dmData, Jss));
+            var req = twitClient.Credential.CreateReqeust("POST", "https://api.twitter.com/1.1/direct_messages/events/new.json");
+            using (var reqStream = req.GetRequestStream())
+            using (var reqStreamWriter = new StreamWriter(reqStream, Encoding.UTF8))
+            {
+                JsonSerializer.Serialize(reqStreamWriter, dmData);
+                reqStreamWriter.Flush();
+            }
 
-            var succ = twitClient.Credential.Reqeust("POST", "https://api.twitter.com/1.1/direct_messages/events/new.json", dmDataBytes, out statusCode);
+            if (!req.Do(out statusCode))
+                return false;
 
             ctx.Response.StatusCode = statusCode;
-
-            return succ;
+            return true;
         }
     }
 }

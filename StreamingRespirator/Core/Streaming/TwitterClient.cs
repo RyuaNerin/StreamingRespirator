@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using StreamingRespirator.Core.Streaming.TimeLines;
 using StreamingRespirator.Core.Streaming.Twitter;
 using StreamingRespirator.Core.Streaming.Twitter.Packet;
+using StreamingRespirator.Extensions;
 
 namespace StreamingRespirator.Core.Streaming
 {
@@ -145,7 +146,9 @@ namespace StreamingRespirator.Core.Streaming
         }
         private long[] GetFriendsPacket()
         {
-            return this.Credential.Reqeust<FriendsCursor>("GET", $"https://api.twitter.com/1.1/friends/ids.json?count=5000user_id={this.Credential.Id}", null, out _)?.Ids;
+            var req = this.Credential.CreateReqeust("GET", $"https://api.twitter.com/1.1/friends/ids.json?count=5000user_id={this.Credential.Id}");
+            req.Do<FriendsCursor>(out var value);
+            return value?.Ids;
         }
 
         public StreamingConnection[] GetConnections()
@@ -184,7 +187,10 @@ namespace StreamingRespirator.Core.Streaming
         }
         private TwitterStatus ShowStatus(long id)
         {
-            return this.Credential.Reqeust<TwitterStatus>("GET", "https://api.twitter.com/1.1/statuses/show.json?id=" + id, null, out _);
+            var req = this.Credential.CreateReqeust("GET", $"https://api.twitter.com/1.1/statuses/show.json?id={id}");
+
+            req.Do<TwitterStatus>(out var status);
+            return status;
         }
 
         public void SendStatus(TwitterStatus stauts)
