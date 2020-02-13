@@ -58,6 +58,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
             {
                 return 0;
             }
+            catch (IOException)
+            {
+            }
             catch
             {
                 throw;
@@ -70,6 +73,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
                  this.m_baseStream.EndWrite(asyncResult);
             }
             catch (ObjectDisposedException)
+            {
+            }
+            catch (IOException)
             {
             }
             catch
