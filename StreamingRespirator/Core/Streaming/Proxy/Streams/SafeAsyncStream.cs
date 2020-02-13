@@ -60,6 +60,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
             }
             catch (IOException)
             {
+                return 0;
             }
             catch
             {

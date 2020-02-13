@@ -17,7 +17,7 @@ namespace StreamingRespirator.Core
                 opt.Release = "Debug";
                 opt.Debug = true;
 #else
-                opt.Release = Assembly.GetExecutingAssembly().GetName().Version.ToString();
+                opt.Release = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
 #endif
             });
 
