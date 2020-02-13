@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using System.Net.Cache;
 using System.Threading;
 using System.Windows.Forms;
 using Newtonsoft.Json;
@@ -36,6 +37,7 @@ namespace StreamingRespirator.Core
 
                 ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
+                WebRequest.DefaultCachePolicy = new RequestCachePolicy(RequestCacheLevel.NoCacheNoStore);
 #if !DEBUG
                 System.Net.WebRequest.DefaultWebProxy = null;
 #endif

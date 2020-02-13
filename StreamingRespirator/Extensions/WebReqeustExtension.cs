@@ -68,9 +68,10 @@ namespace StreamingRespirator.Extensions
                             using (var streamReader = new StreamReader(stream, Encoding.UTF8))
                             {
                                 response = Program.JsonSerializer.Deserialize(streamReader, type);
-                                return true;
                             }
                         }
+
+                        return true;
                     }
                     catch (Exception ex)
                     {

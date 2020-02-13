@@ -661,7 +661,7 @@ namespace StreamingRespirator.Core.Streaming
             req.ContentType = "application/json; charset=utf-8";
 
             using (var reqStream = req.GetRequestStream())
-            using (var reqStreamWriter = new StreamWriter(reqStream, Encoding.UTF8))
+            using (var reqStreamWriter = new StreamWriter(reqStream))
             {
                 Program.JsonSerializer.Serialize(reqStreamWriter, dmData);
                 reqStreamWriter.Flush();
