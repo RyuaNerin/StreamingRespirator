@@ -86,12 +86,6 @@ namespace StreamingRespirator.Core.Streaming
             this.Client.SendFriendsPacket(this);
         }
 
-        private static readonly JsonSerializer JsonSerializer = new JsonSerializer
-        {
-            DateFormatString = "ddd MMM dd HH:mm:ss +ffff yyyy",
-            Formatting = Formatting.None,
-            StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
-        };
         public void SendToStream(IPacket data)
         {
             lock (this.m_sendLock)
@@ -100,9 +94,7 @@ namespace StreamingRespirator.Core.Streaming
 
                 try
                 {
-                    // \r\n\r\n
-
-                    JsonSerializer.Serialize(this.m_streamWriter, data);
+                    Program.JsonSerializer.Serialize(this.m_streamWriter, data);
                     this.m_streamWriter.WriteLine();
                     this.m_streamWriter.WriteLine();
                     this.m_streamWriter.Flush();

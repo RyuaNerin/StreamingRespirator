@@ -20,7 +20,7 @@ namespace StreamingRespirator.Core
                 using (var reader = new StreamReader(file, Encoding.UTF8))
                 {
                     var inst = new Config();
-                    new JsonSerializer().Populate(reader, inst);
+                    Program.JsonSerializer.Populate(reader, inst);
                     Instance = inst;
                 }
             }
@@ -49,7 +49,7 @@ namespace StreamingRespirator.Core
                 using (var file = File.OpenWrite(Program.ConfigPath))
                 using (var writer = new StreamWriter(file, Encoding.UTF8))
                 {
-                    new JsonSerializer().Serialize(writer, Instance);
+                    Program.JsonSerializer.Serialize(writer, Instance);
                 }
             }
             catch (Exception ex)

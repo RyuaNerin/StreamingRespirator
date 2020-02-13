@@ -288,8 +288,6 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
-        private static readonly JsonSerializer JsonSerializer = new JsonSerializer();
-
         private static bool HandleDestroyOrUnretweet(ProxyContext ctx)
         {
             if (!TryGetTwitterClient(ctx, null, out var twitClient))
@@ -366,7 +364,7 @@ namespace StreamingRespirator.Core.Streaming
                             ctx.Response.FromHttpWebResponse(res, mem);
 
                             mem.Position = 0;
-                            status = JsonSerializer.Deserialize<TwitterStatus>(jsonReader);
+                            status = Program.JsonSerializer.Deserialize<TwitterStatus>(jsonReader);
                         }
                     }
 
@@ -391,7 +389,7 @@ namespace StreamingRespirator.Core.Streaming
                         using (var streamReader = new StreamReader(stream, Encoding.UTF8))
                         using (var jsonReader = new JsonTextReader(streamReader))
                         {
-                            var newStatus = JsonSerializer.Deserialize<TwitterStatus>(jsonReader);
+                            var newStatus = Program.JsonSerializer.Deserialize<TwitterStatus>(jsonReader);
                             if (newStatus != null)
                             {
                                 twitClient.SendStatus(newStatus);
@@ -578,10 +576,9 @@ namespace StreamingRespirator.Core.Streaming
                             ctx.Response.FromHttpWebResponse(resHttp, mem);
 
                             using (var reader = new StreamReader(mem, Encoding.UTF8))
-                            using (var jsonReader = new JsonTextReader(reader))
                             {
                                 mem.Position = 0;
-                                response = JsonSerializer.Deserialize(jsonReader, type);
+                                response = Program.JsonSerializer.Deserialize(reader, type);
                             }
                         }
                     }
@@ -631,12 +628,6 @@ namespace StreamingRespirator.Core.Streaming
             return resHttp;
         }
 
-        private static readonly JsonSerializerSettings Jss = new JsonSerializerSettings
-        {
-            StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
-            Formatting = Formatting.None,
-        };
-
         /// <summary>
         /// Response 전송 하므로 사용에 주의
         /// 오류 발생 시 false 를 반환함. return 해줘야 함.
@@ -672,7 +663,7 @@ namespace StreamingRespirator.Core.Streaming
             using (var reqStream = req.GetRequestStream())
             using (var reqStreamWriter = new StreamWriter(reqStream, Encoding.UTF8))
             {
-                JsonSerializer.Serialize(reqStreamWriter, dmData);
+                Program.JsonSerializer.Serialize(reqStreamWriter, dmData);
                 reqStreamWriter.Flush();
             }
 

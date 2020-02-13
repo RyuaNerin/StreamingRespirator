@@ -2,8 +2,8 @@ using System;
 using System.IO;
 using System.Net;
 using System.Text;
-using Newtonsoft.Json;
 using Sentry;
+using StreamingRespirator.Core;
 
 namespace StreamingRespirator.Extensions
 {
@@ -31,7 +31,6 @@ namespace StreamingRespirator.Extensions
             return true;
         }
 
-        private static readonly JsonSerializer JsonSerializer = new JsonSerializer();
         private static bool Do(this WebRequest req, Type type, out HttpStatusCode statusCode, out object response)
         {
             response = null;
@@ -68,7 +67,7 @@ namespace StreamingRespirator.Extensions
                             using (var stream = res.GetResponseStream())
                             using (var streamReader = new StreamReader(stream, Encoding.UTF8))
                             {
-                                response = JsonSerializer.Deserialize(streamReader, type);
+                                response = Program.JsonSerializer.Deserialize(streamReader, type);
                                 return true;
                             }
                         }

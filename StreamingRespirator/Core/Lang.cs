@@ -36,7 +36,7 @@ namespace StreamingRespirator.Core
             using (var reader = new StreamReader(mem))
             using (var jreader = new JsonTextReader(reader))
             {
-                var jo = new JsonSerializer().Deserialize<JObject>(jreader);
+                var jo = Program.JsonSerializer.Deserialize<JObject>(jreader);
 
                 var currentISOLangCode = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
                 var langCode = (((JObject)jo["Lang"]).Properties().FirstOrDefault(ep => ep.Values().Any(ev => ev.Value<string>() == currentISOLangCode)) as JProperty)?.Name;

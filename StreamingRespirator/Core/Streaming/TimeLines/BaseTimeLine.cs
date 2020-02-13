@@ -110,7 +110,6 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             this.m_timer.Change(0, Timeout.Infinite);
         }
 
-        private static readonly JsonSerializer Serializer = new JsonSerializer();
         private void Refresh(object state)
         {
             var next = WaitOnError;
@@ -124,8 +123,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 {
                     using (var stream = res.GetResponseStream())
                     using (var streamReader = new StreamReader(stream, Encoding.UTF8))
-                    using (var jsonReader = new JsonTextReader(streamReader))                        
-                        this.ParseHtml(Serializer.Deserialize<TApiResult>(jsonReader), setItems, setUsers);
+                    using (var jsonReader = new JsonTextReader(streamReader))
+                        this.ParseHtml(Program.JsonSerializer.Deserialize<TApiResult>(jsonReader), setItems, setUsers);
 
                     next = CalcNextRefresh(res.Headers);
                 }

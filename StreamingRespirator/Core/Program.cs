@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 using Sentry;
 using StreamingRespirator.Core.Streaming;
 
@@ -14,6 +15,13 @@ namespace StreamingRespirator.Core
         public const string MutexName = "{5FF75362-95BA-4399-8C77-C1A0C5B8A291}";
 
         public static readonly string ConfigPath = Path.ChangeExtension(Application.ExecutablePath, ".cnf");
+
+        public static readonly JsonSerializer JsonSerializer = new JsonSerializer
+        {
+            DateFormatString = "ddd MMM dd HH:mm:ss +ffff yyyy",
+            Formatting = Formatting.None,
+            StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
+        };
 
         [STAThread]
         static void Main()
