@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Windows.Forms;
 using Sentry;
 
 namespace StreamingRespirator.Core.Streaming
@@ -20,6 +21,8 @@ namespace StreamingRespirator.Core.Streaming
 
                     if (!certStore.Certificates.Cast<X509Certificate2>().Any(le => le.Equals(CA)))
                     {
+                        MessageBox.Show(Lang.CertificateInstall, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
+
                         certStore.Add(CA);
                     }
 
@@ -33,17 +36,23 @@ namespace StreamingRespirator.Core.Streaming
 
                                         var subjectLower = le.Subject.ToLower();
                                         return subjectLower.Contains("streaming") && subjectLower.Contains("respirator");
-                                    });
+                                    })
+                                    .ToArray();
 
-                    foreach (var cert in oldCAList)
+                    if (oldCAList.Length > 0)
                     {
-                        try
+                        MessageBox.Show(Lang.CertificateRemoveOld, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                        foreach (var cert in oldCAList)
                         {
-                            certStore.Remove(cert);
-                        }
-                        catch (Exception ex)
-                        {
-                            SentrySdk.CaptureException(ex);
+                            try
+                            {
+                                certStore.Remove(cert);
+                            }
+                            catch (Exception ex)
+                            {
+                                SentrySdk.CaptureException(ex);
+                            }
                         }
                     }
                 }

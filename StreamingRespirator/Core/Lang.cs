@@ -11,9 +11,12 @@ namespace StreamingRespirator.Core
     internal static class Lang
     {
         public static string Name                           { get; private set; }
-        public static string CertificateError               { get; private set; }
         public static string NewUpdate                      { get; private set; }
         public static string StartError                     { get; private set; }
+
+        public static string CertificateError               { get; private set; }
+        public static string CertificateInstall             { get; private set; }
+        public static string CertificateRemoveOld           { get; private set; }
 
         public static string LoginWindowWeb_AddSuccess      { get; private set; }
         public static string LoginWindowWeb_AddError        { get; private set; }

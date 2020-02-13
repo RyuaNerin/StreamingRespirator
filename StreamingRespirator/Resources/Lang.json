@@ -14,6 +14,16 @@
     "ja": "Streaming Respiratorの動作に必要な証明書をインストールしていませんでした",
     "en": "Failed to install certificate for Streaming-Respirator"
   },
+  "CertificateInstall": {
+    "ko": "스트리밍 호흡기 작동에 필요한 인증서를 설치합니다.\n\n인증서를 설치한다는 내용의 창이 뜨면 [예] 를 눌러주세요.",
+    "ja": "Streaming Respiratorの動作に必要な証明書をインストールします。\n\n認証書を設置するというウィンドウが表示されたら、[はい] を押してください。",
+    "en": "Install the certificate required for Streaming-Respirator.\n\nPrompted to install the certificate, press [Yes]."
+  },
+  "CertificateRemoveOld": {
+    "ko": "보안상의 이유로 기존에 사용하던 인증서를 제거합니다.\n\n인증서를 제거한다는 내용의 창이 뜨면 [예] 를 눌러주세요.",
+    "ja": "セキュリティ上の理由で、既存の使っていた証明書を削除します。\n\n認証書を削除するというウィンドウが表示されたら、[はい] を押してください。",
+    "en": "For security, remove the old certificate from the Streaming Respirator.\n\nPrompted to remove the certificate, press [Yes]."
+  },
   "NewUpdate": {
     "ko": "새로운 업데이트가 있습니다.",
     "ja": "新しいバージョンが利用可能です",
