@@ -112,6 +112,9 @@ namespace StreamingRespirator.Core.Streaming
 
                 new Thread(this.SocketThread).Start(client);
             }
+            catch (ObjectDisposedException)
+            {
+            }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
