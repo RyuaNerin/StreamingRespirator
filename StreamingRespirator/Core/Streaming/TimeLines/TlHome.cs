@@ -37,19 +37,26 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 return $"{BaseUrl}&count=200&since_id={this.Cursor}";
         }
 
-        protected override string ParseHtml(TwitterStatusList data, List<TwitterStatus> lstItems, HashSet<TwitterUser> lstUsers)
+        protected override string ParseHtml(TwitterStatusList data, List<TwitterStatus> lstItems, HashSet<TwitterUser> lstUsers, bool isNotFirstRefresh)
         {
-            if (data.Count == 0)
-                return null;
-
-            foreach (var item in data)
+            if (data.Count > 0)
             {
-                item.AddUserToHashSet(lstUsers);
-                lstItems.Add(item);
-            }
-            lstItems.Sort((a, b) => a.Id.CompareTo(b.Id));
+                if (isNotFirstRefresh && data.Count > 0)
+                {
+                    foreach (var item in data)
+                    {
+                        item.AddUserToHashSet(lstUsers);
+                        lstItems.Add(item);
+                    }
 
-            return data.Max(e => e.Id).ToString();
+                    lstItems.Sort((a, b) => a.Id.CompareTo(b.Id));
+                }
+
+                return data.Max(e => e.Id).ToString();
+            }
+
+
+            return null;
         }
 
         protected override void UpdateStatus(TimeSpan waitTime)

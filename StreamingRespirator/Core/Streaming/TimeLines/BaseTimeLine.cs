@@ -81,7 +81,6 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         }
 
         private long m_working;
-        protected Timer Timer => Interlocked.Read(ref this.m_working) == 0 ? null : this.m_timer;
 
         public void Start()
         {
@@ -111,7 +110,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         protected abstract string GetUrl();
 
         /// <returns>New Curosr</returns>
-        protected abstract string ParseHtml(TApiResult data, List<TItem> lstItems, HashSet<TwitterUser> lstUsers);
+        protected abstract string ParseHtml(TApiResult data, List<TItem> lstItems, HashSet<TwitterUser> lstUsers, bool isFirstRefresh);
         protected abstract void UpdateStatus(TimeSpan nextTime);
 
         public void ForceRefresh()
@@ -121,6 +120,9 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
         private void Refresh(object state)
         {
+            if (Interlocked.Read(ref this.m_working) == 0)
+                return;
+
             var next = WaitOnError;
 
             var sendData = this.Cursor != null;
@@ -136,7 +138,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                     using (var streamReader = new StreamReader(stream, Encoding.UTF8))
                     using (var jsonReader = new JsonTextReader(streamReader))
                     {
-                        var cursor = this.ParseHtml(Program.JsonSerializer.Deserialize<TApiResult>(jsonReader), setItems, setUsers);
+                        var cursor = this.ParseHtml(Program.JsonSerializer.Deserialize<TApiResult>(jsonReader), setItems, setUsers, !this.m_firstRefresh);
                         if (cursor != null)
                             this.Cursor = cursor;
                     }
@@ -165,16 +167,21 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             var userCacheTask = Task.Factory.StartNew(() =>
             {
-                foreach (var user in setUsers)
-                    if (this.m_twitterClient.UserCache.IsUpdated(user))
-                        this.UserUpdatedEvent(user);
+                Parallel.ForEach(
+                    setUsers,
+                    user =>
+                    {
+                        if (this.m_twitterClient.UserCache.IsUpdated(user))
+                            this.UserUpdatedEvent(user);
+                    });
             });
 
             if (!this.m_firstRefresh && setItems.Count > 0)
             {
                 try
                 {
-                    Parallel.ForEach(this.m_twitterClient.GetConnections(),
+                    Parallel.ForEach(
+                        this.m_twitterClient.GetConnections(),
                         connection =>
                         {
                             foreach (var item in setItems)
@@ -192,11 +199,14 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             try
             {
-                this.Timer?.Change((int)next.TotalMilliseconds, Timeout.Infinite);
+                lock (this.m_timer)
+                    this.m_timer.Change((int)next.TotalMilliseconds, Timeout.Infinite);
+
                 this.UpdateStatus(next);
             }
-            catch
+            catch (Exception ex)
             {
+                SentrySdk.CaptureException(ex);
             }
         }
 

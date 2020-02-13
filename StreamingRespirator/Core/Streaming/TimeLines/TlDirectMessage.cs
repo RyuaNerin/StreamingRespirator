@@ -38,32 +38,36 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 return $"{BaseUrl}&cursor={this.Cursor}";
         }
 
-        protected override string ParseHtml(DirectMessage data, List<PacketDirectMessage> lstItems, HashSet<TwitterUser> lstUsers)
+        protected override string ParseHtml(DirectMessage data, List<PacketDirectMessage> lstItems, HashSet<TwitterUser> lstUsers, bool isNotFirstRefresh)
         {
-            if ((data?.Items?.Entries?.Length ?? 0) == 0)
-                return null;
-
-            foreach (var item in data.Items.Entries.Where(e => e.Message != null))
+            if (isNotFirstRefresh)
             {
-                try
+                if (data?.Items?.Entries != null)
                 {
-                    lstItems.Add(ToPacket(data, item));
+                    foreach (var item in data.Items.Entries.Where(e => e.Message != null))
+                    {
+                        try
+                        {
+                            lstItems.Add(ToPacket(data, item));
+                        }
+                        catch
+                        {
+                        }
+                    }
+
+                    lstItems.Sort((a, b) => a.Item.Id.CompareTo(b.Item.Id));
                 }
-                catch
+
+                if (data?.Items?.Users != null)
                 {
+                    foreach (var user in data.Items.Users.Values)
+                    {
+                        lstUsers.Add(user);
+                    }
                 }
             }
-            if (data.Items.Users != null)
-            {
-                foreach (var user in data.Items.Users.Values)
-                {
-                    lstUsers.Add(user);
-                }
-            }
 
-            lstItems.Sort((a, b) => a.Item.Id.CompareTo(b.Item.Id));
-
-            return data.Items.Cursor;
+            return data?.Items?.Cursor;
         }
 
         private static PacketDirectMessage ToPacket(DirectMessage dm, DirectMessage.Entry e)

@@ -38,53 +38,55 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 return $"{BaseUrl}&count=200&since_id={this.Cursor}";
         }
 
-        protected override string ParseHtml(ActivityList data, List<TwitterStatus> lstItems, HashSet<TwitterUser> lstUsers)
+        protected override string ParseHtml(ActivityList data, List<TwitterStatus> lstItems, HashSet<TwitterUser> lstUsers, bool isNotFirstRefresh)
         {
-            if (data.Count == 0)
-                return null;
-
-            var itemsList = new List<TwitterStatus>();
-            var usersList = new HashSet<TwitterUser>();
-
-            foreach (var activity in data)
+            if (data.Count > 0)
             {
-                foreach (var user in activity.Sources)
-                    usersList.Add(user);
-
-                foreach (var tweet in activity.Targets)
-                    tweet.AddUserToHashSet(lstUsers);
-
-                if ((Config.Instance.Filter.ShowRetweetedMyStatus && activity.Action == "retweet")
-                    || (Config.Instance.Filter.ShowRetweetWithComment && activity.Action == "quote")
-                    || activity.Action == "reply")
+                if (isNotFirstRefresh)
                 {
-                    var isRetweeted = activity.Action == "retweet";
-
-                    foreach (var tweet in activity.Targets)
+                    foreach (var activity in data)
                     {
-                        // Retweet 일 때 full_text 가 잘려서 도착하는 문제가 있다
-                        // retweeted_status 를 기반으로 후처리한다
-                        if (isRetweeted && tweet.RetweetedStatus != null)
+                        foreach (var user in activity.Sources)
+                            lstUsers.Add(user);
+
+                        foreach (var tweet in activity.Targets)
+                            tweet.AddUserToHashSet(lstUsers);
+
+                        if ((Config.Instance.Filter.ShowRetweetedMyStatus && activity.Action == "retweet")
+                            || (Config.Instance.Filter.ShowRetweetWithComment && activity.Action == "quote")
+                            || activity.Action == "reply")
                         {
-                            var retweet = tweet.RetweetedStatus;
+                            var isRetweeted = activity.Action == "retweet";
 
-                            if (tweet.DisplayTextRange[1] < retweet.DisplayTextRange[0])
+                            foreach (var tweet in activity.Targets)
                             {
-                                tweet.AdditionalData["entities"] = retweet.AdditionalData["entities"];
-                                tweet.DisplayTextRange = retweet.DisplayTextRange;
+                                // Retweet 일 때 full_text 가 잘려서 도착하는 문제가 있다
+                                // retweeted_status 를 기반으로 후처리한다
+                                if (isRetweeted && tweet.RetweetedStatus != null)
+                                {
+                                    var retweet = tweet.RetweetedStatus;
 
-                                tweet.AdditionalData["full_text"] = $"RT @{tweet.User.ScreenName}: {retweet.AdditionalData["full_text"]}";
+                                    if (tweet.DisplayTextRange[1] < retweet.DisplayTextRange[0])
+                                    {
+                                        tweet.AdditionalData["entities"] = retweet.AdditionalData["entities"];
+                                        tweet.DisplayTextRange = retweet.DisplayTextRange;
+
+                                        tweet.AdditionalData["full_text"] = $"RT @{tweet.User.ScreenName}: {retweet.AdditionalData["full_text"]}";
+                                    }
+                                }
+
+                                lstItems.Add(tweet);
                             }
                         }
-
-                        lstItems.Add(tweet);
                     }
+
+                    lstItems.Sort((a, b) => a.Id.CompareTo(b.Id));
                 }
+
+                return data.Max(e => e.MaxPosition).ToString();
             }
 
-            itemsList.Sort((a, b) => a.Id.CompareTo(b.Id));
-
-            return data.Max(e => e.MaxPosition).ToString();
+            return null;
         }
 
         protected override void UpdateStatus(TimeSpan waitTime)
