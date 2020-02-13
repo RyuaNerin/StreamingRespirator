@@ -5,11 +5,12 @@
 
 - 이제는 없어져버린 스트리밍에 호흡기를 달아 비슷하게나마 사용 가능하게 해줍니다
 
+- 스트리밍 호흡기를 연결하면 예전에나 사용 가능했던 **`d @BLABLA TEXT` 로 DM 보내는게 다시 가능합니다!!**
+
 - 버그 및 건의사항은 아래 방법으로 연락주세요.
   - [Github Issues](https://github.com/RyuaNerin/StreamingRespirator/issues)
   - [Twitter @RyuaNerin](https://twitter.com/RyuaNerin)
   - [Telegram @unknown5766](https://t.me/unknown5766)
-
 
 ## 설명서 업데이트중입니다
 
