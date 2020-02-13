@@ -45,7 +45,13 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             foreach (var item in data.Items.Entries.Where(e => e.Message != null))
             {
-                lstItems.Add(ToPacket(data, item));
+                try
+                {
+                    lstItems.Add(ToPacket(data, item));
+                }
+                catch
+                {
+                }
             }
             foreach (var user in data.Items.Users.Values)
             {
