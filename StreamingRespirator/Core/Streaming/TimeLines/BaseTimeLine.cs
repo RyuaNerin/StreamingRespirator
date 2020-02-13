@@ -99,10 +99,19 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 this.m_timer.Change(Timeout.Infinite, Timeout.Infinite);
         }
 
-        protected abstract void Clear();
+        protected string Cursor { get; private set; }
+        private bool m_firstRefresh;
+
+        protected void Clear()
+        {
+            this.Cursor = null;
+            this.m_firstRefresh = false;
+        }
 
         protected abstract string GetUrl();
-        protected abstract void ParseHtml(TApiResult data, List<TItem> lstItems, HashSet<TwitterUser> lstUsers);
+
+        /// <returns>New Curosr</returns>
+        protected abstract string ParseHtml(TApiResult data, List<TItem> lstItems, HashSet<TwitterUser> lstUsers);
         protected abstract void UpdateStatus(TimeSpan nextTime);
 
         public void ForceRefresh()
@@ -114,6 +123,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         {
             var next = WaitOnError;
 
+            var sendData = this.Cursor != null;
+
             var req = this.m_twitterClient.Credential.CreateReqeust(this.Method, this.GetUrl());
             var setItems = new List<TItem>();
             var setUsers = new HashSet<TwitterUser>();
@@ -124,7 +135,11 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                     using (var stream = res.GetResponseStream())
                     using (var streamReader = new StreamReader(stream, Encoding.UTF8))
                     using (var jsonReader = new JsonTextReader(streamReader))
-                        this.ParseHtml(Program.JsonSerializer.Deserialize<TApiResult>(jsonReader), setItems, setUsers);
+                    {
+                        var cursor = this.ParseHtml(Program.JsonSerializer.Deserialize<TApiResult>(jsonReader), setItems, setUsers);
+                        if (cursor != null)
+                            this.Cursor = cursor;
+                    }
 
                     next = CalcNextRefresh(res.Headers);
                 }
@@ -155,7 +170,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                         this.UserUpdatedEvent(user);
             });
 
-            if (setItems.Count > 0)
+            if (!this.m_firstRefresh && setItems.Count > 0)
             {
                 try
                 {
@@ -170,6 +185,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 {
                 }
             }
+
+            this.m_firstRefresh = false;
 
             userCacheTask.Wait();
 

@@ -29,25 +29,19 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         */
         private const string BaseUrl = "https://api.twitter.com/1.1/dm/user_updates.json?include_groups=true&ext=altText&cards_platform=Web-13&include_entities=1&include_user_entities=1&include_cards=1&send_error_codes=1&tweet_mode=extended&include_ext_alt_text=true&include_reply_count=true";
 
-        private string m_cursor = null;
-        protected override void Clear()
-        {
-            this.m_cursor = null;
-        }
-
         protected override string Method => "GET";
         protected override string GetUrl()
         {
-            if (this.m_cursor == null)
+            if (this.Cursor == null)
                 return BaseUrl;
             else
-                return BaseUrl + "&cursor=" + this.m_cursor;
+                return $"{BaseUrl}&cursor={this.Cursor}";
         }
 
-        protected override void ParseHtml(DirectMessage data, List<PacketDirectMessage> lstItems, HashSet<TwitterUser> lstUsers)
+        protected override string ParseHtml(DirectMessage data, List<PacketDirectMessage> lstItems, HashSet<TwitterUser> lstUsers)
         {
             if ((data?.Items?.Entries?.Length ?? 0) == 0)
-                return;
+                return null;
 
             foreach (var item in data.Items.Entries.Where(e => e.Message != null))
             {
@@ -60,11 +54,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             lstItems.Sort((a, b) => a.Item.Id.CompareTo(b.Item.Id));
 
-            var curCursor = this.m_cursor;
-            this.m_cursor = data.Items.Cursor;
-
-            if (curCursor == null)
-                lstItems.Clear();
+            return data.Items.Cursor;
         }
 
         private static PacketDirectMessage ToPacket(DirectMessage dm, DirectMessage.Entry e)

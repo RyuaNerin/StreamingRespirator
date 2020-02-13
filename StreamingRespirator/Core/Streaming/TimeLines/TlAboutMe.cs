@@ -29,25 +29,19 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         */
         private const string BaseUrl = "https://api.twitter.com/1.1/activity/about_me.json?model_version=7&skip_aggregation=true&cards_platform=Web-13&include_entities=1&include_user_entities=1&include_cards=1&send_error_codes=1&tweet_mode=extended&include_ext_alt_text=true&include_reply_count=true";
 
-        private long m_cursor = 0;
-        protected override void Clear()
-        {
-            this.m_cursor = 0;
-        }
-
         protected override string Method => "GET";
         protected override string GetUrl()
         {
-            if (this.m_cursor == 0)
-                return BaseUrl + "&count=1";
+            if (this.Cursor == null)
+                return $"{BaseUrl}&count=1"; 
             else
-                return BaseUrl + "&count=200&since_id=" + this.m_cursor;
+                return $"{BaseUrl}&count=200&since_id={this.Cursor}";
         }
 
-        protected override void ParseHtml(ActivityList data, List<TwitterStatus> lstItems, HashSet<TwitterUser> lstUsers)
+        protected override string ParseHtml(ActivityList data, List<TwitterStatus> lstItems, HashSet<TwitterUser> lstUsers)
         {
             if (data.Count == 0)
-                return;
+                return null;
 
             var itemsList = new List<TwitterStatus>();
             var usersList = new HashSet<TwitterUser>();
@@ -90,10 +84,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             itemsList.Sort((a, b) => a.Id.CompareTo(b.Id));
 
-            var curCursor = this.m_cursor;
-            this.m_cursor = data.Max(e => e.MaxPosition);
-            if (curCursor == 0)
-                itemsList.Clear();
+            return data.Max(e => e.MaxPosition).ToString();
         }
 
         protected override void UpdateStatus(TimeSpan waitTime)
