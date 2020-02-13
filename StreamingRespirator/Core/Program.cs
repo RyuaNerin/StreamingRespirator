@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Cache;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
 using Newtonsoft.Json;
@@ -44,10 +45,10 @@ namespace StreamingRespirator.Core
 
                 CrashReport.Init();
 
-#if !DEBUG
-                if (!CheckUpdate())
+                if (Assembly.GetExecutingAssembly().GetName().Version.ToString() != "0.0.0.0" && !CheckUpdate())
+                {
                     return;
-#endif
+                }
 
                 if (!Certificates.InstallCACertificates())
                 {
