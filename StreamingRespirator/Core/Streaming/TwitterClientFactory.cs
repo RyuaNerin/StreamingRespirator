@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Windows.Forms;
 using StreamingRespirator.Core.Windows;
 
@@ -16,7 +15,7 @@ namespace StreamingRespirator.Core.Streaming
         public TimeSpan? WaitTimeDm;
     }
 
-    static class TwitterClientFactory
+    internal static class TwitterClientFactory
     {
         private static readonly Dictionary<long, TwitterClient> Instances = new Dictionary<long, TwitterClient>();
         private static ulong CurrentRevision = 0;
@@ -82,7 +81,7 @@ namespace StreamingRespirator.Core.Streaming
                 {
                     verified = inst.Credential.VerifyCredentials();
                     if (!verified)
-                        Thread.Sleep(TimeSpan.FromSeconds(1));
+                        Program.NetworkAvailable.WaitOne(TimeSpan.FromSeconds(3));
                 }
 
                 if (!verified)

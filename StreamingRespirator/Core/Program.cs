@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Cache;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Forms;
@@ -24,6 +25,22 @@ namespace StreamingRespirator.Core
             Formatting = Formatting.None,
             StringEscapeHandling = StringEscapeHandling.EscapeNonAscii,
         };
+
+        public static readonly ManualResetEvent NetworkAvailable = new ManualResetEvent(false);
+
+        static Program()
+        {
+            NetworkChange.NetworkAvailabilityChanged += (s, e) =>
+            {
+                if (e.IsAvailable)
+                    NetworkAvailable.Set();
+                else
+                    NetworkAvailable.Reset();
+            };
+
+            if (NetworkInterface.GetIsNetworkAvailable())
+                NetworkAvailable.Set();
+        }
 
         [STAThread]
         static void Main()
