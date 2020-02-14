@@ -134,6 +134,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
             {
                 using (var res = req.GetResponse() as HttpWebResponse)
                 {
+                    next = CalcNextRefresh(res.Headers);
+
                     using (var stream = res.GetResponseStream())
                     using (var streamReader = new StreamReader(stream, Encoding.UTF8))
                     using (var jsonReader = new JsonTextReader(streamReader))
@@ -142,8 +144,6 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                         if (cursor != null)
                             this.Cursor = cursor;
                     }
-
-                    next = CalcNextRefresh(res.Headers);
                 }
             }
             catch (WebException webEx)
