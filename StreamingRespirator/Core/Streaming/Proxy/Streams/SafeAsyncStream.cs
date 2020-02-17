@@ -84,58 +84,5 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
                 throw;
             }
         }
-
-        public class AsyncFailedResult : IAsyncResult, IDisposable
-        {
-            public AsyncFailedResult(object state)
-            {
-                this.AsyncState = state;
-            }
-            ~AsyncFailedResult()
-            {
-                this.Dispose(false);
-            }
-            public void Dispose()
-            {
-                this.Dispose(true);
-                GC.SuppressFinalize(this);
-            }
-            private bool m_disposed = false;
-            protected void Dispose(bool disposing)
-            {
-                if (this.m_disposed) return;
-                this.m_disposed = true;
-
-                if (disposing)
-                {
-                    this.AsyncWaitHandle.Dispose();
-                }
-            }
-
-            public object AsyncState { get; }
-
-            public WaitHandle AsyncWaitHandle => new SimpleWaitHandle();
-
-            public bool IsCompleted => true;
-            public bool CompletedSynchronously => true;
-
-            public class SimpleWaitHandle : WaitHandle
-            {
-                public override bool WaitOne(int millisecondsTimeout, bool exitContext)
-                    => true;
-
-                public override bool WaitOne(TimeSpan timeout, bool exitContext)
-                    => true;
-
-                public override bool WaitOne()
-                    => true;
-
-                public override bool WaitOne(int millisecondsTimeout)
-                    => true;
-
-                public override bool WaitOne(TimeSpan timeout)
-                    => true;
-            }
-        }
     }
 }
