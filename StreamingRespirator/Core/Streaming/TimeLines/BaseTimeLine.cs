@@ -140,7 +140,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             while (!token.IsCancellationRequested)
             {
-                var delay = this.Refresh(token);
+                var delay = TimeSpan.FromSeconds(Math.Max(this.Refresh(token).TotalSeconds, WaitMin));
 
                 this.UpdateStatus(delay);
 
@@ -263,13 +263,13 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 var resetTime = ForTimeStamp.AddSeconds(reset);
                 var now = DateTime.UtcNow;
 
-                if (remaining == 0)
-                {
-                    return resetTime - now;
-                }
-                else if (resetTime < now)
+                if (resetTime < now)
                 {
                     return TimeSpan.FromSeconds(WaitMin);
+                }
+                else if (remaining == 0)
+                {
+                    return resetTime - now;
                 }
                 else
                 {
