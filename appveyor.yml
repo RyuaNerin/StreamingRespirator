@@ -25,7 +25,7 @@ before_build:
 - cmd: nuget restore
 
 after_build:
-- signtool.exe sign /tr "http://timestamp.verisign.com/scripts/timestamp.dll" /td sha256 /fd sha256 /p %pfx_password% /f "StreamingRespirator.p12" "bin\Release\StreamingRespirator.exe"
+- signtool.exe sign /tr "http://timestamp.digicert.com" /td sha256 /fd sha256 /p %pfx_password% /f "StreamingRespirator.p12" "bin\Release\StreamingRespirator.exe"
 
 artifacts:
 -  path: bin\Release\StreamingRespirator.exe
