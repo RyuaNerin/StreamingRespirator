@@ -38,18 +38,16 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
     internal abstract class BaseTimeLine<TApiResult, TItem> : BaseTimeLine, ITimeLine, IDisposable
         where TItem : IPacket
     {
-        private readonly static TimeSpan WaitMin     = TimeSpan.FromSeconds(1);
-        private readonly static TimeSpan WaitOnError = TimeSpan.FromSeconds(10);
+        private const double WaitMin     = 1;
+        private const double WaitOnError = 10;
 
         protected readonly TwitterClient m_twitterClient;
-        private readonly Timer m_timer;
 
         protected abstract string Method { get; }
 
         protected BaseTimeLine(TwitterClient twitterClient)
         {
             this.m_twitterClient = twitterClient;
-            this.m_timer = new Timer(this.Refresh, null, Timeout.Infinite, Timeout.Infinite);
 
             PowerResumed += this.Clear;
         }
@@ -73,37 +71,49 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
             if (disposing)
             {
-                this.m_timer.Change(Timeout.Infinite, Timeout.Infinite);
-                this.m_timer.Dispose();
+                this.m_threadCancel?.Cancel();
+                this.m_threadIsNotWorking.Wait();
             }
 
             PowerResumed -= this.Clear;
         }
 
-        private long m_working;
+        private readonly ManualResetEventSlim m_threadIsNotWorking = new ManualResetEventSlim(true);
+        private Thread m_threadWorking;
+        private CancellationTokenSource m_threadCancel;
+        private CancellationTokenSource m_threadRefreshForce;
 
         public void Start()
         {
-            Interlocked.Exchange(ref this.m_working, 1);
+            if (!this.m_threadIsNotWorking.IsSet)
+                return;
 
-            lock (this.m_timer)
-                this.m_timer.Change(0, Timeout.Infinite);
+            this.m_threadWorking = new Thread(this.RefreshThread)
+            {
+                IsBackground = true,
+                Name = $"{this.m_twitterClient.Credential.ScreenName} - {this.GetType().Name}",
+            };
+            this.m_threadCancel?.Dispose();
+            this.m_threadCancel = new CancellationTokenSource();
+
+            this.m_threadIsNotWorking.Reset();
+            this.m_threadWorking.Start(this.m_threadCancel.Token);
         }
         public void Stop()
         {
-            Interlocked.Exchange(ref this.m_working, 1);
-            this.Clear();
-
-            lock (this.m_timer)
-                this.m_timer.Change(Timeout.Infinite, Timeout.Infinite);
+            this.m_threadCancel?.Cancel();
+            this.m_threadIsNotWorking.Wait();
         }
 
+        private readonly object m_cursorLock = new object();
         protected string Cursor { get; private set; }
         private bool m_firstRefresh = true;
 
         protected void Clear()
         {
-            this.Cursor = null;
+            lock (this.m_cursorLock)
+                this.Cursor = null;
+
             this.m_firstRefresh = true;
         }
 
@@ -115,99 +125,127 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
         public void ForceRefresh()
         {
-            this.m_timer.Change(0, Timeout.Infinite);
-        }
-
-        private void Refresh(object state)
-        {
-            if (Interlocked.Read(ref this.m_working) == 0)
-                return;
-
-            var next = WaitOnError;
-
-            var sendData = this.Cursor != null;
-
-            var req = this.m_twitterClient.Credential.CreateReqeust(this.Method, this.GetUrl());
-            var setItems = new List<TItem>();
-            var setUsers = new HashSet<TwitterUser>();
             try
             {
-                using (var res = req.GetResponse() as HttpWebResponse)
-                {
-                    next = CalcNextRefresh(res.Headers);
+                this.m_threadRefreshForce.Cancel();
+            }
+            catch
+            {
+            }
+        }
 
-                    using (var stream = res.GetResponseStream())
-                    using (var streamReader = new StreamReader(stream, Encoding.UTF8))
-                    using (var jsonReader = new JsonTextReader(streamReader))
-                    {
-                        var cursor = this.ParseHtml(Program.JsonSerializer.Deserialize<TApiResult>(jsonReader), setItems, setUsers, !this.m_firstRefresh);
-                        if (cursor != null)
-                            this.Cursor = cursor;
-                    }
+        private void RefreshThread(object arg)
+        {
+            var token = (CancellationToken)arg;
+
+            while (!token.IsCancellationRequested)
+            {
+                var delay = this.Refresh(token);
+
+                this.UpdateStatus(delay);
+
+                using (this.m_threadRefreshForce = CancellationTokenSource.CreateLinkedTokenSource(token))
+                {
+                    this.m_threadRefreshForce.CancelAfter(delay);
+
+                    this.m_threadRefreshForce.Token.WaitHandle.WaitOne();
                 }
+            }
+
+            this.m_threadIsNotWorking.Set();
+        }
+
+        /// <returns>대기 시간.</returns>
+        private TimeSpan Refresh(CancellationToken token)
+        {
+            var req = this.m_twitterClient.Credential.CreateReqeust(this.Method, this.GetUrl());
+
+            HttpWebResponse res = null;
+
+            try
+            {
+                res = req.GetResponse() as HttpWebResponse;
             }
             catch (WebException webEx)
             {
                 if (webEx.Response != null)
                 {
-                    using (var res = webEx.Response as HttpWebResponse)
-                    {
-                        next = CalcNextRefresh(res.Headers);
-                    }
+                    res = webEx.Response as HttpWebResponse;
                 }
                 else
                 {
                     SentrySdk.CaptureException(webEx);
+                    return TimeSpan.FromSeconds(WaitOnError);
                 }
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
+                return TimeSpan.FromSeconds(WaitOnError);
             }
 
-            var userCacheTask = Task.Factory.StartNew(() =>
-            {
-                Parallel.ForEach(
-                    setUsers,
-                    user =>
-                    {
-                        if (this.m_twitterClient.UserCache.IsUpdated(user))
-                            this.UserUpdatedEvent(user);
-                    });
-            });
-
-            if (!this.m_firstRefresh && setItems.Count > 0)
+            using (res)
             {
                 try
                 {
-                    Parallel.ForEach(
-                        this.m_twitterClient.GetConnections(),
-                        connection =>
+                    var setItems = new List<TItem>();
+                    var setUsers = new HashSet<TwitterUser>();
+
+                    using (var stream = res.GetResponseStream())
+                    using (var streamReader = new StreamReader(stream, Encoding.UTF8))
+                    using (var jsonReader = new JsonTextReader(streamReader))
+                    {
+                        lock (this.m_cursorLock)
                         {
-                            foreach (var item in setItems)
-                                connection.SendToStream(item);
+                            var cursor = this.ParseHtml(Program.JsonSerializer.Deserialize<TApiResult>(jsonReader), setItems, setUsers, !this.m_firstRefresh);
+                            if (cursor != null)
+                                this.Cursor = cursor;
+                        }
+                    }
+
+                    Task.Factory.StartNew(() =>
+                    {
+                        Parallel.ForEach(
+                            setUsers,
+                            new ParallelOptions
+                            {
+                                CancellationToken = token,
+                            },
+                            user =>
+                            {
+                                if (this.m_twitterClient.UserCache.IsUpdated(user))
+                                    this.UserUpdatedEvent(user);
+                            });
+                    });
+
+                    if (!this.m_firstRefresh && setItems.Count > 0)
+                    {
+                        Task.Factory.StartNew(() =>
+                        {
+                            Parallel.ForEach(
+                                this.m_twitterClient.GetConnections(),
+                                new ParallelOptions
+                                {
+                                    CancellationToken = token,
+                                },
+                                connection =>
+                                {
+                                    foreach (var item in setItems)
+                                        connection.SendToStream(item);
+                                });
                         });
+                    }
+                    this.m_firstRefresh = false;
+
+                    return CalcNextRefresh(res.Headers);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    SentrySdk.CaptureException(ex);
                 }
             }
 
-            this.m_firstRefresh = false;
-
-            userCacheTask.Wait();
-
-            try
-            {
-                lock (this.m_timer)
-                    this.m_timer.Change((int)next.TotalMilliseconds, Timeout.Infinite);
-
-                this.UpdateStatus(next);
-            }
-            catch (Exception ex)
-            {
-                SentrySdk.CaptureException(ex);
-            }
+            return TimeSpan.FromSeconds(WaitOnError);
         }
 
         private static readonly DateTime ForTimeStamp = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -229,6 +267,10 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                 {
                     return resetTime - now;
                 }
+                else if (resetTime < now)
+                {
+                    return TimeSpan.FromSeconds(WaitMin);
+                }
                 else
                 {
                     var sec = (resetTime - now).TotalSeconds;
@@ -238,12 +280,11 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                     else
                         sec /= (remaining);
 
-                    var ts = TimeSpan.FromSeconds(sec);
-                    return ts > WaitMin ? ts : WaitMin;
+                    return TimeSpan.FromSeconds(Math.Max(sec, WaitMin));
                 }
             }
 
-            return WaitOnError;
+            return TimeSpan.FromSeconds(WaitOnError);
         }
 
         private void UserUpdatedEvent(TwitterUser user)
