@@ -9,7 +9,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
     /// </summary>
     internal sealed class RequestStreamReader : Stream
     {
-        public readonly MemoryStream m_buffStream = new MemoryStream(4096);
+        private readonly MemoryStream m_buffStream = new MemoryStream(4096);
         private readonly byte[]       m_buff       = new byte[4096];
 
         private readonly Stream m_baseStream;
