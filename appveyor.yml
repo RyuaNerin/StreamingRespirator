@@ -18,14 +18,17 @@ configuration: Release
 platform: Any CPU
 
 environment:
+  SIGNTOOL: C:\Program Files (x86)\Windows Kits\10\bin\10.0.18362.0\x64\signtool.exe
   pfx_password:
     secure: 05Z+DJrJSTS5M1rFyx3Iagaz8TlNELOI4BLy3dvCFs1fpRalCSCd+D0RZossungT+vqhORuzaengXhWwY9oeoJWeXxRbMtTyFLySwbS52hA=
 
 before_build:
-- cmd: nuget restore
+- cmd: |
+    nuget restore
 
 after_build:
-- signtool.exe sign /tr "http://timestamp.digicert.com" /td sha256 /fd sha256 /p %pfx_password% /f "StreamingRespirator.p12" "bin\Release\StreamingRespirator.exe"
+- cmd: |
+    "%SIGNTOOL%" sign /tr "http://timestamp.digicert.com" /td sha256 /fd sha256 /p %pfx_password% /f "StreamingRespirator.p12" "bin\Release\StreamingRespirator.exe"
 
 artifacts:
 -  path: bin\Release\StreamingRespirator.exe
