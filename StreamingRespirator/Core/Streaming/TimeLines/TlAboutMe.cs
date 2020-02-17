@@ -56,25 +56,8 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                             || (Config.Instance.Filter.ShowRetweetWithComment && activity.Action == "quote")
                             || activity.Action == "reply")
                         {
-                            var isRetweeted = activity.Action == "retweet";
-
                             foreach (var tweet in activity.Targets)
                             {
-                                // Retweet 일 때 full_text 가 잘려서 도착하는 문제가 있다
-                                // retweeted_status 를 기반으로 후처리한다
-                                if (isRetweeted && tweet.RetweetedStatus != null)
-                                {
-                                    var retweet = tweet.RetweetedStatus;
-
-                                    if (tweet.DisplayTextRange[1] < retweet.DisplayTextRange[0])
-                                    {
-                                        tweet.AdditionalData["entities"] = retweet.AdditionalData["entities"];
-                                        tweet.DisplayTextRange = retweet.DisplayTextRange;
-
-                                        tweet.AdditionalData["full_text"] = $"RT @{tweet.User.ScreenName}: {retweet.AdditionalData["full_text"]}";
-                                    }
-                                }
-
                                 lstItems.Add(tweet);
                             }
                         }

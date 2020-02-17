@@ -330,6 +330,10 @@ namespace StreamingRespirator.Core.Streaming
             // 2. 리트윗 API 호출 한 다음
             // 3. (2) 의 호출을 그대로 전송하고
             // 4. (2) 가 성공하면 리트윗 한 트윗을 statuses/show.json 한 후 그 결과값을 리턴한다.
+            //
+            // 2020-02-17 추가
+            // tweet_mode=extended 로 Extended Tweet Object 를 얻어오면 140자 이상의 트윗도 사용할 수 있다.
+            // 관련 메모 : https://developer.twitter.com/en/docs/tweets/tweet-updates
 
             var res = CallAPI(ctx, null, twitClient);
             if (res == null)
@@ -382,7 +386,7 @@ namespace StreamingRespirator.Core.Streaming
 
             try
             {
-                var reqShow = twitClient.Credential.CreateReqeust("GET", $"https://api.twitter.com/1.1/statuses/show.json?id={status.Id}&include_entities=1");
+                var reqShow = twitClient.Credential.CreateReqeust("GET", $"https://api.twitter.com/1.1/statuses/show.json?id={status.Id}&include_entities=1&tweet_mode=extended");
 
                 using (var resShow = (HttpWebResponse)reqShow.GetResponse())
                 {
