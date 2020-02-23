@@ -191,51 +191,54 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                     var setItems = new List<TItem>();
                     var setUsers = new HashSet<TwitterUser>();
 
-                    using (var stream = res.GetResponseStream())
-                    using (var streamReader = new StreamReader(stream, Encoding.UTF8))
-                    using (var jsonReader = new JsonTextReader(streamReader))
+                    if (res.StatusCode == HttpStatusCode.OK)
                     {
-                        lock (this.m_cursorLock)
+                        using (var stream = res.GetResponseStream())
+                        using (var streamReader = new StreamReader(stream, Encoding.UTF8))
+                        using (var jsonReader = new JsonTextReader(streamReader))
                         {
-                            var cursor = this.ParseHtml(Program.JsonSerializer.Deserialize<TApiResult>(jsonReader), setItems, setUsers, !this.m_firstRefresh);
-                            if (cursor != null)
-                                this.Cursor = cursor;
+                            lock (this.m_cursorLock)
+                            {
+                                var cursor = this.ParseHtml(Program.JsonSerializer.Deserialize<TApiResult>(jsonReader), setItems, setUsers, !this.m_firstRefresh);
+                                if (cursor != null)
+                                    this.Cursor = cursor;
+                            }
                         }
-                    }
 
-                    Task.Factory.StartNew(() =>
-                    {
-                        Parallel.ForEach(
-                            setUsers,
-                            new ParallelOptions
-                            {
-                                CancellationToken = token,
-                            },
-                            user =>
-                            {
-                                if (this.m_twitterClient.UserCache.IsUpdated(user))
-                                    this.UserUpdatedEvent(user);
-                            });
-                    });
-
-                    if (!this.m_firstRefresh && setItems.Count > 0)
-                    {
                         Task.Factory.StartNew(() =>
                         {
                             Parallel.ForEach(
-                                this.m_twitterClient.GetConnections(),
+                                setUsers,
                                 new ParallelOptions
                                 {
                                     CancellationToken = token,
                                 },
-                                connection =>
+                                user =>
                                 {
-                                    foreach (var item in setItems)
-                                        connection.SendToStream(item);
+                                    if (this.m_twitterClient.UserCache.IsUpdated(user))
+                                        this.UserUpdatedEvent(user);
                                 });
                         });
+
+                        if (!this.m_firstRefresh && setItems.Count > 0)
+                        {
+                            Task.Factory.StartNew(() =>
+                            {
+                                Parallel.ForEach(
+                                    this.m_twitterClient.GetConnections(),
+                                    new ParallelOptions
+                                    {
+                                        CancellationToken = token,
+                                    },
+                                    connection =>
+                                    {
+                                        foreach (var item in setItems)
+                                            connection.SendToStream(item);
+                                    });
+                            });
+                        }
+                        this.m_firstRefresh = false;
                     }
-                    this.m_firstRefresh = false;
 
                     return CalcNextRefresh(res.Headers);
                 }
