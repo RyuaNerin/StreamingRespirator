@@ -103,6 +103,7 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
         {
             this.m_threadCancel?.Cancel();
             this.m_threadIsNotWorking.Wait();
+            this.Clear();
         }
 
         private readonly object m_cursorLock = new object();
