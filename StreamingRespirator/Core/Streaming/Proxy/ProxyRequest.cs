@@ -85,9 +85,22 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 {
                     break;
                 }
-
-                var i = line.IndexOf(':');
-                req.Headers.Add(line.Substring(0, i), line.Substring(i + 1).Trim());
+                if (line.IndexOf("\r\n") > -1)
+                {
+                    var lines = line.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        var index = lines[i].IndexOf(':');
+                        string key = lines[i].Substring(0, index);
+                        string value = lines[i].Substring(index + 1).Trim();
+                        req.Headers.Add(key, value);
+                    }
+                }
+                else
+                {
+                    var i = line.IndexOf(':');
+                    req.Headers.Add(line.Substring(0, i), line.Substring(i + 1).Trim());
+                }
             }
 
             req.RemoteHost = req.Method == "CONNECT" ? req.RequestUriRaw : req.Headers.Get("Host");
