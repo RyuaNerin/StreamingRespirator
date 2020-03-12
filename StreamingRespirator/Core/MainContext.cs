@@ -14,8 +14,6 @@ namespace StreamingRespirator.Core
     {
         private readonly Control m_invoker;
 
-        private readonly RespiratorServer m_server;
-
         private NotifyIcon m_notifyIcon;
         private ContextMenuStrip m_contextMenuStrip;
         private ToolStripMenuItem m_stripAbout;
@@ -29,8 +27,6 @@ namespace StreamingRespirator.Core
         {
             this.m_invoker = new Control();
             this.m_invoker.CreateControl();
-
-            this.m_server = server;
 
             TwitterClientFactory.ClientUpdated += this.TwitterClientFactory_ClientUpdated;
 
