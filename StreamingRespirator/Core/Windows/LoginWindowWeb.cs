@@ -22,11 +22,6 @@ namespace StreamingRespirator.Core.Windows
 
         public TwitterCredential TwitterCredential { get; private set; }
 
-        static LoginWindowWeb()
-        {
-            NativeMethods.SetCookieSupressBehavior();
-        }
-
         public LoginWindowWeb()
         {
             this.InitializeComponent();
@@ -47,6 +42,7 @@ namespace StreamingRespirator.Core.Windows
                 Visible = false
             };
 
+            this.m_webBrowser.PreviewKeyDown += this.webBrowser_PreviewKeyDown;
             this.m_webBrowser.DocumentCompleted += new WebBrowserDocumentCompletedEventHandler(this.ctlWeb_DocumentCompleted);
             this.m_webBrowser.Navigating += new WebBrowserNavigatingEventHandler(this.ctlWeb_Navigating);
             this.m_webBrowser.VisibleChanged += (s, e) => this.m_label.Visible = !this.m_webBrowser.Visible;
@@ -62,7 +58,7 @@ namespace StreamingRespirator.Core.Windows
             this.AutoScaleDimensions = new SizeF(96F, 96F);
             this.AutoScaleMode = AutoScaleMode.Dpi;
             this.BackColor = Color.White;
-            this.ClientSize = new Size(380, 240);
+            this.ClientSize = new Size(400, 260);
             this.FormBorderStyle = FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -74,6 +70,14 @@ namespace StreamingRespirator.Core.Windows
             this.Text = "새 계정 추가";
 
             this.ResumeLayout(false);
+        }
+
+        private void webBrowser_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+        {
+            if (e.KeyData == Keys.F5)
+            {
+                e.IsInputKey = true;
+            }
         }
 
         private bool m_disposed = false;
@@ -122,6 +126,7 @@ namespace StreamingRespirator.Core.Windows
             this.m_webBrowserSh.RegisterAsDropTarget = false;
             this.m_webBrowserSh.AddressBar = false;
 
+            NativeMethods.SetCookieSupressBehavior();
             this.m_webBrowser.Navigate("https://twitter.com/login");
         }
 
@@ -140,7 +145,16 @@ namespace StreamingRespirator.Core.Windows
         private bool m_logined = false;
         private void ctlWeb_DocumentCompleted(object sender, WebBrowserDocumentCompletedEventArgs e)
         {
-            if (this.m_webBrowser.Url.Host == "twitter.com" && this.m_webBrowser.Url.AbsolutePath == "/")
+            if (string.IsNullOrWhiteSpace(e.Url.Host))
+                return;
+
+            if (e.Url.Host != "twitter.com")
+            {
+                this.m_webBrowser.Navigate("https://twitter.com/login");
+                return;
+            }
+
+            if (e.Url.AbsolutePath == "/")
             {
                 if (this.m_logined)
                     return;
@@ -182,36 +196,78 @@ namespace StreamingRespirator.Core.Windows
                 {
                 }
 
-                doc.RemoveElementByClass("topbar js-topbar");
-                doc.RemoveElementByClass("clearfix mobile has-sms");
-                doc.RemoveElementByClass("subchck");
-
-                doc.body.style.backgroundColor = "#FFF";
-
                 IHTMLElement elem;
 
-                elem = doc.GetElementByClassName("message-text");
-                if (elem != null)
+                if (e.Url.AbsolutePath.StartsWith("/login"))
                 {
-                    var msg = elem.innerText;
-                    if (!string.IsNullOrWhiteSpace(msg))
-                        MessageBox.Show(this, msg, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
-                    elem.RemoveElement();
-                }
+                    doc.RemoveElementByClass("topbar js-topbar");
+                    doc.RemoveElementByClass("clearfix mobile has-sms");
+                    doc.RemoveElementByClass("subchck");
 
-                elem = doc.getElementById("page-container");
-                if (elem != null)
+                    doc.body.style.backgroundColor = "#FFF";
+
+                    elem = doc.GetElementByClassName("message-text");
+                    if (elem != null)
+                    {
+                        var msg = elem.innerText;
+                        if (!string.IsNullOrWhiteSpace(msg))
+                            MessageBox.Show(this, msg, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                        elem.RemoveElement();
+                    }
+
+                    elem = doc.getElementById("page-container");
+                    if (elem != null)
+                    {
+                        elem.style.padding = "3px";
+                        elem.style.border = "";
+                    }
+                }
+                else if (e.Url.AbsolutePath.StartsWith("/account/login_verification"))
                 {
-                    elem.style.padding = "3px";
-                    elem.style.border = "";
-                }
+                    doc.RemoveElementByClass("TopNav");
+                    doc.RemoveElementByClass("PageHeader Edge");
+                    doc.RemoveElementsByClass("Help");
 
-                this.m_webBrowser.Visible = true;
+                    elem = doc.GetElementByClassName("Section");
+                    if (elem != null)
+                    {
+                        var c = (IHTMLElementCollection)elem.children;
+                        if (c != null)
+                        {
+                            foreach (IHTMLElement child in c)
+                            {
+                                if (child.tagName == "p")
+                                {
+                                    child.RemoveElement();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    elem = doc.getElementById("error-message");
+                    if (elem != null)
+                    {
+                        var msg = elem.innerText;
+                        if (!string.IsNullOrWhiteSpace(msg))
+                            MessageBox.Show(this, msg, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                        elem.RemoveElement();
+                    }
+
+                    elem = doc.getElementById("ResponsiveLayout");
+                    if (elem != null)
+                    {
+                        elem.style.padding = "3px";
+                        elem.style.border = "";
+                    }
+                }
             }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
             }
+
+            this.m_webBrowser.Visible = true;
         }
 
         private static class NativeMethods
@@ -309,6 +365,25 @@ namespace StreamingRespirator.Core.Windows
             }
             catch
             {
+            }
+        }
+        public static void RemoveElementsByClass(this HTMLDocument doc, string value)
+        {
+            while (true)
+            {
+                var elem = doc.GetElementByClassName(value);
+
+                if (elem == null)
+                    break;
+
+                try
+                {
+                    ((dynamic)elem).parentNode.removeChild(elem);
+                }
+                catch
+                {
+                    break;
+                }
             }
         }
 
