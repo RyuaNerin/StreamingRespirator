@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Sentry;
@@ -198,7 +199,7 @@ namespace StreamingRespirator.Core
                         {
                             this.m_contextMenuStrip.Items.Remove(cts.RootItem);
 
-                            foreach (ToolStripMenuItem subItem in cts.RootItem.DropDownItems)
+                            foreach (var subItem in cts.RootItem.DropDownItems.OfType<ToolStripMenuItem>().ToArray())
                                 subItem.Dispose();
                             cts.RootItem.Dispose();
 
