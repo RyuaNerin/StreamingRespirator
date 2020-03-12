@@ -92,8 +92,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
                             }
                         }
 
-                        mem.Write(buff, 0, buffLen);
-                        buffLen = 0;
+                        mem.Write(buff, 0, buffLen - 1);
+                        buff[0] = buff[buffLen - 1];
+                        buffLen = 1;
                     }
                 } while (true);
 
