@@ -42,5 +42,7 @@ deploy:
   prerelease: false
   force_update: false
   artifact: executable
+  on:
+    appveyor_repo_tag: true
 
 test: off
