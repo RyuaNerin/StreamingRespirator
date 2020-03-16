@@ -30,7 +30,7 @@ namespace StreamingRespirator.Core.Streaming
         private readonly Socket m_socketServer;
 
         private readonly Barrier m_connectionsBarrier = new Barrier(0);
-        private readonly LinkedList<TcpClient> m_connections = new LinkedList<TcpClient>();
+        private readonly LinkedList<Socket> m_connections = new LinkedList<Socket>();
 
         public int Port { get; }
 
@@ -68,7 +68,7 @@ namespace StreamingRespirator.Core.Streaming
 
                 this.m_socketServer.Close();
 
-                TcpClient[] currentConnections;
+                Socket[] currentConnections;
                 lock (this.m_connections)
                 {
                     currentConnections = this.m_connections.ToArray();
@@ -80,8 +80,8 @@ namespace StreamingRespirator.Core.Streaming
                     {
                         try
                         {
-                            client.Client.Shutdown(SocketShutdown.Both);
-                            client.Client.Disconnect(false);
+                            client.Shutdown(SocketShutdown.Both);
+                            client.Disconnect(false);
                         }
                         catch
                         {
@@ -138,23 +138,23 @@ namespace StreamingRespirator.Core.Streaming
 
         private void SocketThread(object socketObject)
         {
-            using (var client = (TcpClient)socketObject)
-            using (var clientStream = client.GetStream())
+            using (var socket = (Socket)socketObject)
+            using (var stream = new NetworkStream(socket))
             {
-                var desc = $"{client.Client.LocalEndPoint} > {client.Client.RemoteEndPoint}";
+                var desc = $"{socket.LocalEndPoint} > {socket.RemoteEndPoint}";
 
-                LinkedListNode<TcpClient> clientNode;
+                LinkedListNode<Socket> socketNode;
 
                 this.m_connectionsBarrier.AddParticipant();
                 lock (this.m_connections)
                 {
-                    clientNode = this.m_connections.AddLast(client);
+                    socketNode = this.m_connections.AddLast(socket);
                     Debug.WriteLine($"Connected {desc} ({this.m_connections.Count})");
                 }
 
                 try
                 {
-                    this.SocketThreadSub(clientStream);
+                    this.SocketThreadSub(stream);
                 }
                 catch (Exception ex)
                 {
@@ -163,12 +163,12 @@ namespace StreamingRespirator.Core.Streaming
 
                 lock (this.m_connections)
                 {
-                    this.m_connections.Remove(clientNode);
+                    this.m_connections.Remove(socketNode);
                     Debug.WriteLine($"Disconnected {desc} {this.m_connections.Count}");
                 }
                 try
                 {
-                    client.Close();
+                    socket.Close();
                 }
                 catch
                 {
