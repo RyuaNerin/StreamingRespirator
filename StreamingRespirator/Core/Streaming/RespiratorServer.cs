@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -29,15 +30,11 @@ namespace StreamingRespirator.Core.Streaming
         private readonly Barrier m_connectionsBarrier = new Barrier(0);
         private readonly LinkedList<TcpClient> m_connections = new LinkedList<TcpClient>();
 
-        public bool IsRunning { get; private set; }
-
         public RespiratorServer()
         {
             this.m_tcpListener = new TcpListener(new IPEndPoint(IPAddress.Loopback, Config.Instance.Proxy.Port));
 
-            if (this.IsRunning)
-                return;
-            this.IsRunning = true;
+            NativeMethods.SetHandleInformation(this.m_tcpListener.Server.Handle, NativeMethods.HANDLE_FLAGS.INHERIT, NativeMethods.HANDLE_FLAGS.NONE);
 
             this.m_tcpListener.Start(64);
             this.m_tcpListener.BeginAcceptTcpClient(this.AcceptClient, null);
@@ -48,8 +45,8 @@ namespace StreamingRespirator.Core.Streaming
         }
         public void Dispose()
         {
-            GC.SuppressFinalize(this);
             this.Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         private bool m_disposed;
@@ -679,6 +676,20 @@ namespace StreamingRespirator.Core.Streaming
 
             ctx.Response.StatusCode = statusCode;
             return true;
+        }
+
+        private static class NativeMethods
+        {
+            [DllImport("kernel32.dll")]
+            public static extern bool SetHandleInformation(IntPtr hObject, HANDLE_FLAGS dwMask, HANDLE_FLAGS dwFlags);
+
+            [Flags]
+            public enum HANDLE_FLAGS : uint
+            {
+                NONE = 0,
+                INHERIT = 1,
+                PROTECT_FROM_CLOSE = 2
+            }
         }
     }
 }
