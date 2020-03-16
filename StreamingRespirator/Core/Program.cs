@@ -3,6 +3,7 @@ using System.IO;
 using System.Net;
 using System.Net.Cache;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
