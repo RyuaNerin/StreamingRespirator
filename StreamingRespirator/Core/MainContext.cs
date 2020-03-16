@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -17,13 +18,16 @@ namespace StreamingRespirator.Core
         private NotifyIcon m_notifyIcon;
         private ContextMenuStrip m_contextMenuStrip;
         private ToolStripMenuItem m_stripAbout;
+        private ToolStripLabel m_scripPort;
         private ToolStripMenuItem m_stripConfig;
         private ToolStripSeparator m_stripSepAccount;
         private ToolStripMenuItem m_stripAdd;
         private ToolStripSeparator m_stripSepExit;
         private ToolStripMenuItem m_stripExit;
 
-        public MainContext(RespiratorServer server)
+        private RespiratorServer m_server;
+
+        public MainContext()
         {
             this.m_invoker = new Control();
             this.m_invoker.CreateControl();
@@ -34,7 +38,7 @@ namespace StreamingRespirator.Core
             Lang.ApplyLang(this);
 
             if (TwitterClientFactory.AccountCount == 0)
-                this.m_notifyIcon.ShowBalloonTip(10000, Lang.Name, Lang.MainContext_NoAccount, ToolTipIcon.Info);
+                this.m_notifyIcon.ShowBalloonTip(10000, Lang.Name, Lang.MainContext__NoAccount, ToolTipIcon.Info);
             else
             {
                 foreach (var user in Config.Instance.Accounts)
@@ -44,6 +48,18 @@ namespace StreamingRespirator.Core
             }
 
             Program.CheckUpdate(this);
+
+            this.StartServer();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.m_server.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
 
         private void InitializeComponent()
@@ -55,6 +71,10 @@ namespace StreamingRespirator.Core
 
             this.m_stripConfig = new ToolStripMenuItem("호흡기 설정");
             this.m_stripConfig.Click += this.StripConfig_Click;
+
+            ////////////////////////////////////////////////////////////
+
+            this.m_scripPort = new ToolStripLabel("포트 : ");
 
             ////////////////////////////////////////////////////////////
 
@@ -77,6 +97,7 @@ namespace StreamingRespirator.Core
                 Items =
                 {
                     this.m_stripAbout,
+                    this.m_scripPort,
                     this.m_stripConfig,
                     this.m_stripSepAccount,
                     this.m_stripAdd,
@@ -94,6 +115,64 @@ namespace StreamingRespirator.Core
             this.m_notifyIcon.BalloonTipClicked += this.NotifyIcon_BalloonTipClicked;
         }
 
+        public void StartServer()
+        {
+            var port = Config.Instance.Proxy.Port;
+            if (this.m_server?.Port == port)
+                return;
+
+            try
+            {
+                this.m_invoker.Invoke(new Action(() =>
+                {
+                    try
+                    {
+                        this.m_scripPort.ForeColor = Color.Red;
+                        this.m_scripPort.Text = string.Format(Lang.MainContext__m_scripPort__Text, "");
+                    }
+                    catch
+                    {
+                    }
+                }));
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                this.m_server?.Dispose();
+                this.m_server = null;
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+            }
+
+            try
+            {
+                this.m_server = new RespiratorServer(port);
+
+                this.m_invoker.Invoke(new Action(() =>
+                {
+                    try
+                    {
+                        this.m_scripPort.ForeColor = SystemColors.ControlText;
+                        this.m_scripPort.Text = string.Format(Lang.MainContext__m_scripPort__Text, port);
+                    }
+                    catch
+                    {
+                    }
+                }));
+            }
+            catch (Exception ex)
+            {
+                SentrySdk.CaptureException(ex);
+
+                this.m_invoker.Invoke(new Action(() => MessageBox.Show(Lang.StartError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information)));
+            }
+        }
+
         protected override void ExitThreadCore()
         {
             this.m_notifyIcon.Visible = false;
@@ -104,7 +183,12 @@ namespace StreamingRespirator.Core
         private void StripConfig_Click(object sender, EventArgs e)
         {
             using (var frm = new ConfigWindow())
-                frm.ShowDialog();
+            {
+                if (frm.ShowDialog() == DialogResult.OK)
+                {
+                    this.StartServer();
+                }
+            }
         }
 
         private struct ClientToolStripItems
@@ -123,7 +207,7 @@ namespace StreamingRespirator.Core
         {
             var st = new ClientToolStripItems
             {
-                Remove = new ToolStripMenuItem(Lang.MainContext_Client_Remove)
+                Remove = new ToolStripMenuItem(Lang.MainContext__Client__Remove)
                 {
                     Tag = id,
                 },
@@ -152,7 +236,7 @@ namespace StreamingRespirator.Core
 
             st.Remove.Click += new EventHandler(this.StripRemoveClient_Click);
 
-            var refreshButton = new ToolStripMenuItem(Lang.MainContext_Client_Refresh)
+            var refreshButton = new ToolStripMenuItem(Lang.MainContext__Client__Refresh)
             {
                 Tag = id,
             };

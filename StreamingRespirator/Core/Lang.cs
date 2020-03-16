@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -18,14 +19,13 @@ namespace StreamingRespirator.Core
         public static string CertificateInstall             { get; private set; }
         public static string CertificateRemoveOld           { get; private set; }
 
-        public static string LoginWindowWeb_AddSuccess      { get; private set; }
-        public static string LoginWindowWeb_AddError        { get; private set; }
+        public static string LoginWindowWeb__AddSuccess     { get; private set; }
+        public static string LoginWindowWeb__AddError       { get; private set; }
 
-        public static string MainContext_NoAccount          { get; private set; }
-        public static string MainContext_Client_Remove      { get; private set; }
-        public static string MainContext_Client_Refresh     { get; private set; }
-
-        public static string ConfigWindow_ApplyAfterRestart { get; private set; }
+        public static string MainContext__NoAccount         { get; private set; }
+        public static string MainContext__Client__Remove    { get; private set; }
+        public static string MainContext__Client__Refresh   { get; private set; }
+        public static string MainContext__m_scripPort__Text { get; private set; }
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////
         
@@ -59,7 +59,7 @@ namespace StreamingRespirator.Core
 
             foreach (var p in typeof(Lang).GetProperties(BindingFlags.Static | BindingFlags.GetProperty | BindingFlags.Public))
             {
-                var ss = p.Name.Split('_');
+                var ss = p.Name.Split(new string[] { "__" }, StringSplitOptions.RemoveEmptyEntries);
 
                 var d = LangMap;
                 for (var i = 0; i < ss.Length - 1; i++)
@@ -134,16 +134,16 @@ namespace StreamingRespirator.Core
             }
         }
 
-        public interface ILangData
+        private interface ILangData
         {
         }
 
-        public class LangDic : Dictionary<string, ILangData>, ILangData
+        private class LangDic : Dictionary<string, ILangData>, ILangData
         {
 
         }
 
-        public class LangValue : ILangData
+        private class LangValue : ILangData
         {
             public LangValue(string v)
                 => this.Value = v;

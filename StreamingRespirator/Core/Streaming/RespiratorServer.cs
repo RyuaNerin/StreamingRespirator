@@ -25,19 +25,26 @@ namespace StreamingRespirator.Core.Streaming
     /// </summary>
     internal class RespiratorServer : IDisposable
     {
-        private readonly TcpListener m_tcpListener;
+        private readonly CancellationTokenSource m_tunnelCancel = new CancellationTokenSource();
+
+        private readonly Socket m_socketServer;
 
         private readonly Barrier m_connectionsBarrier = new Barrier(0);
         private readonly LinkedList<TcpClient> m_connections = new LinkedList<TcpClient>();
 
-        public RespiratorServer()
+        public int Port { get; }
+
+        public RespiratorServer(int port)
         {
-            this.m_tcpListener = new TcpListener(new IPEndPoint(IPAddress.Loopback, Config.Instance.Proxy.Port));
+            this.Port = port;
 
-            NativeMethods.SetHandleInformation(this.m_tcpListener.Server.Handle, NativeMethods.HANDLE_FLAGS.INHERIT, NativeMethods.HANDLE_FLAGS.NONE);
+            this.m_socketServer = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-            this.m_tcpListener.Start(64);
-            this.m_tcpListener.BeginAcceptTcpClient(this.AcceptClient, null);
+            NativeMethods.SetHandleInformation(this.m_socketServer.Handle, NativeMethods.HANDLE_FLAGS.INHERIT, NativeMethods.HANDLE_FLAGS.NONE);
+
+            this.m_socketServer.Bind(new IPEndPoint(IPAddress.Loopback, Config.Instance.Proxy.Port));
+            this.m_socketServer.Listen(64);
+            this.m_socketServer.BeginAccept(this.AcceptClient, null);
         }
         ~RespiratorServer()
         {
@@ -57,9 +64,9 @@ namespace StreamingRespirator.Core.Streaming
 
             if (disposing)
             {
-                Tunnel.CancelAllTunnel();
+                this.m_tunnelCancel.Cancel();
 
-                this.m_tcpListener.Stop();
+                this.m_socketServer.Close();
 
                 TcpClient[] currentConnections;
                 lock (this.m_connections)
@@ -97,6 +104,9 @@ namespace StreamingRespirator.Core.Streaming
                 {
                 }
 
+                this.m_tunnelCancel.Dispose();
+                this.m_socketServer.Dispose();
+
                 this.m_connectionsBarrier.Dispose();
             }
         }
@@ -105,9 +115,7 @@ namespace StreamingRespirator.Core.Streaming
         {
             try
             {
-                var client = this.m_tcpListener.EndAcceptTcpClient(ar);
-
-                new Thread(this.SocketThread).Start(client);
+                new Thread(this.SocketThread).Start(this.m_socketServer.EndAccept(ar));
             }
             catch (ObjectDisposedException)
             {
@@ -120,7 +128,7 @@ namespace StreamingRespirator.Core.Streaming
             {
                 try
                 {
-                    this.m_tcpListener.BeginAcceptTcpClient(this.AcceptClient, null);
+                    this.m_socketServer.BeginAccept(this.AcceptClient, null);
                 }
                 catch
                 {
@@ -191,15 +199,15 @@ namespace StreamingRespirator.Core.Streaming
                     switch (host)
                     {
                         case "userstream.twitter.com":
-                            t = new TunnelSslMitm(req, clientStream, Certificates.Client, this.HostStreaming);
+                            t = new TunnelSslMitm(req, clientStream, this.m_tunnelCancel.Token, Certificates.Client, this.HostStreaming);
                             break;
 
                         case "api.twitter.com":
-                            t = new TunnelSslMitm(req, clientStream, Certificates.Client, this.HostAPI);
+                            t = new TunnelSslMitm(req, clientStream, this.m_tunnelCancel.Token, Certificates.Client, this.HostAPI);
                             break;
 
                         default:
-                            t = new TunnelSslForward(req, clientStream);
+                            t = new TunnelSslForward(req, clientStream, this.m_tunnelCancel.Token);
                             break;
                     }
                 }
@@ -207,7 +215,7 @@ namespace StreamingRespirator.Core.Streaming
                 // HTTP
                 else
                 {
-                    t = new TunnelPlain(req, clientStream);
+                    t = new TunnelPlain(req, clientStream, this.m_tunnelCancel.Token);
                 }
 
                 using (t)

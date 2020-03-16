@@ -1,13 +1,14 @@
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StreamingRespirator.Core.Streaming.Proxy
 {
     internal sealed class TunnelPlain : Tunnel
     {
-        public TunnelPlain(ProxyRequest preq, Stream stream)
-            : base(preq, stream)
+        public TunnelPlain(ProxyRequest preq, Stream stream, CancellationToken token)
+            : base(preq, stream, token)
         {
         }
 

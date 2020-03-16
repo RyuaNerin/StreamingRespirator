@@ -170,13 +170,13 @@ namespace StreamingRespirator.Core.Windows
 
                     if (twitCred != null)
                     {
-                        this.Invoke(new Action(() => MessageBox.Show(this, string.Format(Lang.LoginWindowWeb_AddSuccess, twitCred.ScreenName), Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information)));
+                        this.Invoke(new Action(() => MessageBox.Show(this, string.Format(Lang.LoginWindowWeb__AddSuccess, twitCred.ScreenName), Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information)));
 
                         this.TwitterCredential = twitCred;
                     }
                     else
                     {
-                        this.Invoke(new Action(() => MessageBox.Show(this, Lang.LoginWindowWeb_AddError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)));
+                        this.Invoke(new Action(() => MessageBox.Show(this, Lang.LoginWindowWeb__AddError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)));
                     }
 
                     this.Invoke(new Action(this.Close));

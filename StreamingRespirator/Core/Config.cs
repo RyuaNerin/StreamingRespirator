@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Text;
-using System.Threading;
 using Newtonsoft.Json;
 using Sentry;
 using StreamingRespirator.Core.Streaming;
@@ -10,9 +9,9 @@ namespace StreamingRespirator.Core
 {
     internal class Config
     {
-        public static Config Instance { get; }
+        public static Config Instance { get; private set; }
 
-        static Config()
+        public static void Load()
         {
             try
             {
@@ -33,13 +32,13 @@ namespace StreamingRespirator.Core
 
             TwitterClientFactory.SetInstances(Instance.Accounts);
 
-            Interlocked.Exchange(ref Load, 1);
+            Loaded = true;
         }
 
-        private static long Load = 0;
+        private static volatile bool Loaded;
         public static void Save()
         {
-            if (Interlocked.Read(ref Load) == 0)
+            if (!Loaded)
                 return;
 
             TwitterClientFactory.CopyInstances(Instance.Accounts);
@@ -56,6 +55,10 @@ namespace StreamingRespirator.Core
             {
                 SentrySdk.CaptureException(ex);
             }
+        }
+
+        private Config()
+        {
         }
 
 

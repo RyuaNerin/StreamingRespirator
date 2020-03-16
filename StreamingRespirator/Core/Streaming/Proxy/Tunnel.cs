@@ -12,22 +12,16 @@ namespace StreamingRespirator.Core.Streaming.Proxy
     {
         protected const int CopyToBufferSize = 32 * 1024;
 
-        private static readonly CancellationTokenSource GlobalCancelSource = new CancellationTokenSource();
-        public static void CancelAllTunnel()
-        {
-            GlobalCancelSource.Cancel();
-        }
-
         protected ProxyRequest Reqeust { get; }
         protected Stream ProxyStream { get; }
         protected CancellationTokenSource CancelSource { get; }
 
-        protected Tunnel(ProxyRequest preq, Stream stream)
+        protected Tunnel(ProxyRequest preq, Stream stream, CancellationToken token)
         {
             this.Reqeust = preq;
             this.ProxyStream = stream;
 
-            this.CancelSource = CancellationTokenSource.CreateLinkedTokenSource(GlobalCancelSource.Token);
+            this.CancelSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             this.CancelSource.Token.Register(stream.Close);
         }
         ~Tunnel()

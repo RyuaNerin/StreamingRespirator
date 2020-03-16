@@ -1,12 +1,11 @@
-using System;
 using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using System.Threading.Tasks;
-using Sentry;
 
 namespace StreamingRespirator.Core.Streaming.Proxy
 {
@@ -17,8 +16,8 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         private readonly MitmHandler m_handler;
         private readonly X509Certificate2 m_certificate;
 
-        public TunnelSslMitm(ProxyRequest preq, Stream stream, X509Certificate2 certificate, MitmHandler handler)
-            : base(preq, stream)
+        public TunnelSslMitm(ProxyRequest preq, Stream stream, CancellationToken token, X509Certificate2 certificate, MitmHandler handler)
+            : base(preq, stream, token)
         {
             this.m_certificate = certificate;
             this.m_handler = handler;

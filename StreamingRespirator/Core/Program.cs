@@ -70,22 +70,10 @@ namespace StreamingRespirator.Core
                     return;
                 }
 
-                RespiratorServer server;
-                try
+                Config.Load();
+                using (var context = new MainContext())
                 {
-                    server = new RespiratorServer();
-                }
-                catch (Exception ex)
-                {
-                    SentrySdk.CaptureException(ex);
-
-                    MessageBox.Show(Lang.StartError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-
-                using (server)
-                {
-                    Application.Run(new MainContext(server));
+                    Application.Run(context);
                     Config.Save();
                 }
             }

@@ -58,11 +58,6 @@ namespace StreamingRespirator.Core.Windows
                 }
             }
 
-            if (Config.Instance.Proxy.Port != (int)this.ctlPort.Value)
-            {
-                MessageBox.Show(this, Lang.ConfigWindow_ApplyAfterRestart, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-
             Config.Instance.StartWithWindows = this.ctlAutoStartup.Checked;
 
             Config.Instance.Proxy.Port = (int)this.ctlPort.Value;
