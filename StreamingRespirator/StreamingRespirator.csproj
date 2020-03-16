@@ -80,6 +80,9 @@
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="Onova, Version=2.5.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Onova.2.5.2\lib\net46\Onova.dll</HintPath>
+    </Reference>
     <Reference Include="Sentry, Version=2.0.2.0, Culture=neutral, PublicKeyToken=fba2ec45388e2af0, processorArchitecture=MSIL">
       <HintPath>..\packages\Sentry.2.0.2\lib\net461\Sentry.dll</HintPath>
     </Reference>
@@ -95,6 +98,7 @@
     </Reference>
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression, Version=4.2.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Web" />
@@ -150,7 +154,6 @@
     <Compile Include="Core\Streaming\Twitter\Packet\PacketDirectMessage.cs" />
     <Compile Include="Core\Streaming\Twitter\Activity.cs" />
     <Compile Include="Core\Streaming\Twitter\DirectMessage.cs" />
-    <Compile Include="Core\LastRelease.cs" />
     <Compile Include="Core\Streaming\StreamingConnection.cs" />
     <Compile Include="Core\Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

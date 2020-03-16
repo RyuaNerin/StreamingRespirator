@@ -1,13 +1,14 @@
 using System;
-using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Cache;
 using System.Net.NetworkInformation;
-using System.Reflection;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using Onova;
+using Onova.Services;
 using Sentry;
 using StreamingRespirator.Core.Streaming;
 
@@ -62,11 +63,6 @@ namespace StreamingRespirator.Core
 
                 CrashReport.Init();
 
-                if (Assembly.GetExecutingAssembly().GetName().Version.ToString() != "0.0.0.0" && !CheckUpdate())
-                {
-                    return;
-                }
-
                 if (!Certificates.InstallCACertificates())
                 {
                     MessageBox.Show(Lang.CertificateError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
@@ -94,25 +90,36 @@ namespace StreamingRespirator.Core
             }
         }
 
-        static bool CheckUpdate()
+        public static async void CheckUpdate(ApplicationContext context)
         {
-            if (GithubLatestRelease.CheckNewVersion())
+            if (Assembly.GetExecutingAssembly().GetName().Version.ToString() != "0.0.0.0")
             {
-                MessageBox.Show(Lang.NewUpdate, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                try
+                using (var manager = new UpdateManager(new GithubPackageResolver("RyuaNerin", "StreamingRespirator", "*.exe"), new ExecutablePackageExtractor()))
                 {
-                    Process.Start("https://github.com/RyuaNerin/StreamingRespirator/blob/master/README.md")?.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    SentrySdk.CaptureException(ex);
-                }
+                    var r = await manager.CheckForUpdatesAsync();
 
-                return false;
+                    if (r.CanUpdate)
+                    {
+                        await manager.PrepareUpdateAsync(r.LastVersion);
+
+                        manager.LaunchUpdater(r.LastVersion, true);
+
+                        if (MessageBox.Show(Lang.NewUpdate, Lang.Name, MessageBoxButtons.OKCancel, MessageBoxIcon.Information) == DialogResult.Cancel)
+                            return;
+
+                        context.ExitThread();
+                    }
+                }
             }
+        }
 
-            return true;
+        private class ExecutablePackageExtractor : IPackageExtractor
+        {
+            public Task ExtractPackageAsync(string sourceFilePath, string destDirPath, IProgress<double> progress = null, CancellationToken cancellationToken = default)
+            {
+                File.Copy(sourceFilePath, Path.Combine(destDirPath, Path.GetFileName(Application.ExecutablePath)));
+                return Task.CompletedTask;
+            }
         }
     }
 }

@@ -42,6 +42,8 @@ namespace StreamingRespirator.Core
                     this.m_clients.Add(user.Id, this.NewClientToolStripItems(user.Id, user.ScreenName));
                 }
             }
+
+            Program.CheckUpdate(this);
         }
 
         private void InitializeComponent()
