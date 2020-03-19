@@ -70,9 +70,17 @@
 
 ## 개발중인 앱에 연결
 
-- 스트리밍 호흡기는 다음과 같이 사용할 수 있습니다
+- 스트리밍 호흡기는 다음 두 가지 방법으로 연결하여 사용할 수 있습니다
+1. HTTP 프록시 사용
+  - 아래 두 연결을 사용할 때 스트리밍 호흡기의 포트에 맞게 proxy 설정을 해주세요.
+  	- `streaming.twitter.com`
+    - `api.twitter.com`
 
-- 아래 두 연결을 사용할 때 스트리밍 호흡기의 포트에 맞게 proxy 설정을 해주세요.
-	- `streaming.twitter.com`
-	- `api.twitter.com`
-
+2. HTTP 연결
+  - 프록시 사용이 불가능할 때 다음과 같이 사용하실 수 있습니다.
+    - `https://userstream.twitter.com/A/B/C` →
+      - `http://127.0.0.1:port/userstream.twitter.com/A/B/C`
+      - `https://localhost:port/userstream.twitter.com/A/B/C`
+    - `https://api.twitter.com/A/B/C` →
+      - `http://127.0.0.1:port/api.twitter.com/A/B/C`
+      - `https://localhost:port/api.twitter.com/A/B/C`

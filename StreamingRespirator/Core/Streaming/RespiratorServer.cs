@@ -194,9 +194,7 @@ namespace StreamingRespirator.Core.Streaming
                 if (req.Method == "CONNECT")
                 {
                     // 호스트 확인하고 처리
-                    var host = req.RemoteHost;
-
-                    switch (host)
+                    switch (req.RemoteHost)
                     {
                         case "userstream.twitter.com":
                             t = new TunnelSslMitm(req, clientStream, this.m_tunnelCancel.Token, Certificates.Client, this.HostStreaming);
@@ -204,6 +202,11 @@ namespace StreamingRespirator.Core.Streaming
 
                         case "api.twitter.com":
                             t = new TunnelSslMitm(req, clientStream, this.m_tunnelCancel.Token, Certificates.Client, this.HostAPI);
+                            break;
+
+                        case "localhost":
+                        case "127.0.0.1":
+                            t = new TunnelSslMitm(req, clientStream, this.m_tunnelCancel.Token, Certificates.Client, this.HostLocalhost);
                             break;
 
                         default:
@@ -215,11 +218,58 @@ namespace StreamingRespirator.Core.Streaming
                 // HTTP
                 else
                 {
-                    t = new TunnelPlain(req, clientStream, this.m_tunnelCancel.Token);
+                    // 호스트 확인하고 처리
+                    switch (req.RemoteHost)
+                    {
+                        case "localhost":
+                        case "127.0.0.1":
+                            using (var resp = new ProxyResponse(clientStream))
+                            {
+                                this.HostLocalhost(new ProxyContext(req, resp));
+
+                                if (!resp.HeaderSent)
+                                {
+                                    using (var respErr = new ProxyResponse(clientStream))
+                                        respErr.StatusCode = HttpStatusCode.InternalServerError;
+                                }
+                            }
+                            break;
+
+                        default:
+                            t = new TunnelPlain(req, clientStream, this.m_tunnelCancel.Token);
+                            break;
+                    }
                 }
 
                 using (t)
                     t.Handle();
+            }
+        }
+
+        private bool HostLocalhost(ProxyContext ctx)
+        {
+            if (TrimHost("/userstream.twitter.com/"))
+                return this.HostStreaming(ctx);
+
+            if (TrimHost("/api.twitter.com/"))
+                return this.HostAPI(ctx);
+
+            ctx.Response.StatusCode = HttpStatusCode.BadRequest;
+            return true;
+
+            bool TrimHost(string host)
+            {
+                if (ctx.Request.RequestUri.AbsolutePath.StartsWith($"/{host}/"))
+                {
+                    ctx.Request.RequestUri = new UriBuilder(ctx.Request.RequestUri)
+                    {
+                        Path = ctx.Request.RequestUri.AbsolutePath.Substring(host.Length + 1),
+                    }.Uri;
+
+                    return true;
+                }
+
+                return false;
             }
         }
 

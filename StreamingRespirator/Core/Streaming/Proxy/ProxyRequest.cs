@@ -41,7 +41,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
         public string Method        { get; private set; }
         public string RequestUriRaw { get; private set; } // CONNECT 전용
-        public Uri    RequestUri    { get; private set; }
+        public Uri    RequestUri    { get; set; }
         public string Version       { get; private set; }
 
         public string RemoteHost { get; private set; }
