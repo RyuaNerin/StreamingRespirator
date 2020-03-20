@@ -73,14 +73,34 @@
 - 스트리밍 호흡기는 다음 두 가지 방법으로 연결하여 사용할 수 있습니다
 1. HTTP 프록시 사용
   - 아래 두 연결을 사용할 때 스트리밍 호흡기의 포트에 맞게 proxy 설정을 해주세요.
-  	- `streaming.twitter.com`
-    - `api.twitter.com`
+  	- `https://streaming.twitter.com`
+    - `https://api.twitter.com`
+  - 프록시 아이디 혹은 비밀번호가 설정된 경우
+    - HTTP 표준에 따라 `Proxy-Authorization` 헤더를 설정해주어야 합니다.
+    - 인증 방식 : `Basic`
 
-2. HTTP 연결
+2. 직접 연결
   - 프록시 사용이 불가능할 때 다음과 같이 사용하실 수 있습니다.
     - `https://userstream.twitter.com/A/B/C` →
-      - `http://127.0.0.1:port/userstream.twitter.com/A/B/C`
-      - `https://localhost:port/userstream.twitter.com/A/B/C`
+      - `http://127.0.0.1:<port>/userstream.twitter.com/A/B/C`
+      - `https://localhost:<port>/userstream.twitter.com/A/B/C`
     - `https://api.twitter.com/A/B/C` →
-      - `http://127.0.0.1:port/api.twitter.com/A/B/C`
-      - `https://localhost:port/api.twitter.com/A/B/C`
+      - `http://127.0.0.1:<port>/api.twitter.com/A/B/C`
+      - `https://localhost:<port>/api.twitter.com/A/B/C`
+
+
+- 스트리밍 호흡기에 프록시 아이디와 비밀번호가 설정된 경우, 프록시 인증이 필요할 수 있습니다.
+  - 프록시 사용 시
+    - 아래 호스트 연결 시 클라이언트 인증을 요구합니다. (`407 Proxy Authentication Required`)
+      - `streaming.twitter.com`
+      - `api.twitter.com` 
+    - 대부분의 HTTP 라이브러리에서 인증 기능을 제공합니다.
+    - 해당 기능을 제공하지 않는 라이브러리 사용 시 **직접 연결 시** 와 같이 사용해주세요.
+  - 직접 연결 시
+    - 다음과 같은 방식으로 `Proxy-Authorization` 헤더를 생성해주세요.
+    - `Proxy-Authorization: Basic <credentials>`
+      - `<credentials>` : base64(`"<id>:<pw>"`)
+
+- 참고 문서
+  -  [	HTTP/1.1: Authentication (`RFC 7235, section 4.4: Proxy-Authorization`)](https://tools.ietf.org/html/rfc7235#section-4.4)
+  -  [	The 'Basic' HTTP Authentication Scheme (`RFC 7617`)](https://tools.ietf.org/html/rfc7617) 
