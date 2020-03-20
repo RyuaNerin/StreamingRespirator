@@ -44,6 +44,20 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
             set => throw new NotSupportedException();
         }
 
+        public override int ReadTimeout
+        {
+            get => this.m_baseStream.ReadTimeout;
+            set => this.m_baseStream.ReadTimeout = value;
+        }
+        public override int WriteTimeout
+        {
+            get => this.m_baseStream.WriteTimeout;
+            set => this.m_baseStream.WriteTimeout = value;
+        }
+
+        public override bool CanTimeout
+            => this.m_baseStream.CanTimeout;
+
         public override int Read(byte[] buffer, int offset, int count)
         {
             var read = this.m_buffStream.Read(buffer, offset, count);
@@ -196,5 +210,8 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
 
         public override void SetLength(long value)
             => throw new NotSupportedException();
+
+        public override Task FlushAsync(CancellationToken cancellationToken)
+            => this.m_baseStream.FlushAsync();
     }
 }
