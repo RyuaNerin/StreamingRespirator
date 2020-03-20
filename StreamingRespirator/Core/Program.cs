@@ -10,14 +10,17 @@ using System.Windows.Forms;
 using Newtonsoft.Json;
 using Onova;
 using Onova.Services;
-using Sentry;
 using StreamingRespirator.Core.Streaming;
 
 namespace StreamingRespirator.Core
 {
     internal static class Program
     {
+#if DEBUG
+        public const string MutexName = "{5FF75362-95BA-4399-8C77-C1A0C5B8A292}";
+#else
         public const string MutexName = "{5FF75362-95BA-4399-8C77-C1A0C5B8A291}";
+#endif
 
         public static readonly string ConfigPath = Path.ChangeExtension(Application.ExecutablePath, ".cnf");
 
