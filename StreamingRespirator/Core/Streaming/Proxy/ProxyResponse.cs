@@ -82,9 +82,6 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                     return;
                 this.m_headerSent = true;
 
-                this.Headers.Set(HttpResponseHeader.Connection, "Keep-Alive");
-                this.Headers.Set(HttpResponseHeader.KeepAlive, "timeout=30");
-
                 this.m_streamWriter.WriteLine("HTTP/1.1 {0:000} {1}", (int)this.StatusCode, HttpWorkerRequest.GetStatusDescription((int)this.StatusCode));
 
                 foreach (var key in this.Headers.AllKeys)

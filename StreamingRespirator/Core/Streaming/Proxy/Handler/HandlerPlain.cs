@@ -1,3 +1,4 @@
+using System.Net;
 using System.Threading;
 using StreamingRespirator.Core.Streaming.Proxy.Streams;
 
@@ -19,6 +20,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
             {
                 var ctx = new ProxyContext(this.Request, resp);
                 this.m_handler(ctx);
+
+                resp.Headers.Set(HttpResponseHeader.Connection, "Keep-Alive");
+                resp.Headers.Set(HttpResponseHeader.KeepAlive, "timeout=30");
             }
 
             this.Request.Dispose();
