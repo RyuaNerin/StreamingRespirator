@@ -1,13 +1,13 @@
-using System.IO;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using StreamingRespirator.Core.Streaming.Proxy.Streams;
 
-namespace StreamingRespirator.Core.Streaming.Proxy
+namespace StreamingRespirator.Core.Streaming.Proxy.Handler
 {
-    internal sealed class TunnelPlain : Tunnel
+    internal sealed class TunnelPlain : Handler
     {
-        public TunnelPlain(ProxyRequest preq, Stream stream, CancellationToken token)
+        public TunnelPlain(ProxyRequest preq, ProxyStream stream, CancellationToken token)
             : base(preq, stream, token)
         {
         }
@@ -22,14 +22,13 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
                 using (var remoteStream = remoteClient.GetStream())
                 {
-                    var taskToProxy = this.CopyToAsync(this.ProxyStream, remoteStream);
+                    this.Request.WriteRawRequest(remoteStream);
 
-                    this.Reqeust.Headers.Set("Connection", "close");
-                    this.Reqeust.WriteRawRequest(remoteStream);
+                    var tasks = this.CopyToAsyncBoth(remoteStream);
 
                     try
                     {
-                        Task.WaitAll(taskToProxy);
+                        Task.WaitAll(tasks);
                     }
                     catch
                     {

@@ -113,13 +113,14 @@
   <ItemGroup>
     <Compile Include="Core\Config.cs" />
     <Compile Include="Core\Lang.cs" />
+    <Compile Include="Core\Streaming\Proxy\Handler\HandlerPlain.cs" />
     <Compile Include="Core\Streaming\Proxy\ProxyResponse.cs" />
     <Compile Include="Core\Streaming\Proxy\Streams\SafeAsyncStream.cs" />
-    <Compile Include="Core\Streaming\Proxy\Streams\RequestStreamReader.cs" />
-    <Compile Include="Core\Streaming\Proxy\Tunnel.cs" />
-    <Compile Include="Core\Streaming\Proxy\TunnelPlain.cs" />
-    <Compile Include="Core\Streaming\Proxy\TunnelSslForward.cs" />
-    <Compile Include="Core\Streaming\Proxy\TunnelSslMitm.cs" />
+    <Compile Include="Core\Streaming\Proxy\Streams\ProxyStream.cs" />
+    <Compile Include="Core\Streaming\Proxy\Handler\Handler.cs" />
+    <Compile Include="Core\Streaming\Proxy\Handler\TunnelPlain.cs" />
+    <Compile Include="Core\Streaming\Proxy\Handler\TunnelSslForward.cs" />
+    <Compile Include="Core\Streaming\Proxy\Handler\TunnelSslMitm.cs" />
     <Compile Include="Core\Streaming\RespiratorServer.cs" />
     <Compile Include="Core\Streaming\TimeLines\Extensions.cs" />
     <Compile Include="Core\Streaming\TwitterClientFactory.cs" />

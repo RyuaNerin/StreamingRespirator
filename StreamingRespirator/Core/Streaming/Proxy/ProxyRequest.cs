@@ -11,11 +11,11 @@ namespace StreamingRespirator.Core.Streaming.Proxy
     [DebuggerDisplay("{Method} {RequestUriRaw} {Version}")]
     internal sealed class ProxyRequest : IDisposable
     {
-        private readonly RequestStreamReader m_streamReader;
+        private readonly ProxyStream m_proxyStream;
 
         private ProxyRequest(Stream stream)
         {
-            this.m_streamReader = new RequestStreamReader(stream);
+            this.m_proxyStream = new ProxyStream(stream);
         }
         ~ProxyRequest()
         {
@@ -34,7 +34,6 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
             if (disposing)
             {
-                this.m_streamReader.Dispose();
                 this.RequestBodyReader?.Dispose();
             }
         }
@@ -54,12 +53,18 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
         public WebHeaderCollection Headers { get; } = new WebHeaderCollection();
 
-        public static ProxyRequest Parse(Stream proxyStream, bool isSsl)
+        public static bool TryParse(Stream proxyStream, bool isSsl, out ProxyRequest req)
         {
-            var req = new ProxyRequest(proxyStream);
+            req = new ProxyRequest(proxyStream);
             while (true)
             {
-                var firstLine = req.m_streamReader.ReadLine();
+                var firstLine = req.m_proxyStream.ReadLine();
+                if (firstLine == null)
+                {
+                    req.Dispose();
+                    req = null;
+                    return false;
+                }
 
                 try
                 {
@@ -75,11 +80,12 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 }
                 catch
                 {
+                    throw;
                 }
             }
 
             string line;
-            while ((line = req.m_streamReader.ReadLine()) != null)
+            while ((line = req.m_proxyStream.ReadLine()) != null)
             {
                 if (string.IsNullOrEmpty(line))
                 {
@@ -120,7 +126,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 req.RequestBodyReader = new ProxyRequestBody(req);
             }
 
-            return req;
+            return true;
         }
 
         public WebRequest CreateRequest(Func<string, Uri, WebRequest> create, bool copyAuthorization)
@@ -250,16 +256,16 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                     {
                         this.m_chunkedBuffer.SetLength(0);
 
-                        var remain = int.Parse(this.m_request.m_streamReader.ReadLine(), NumberStyles.HexNumber);
+                        var remain = int.Parse(this.m_request.m_proxyStream.ReadLine(), NumberStyles.HexNumber);
 
                         while (remain > 0)
                         {
-                            read = this.m_request.m_streamReader.Read(buffer, offset, Math.Min(count, remain));
+                            read = this.m_request.m_proxyStream.Read(buffer, offset, Math.Min(count, remain));
                             this.m_chunkedBuffer.Write(buffer, offset, read);
 
                             remain -= read;
                         }
-                        this.m_request.m_streamReader.ReadLine();
+                        this.m_request.m_proxyStream.ReadLine();
 
                         read = this.m_chunkedBuffer.Read(buffer, offset, count);
                     }
@@ -268,7 +274,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 }
                 else
                 {
-                    read = this.m_request.m_streamReader.Read(buffer, offset, Math.Min(count, this.m_remainContentLength.Value));
+                    read = this.m_request.m_proxyStream.Read(buffer, offset, Math.Min(count, this.m_remainContentLength.Value));
 
                     this.m_remainContentLength -= read;
                     if (this.m_remainContentLength < 0)
@@ -279,7 +285,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             }
 
             public override long Seek(long offset, SeekOrigin origin)
-                => this.m_request.m_streamReader.Seek(offset, origin);
+                => this.m_request.m_proxyStream.Seek(offset, origin);
 
             public override void Write(byte[] buffer, int offset, int count)
                 => throw new NotSupportedException();

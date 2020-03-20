@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using Newtonsoft.Json;
 using Sentry;
 using StreamingRespirator.Core.Streaming;
@@ -61,6 +62,7 @@ namespace StreamingRespirator.Core
         {
         }
 
+        public object Lock { get; } = new object();
 
         [JsonProperty("accounts")]
         public TwitterCredentialList Accounts { get; } = new TwitterCredentialList();
@@ -91,6 +93,11 @@ namespace StreamingRespirator.Core
         {
             [JsonProperty("port")]
             public int Port { get; set; } = 8811;
+
+            [JsonProperty("id")]
+            public string Id { get; set; }
+            [JsonProperty("pw")]
+            public string Pw { get; set; }
         }
     }
 }

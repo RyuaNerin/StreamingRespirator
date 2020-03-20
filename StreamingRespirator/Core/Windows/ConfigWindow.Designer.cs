@@ -37,12 +37,18 @@ namespace StreamingRespirator.Core.Windows
             this.ctlStreamingGroup = new System.Windows.Forms.GroupBox();
             this.ctlStreamingGroupPanel = new System.Windows.Forms.TableLayoutPanel();
             this.ctlReduceApiCall = new System.Windows.Forms.CheckBox();
-            this.ctlShowMyRetweet = new System.Windows.Forms.CheckBox();
             this.ctlShowRetweet = new System.Windows.Forms.CheckBox();
+            this.ctlShowRetweetWithComment = new System.Windows.Forms.CheckBox();
+            this.ctlShowMyRetweet = new System.Windows.Forms.CheckBox();
             this.tableLayoutPanel2 = new System.Windows.Forms.TableLayoutPanel();
             this.ctlOK = new System.Windows.Forms.Button();
             this.ctlCancel = new System.Windows.Forms.Button();
-            this.ctlShowRetweetWithComment = new System.Windows.Forms.CheckBox();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.tableLayoutPanel3 = new System.Windows.Forms.TableLayoutPanel();
+            this.ctlAuthPw = new System.Windows.Forms.TextBox();
+            this.ctlAuthIdLabel = new System.Windows.Forms.Label();
+            this.ctlAuthPwLabel = new System.Windows.Forms.Label();
+            this.ctlAuthId = new System.Windows.Forms.TextBox();
             this.tableLayoutPanel1.SuspendLayout();
             this.ctlProxyGroup.SuspendLayout();
             this.ctlProxyGroupPanel.SuspendLayout();
@@ -50,6 +56,8 @@ namespace StreamingRespirator.Core.Windows
             this.ctlStreamingGroup.SuspendLayout();
             this.ctlStreamingGroupPanel.SuspendLayout();
             this.tableLayoutPanel2.SuspendLayout();
+            this.groupBox1.SuspendLayout();
+            this.tableLayoutPanel3.SuspendLayout();
             this.SuspendLayout();
             // 
             // tableLayoutPanel1
@@ -60,19 +68,20 @@ namespace StreamingRespirator.Core.Windows
             this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
             this.tableLayoutPanel1.Controls.Add(this.ctlProxyGroup, 0, 1);
             this.tableLayoutPanel1.Controls.Add(this.ctlAutoStartup, 0, 0);
-            this.tableLayoutPanel1.Controls.Add(this.ctlStreamingGroup, 0, 2);
-            this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel2, 0, 3);
+            this.tableLayoutPanel1.Controls.Add(this.ctlStreamingGroup, 0, 3);
+            this.tableLayoutPanel1.Controls.Add(this.tableLayoutPanel2, 0, 4);
+            this.tableLayoutPanel1.Controls.Add(this.groupBox1, 0, 2);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Top;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
             this.tableLayoutPanel1.Padding = new System.Windows.Forms.Padding(5);
-            this.tableLayoutPanel1.RowCount = 4;
+            this.tableLayoutPanel1.RowCount = 5;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 20F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(237, 257);
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(234, 343);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // ctlProxyGroup
@@ -83,7 +92,7 @@ namespace StreamingRespirator.Core.Windows
             this.ctlProxyGroup.Dock = System.Windows.Forms.DockStyle.Fill;
             this.ctlProxyGroup.Location = new System.Drawing.Point(8, 33);
             this.ctlProxyGroup.Name = "ctlProxyGroup";
-            this.ctlProxyGroup.Size = new System.Drawing.Size(221, 51);
+            this.ctlProxyGroup.Size = new System.Drawing.Size(218, 51);
             this.ctlProxyGroup.TabIndex = 1;
             this.ctlProxyGroup.TabStop = false;
             this.ctlProxyGroup.Text = "프록시 설정";
@@ -102,7 +111,7 @@ namespace StreamingRespirator.Core.Windows
             this.ctlProxyGroupPanel.Name = "ctlProxyGroupPanel";
             this.ctlProxyGroupPanel.RowCount = 1;
             this.ctlProxyGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.ctlProxyGroupPanel.Size = new System.Drawing.Size(215, 29);
+            this.ctlProxyGroupPanel.Size = new System.Drawing.Size(212, 29);
             this.ctlProxyGroupPanel.TabIndex = 0;
             // 
             // ctlPortLabel
@@ -155,9 +164,9 @@ namespace StreamingRespirator.Core.Windows
             this.ctlStreamingGroup.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.ctlStreamingGroup.Controls.Add(this.ctlStreamingGroupPanel);
             this.ctlStreamingGroup.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.ctlStreamingGroup.Location = new System.Drawing.Point(8, 90);
+            this.ctlStreamingGroup.Location = new System.Drawing.Point(8, 176);
             this.ctlStreamingGroup.Name = "ctlStreamingGroup";
-            this.ctlStreamingGroup.Size = new System.Drawing.Size(221, 122);
+            this.ctlStreamingGroup.Size = new System.Drawing.Size(218, 122);
             this.ctlStreamingGroup.TabIndex = 3;
             this.ctlStreamingGroup.TabStop = false;
             this.ctlStreamingGroup.Text = "스트리밍 옵션";
@@ -180,7 +189,7 @@ namespace StreamingRespirator.Core.Windows
             this.ctlStreamingGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.ctlStreamingGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.ctlStreamingGroupPanel.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.ctlStreamingGroupPanel.Size = new System.Drawing.Size(215, 100);
+            this.ctlStreamingGroupPanel.Size = new System.Drawing.Size(212, 100);
             this.ctlStreamingGroupPanel.TabIndex = 0;
             // 
             // ctlReduceApiCall
@@ -193,16 +202,6 @@ namespace StreamingRespirator.Core.Windows
             this.ctlReduceApiCall.Text = "API 호출 수 줄이기";
             this.ctlReduceApiCall.UseVisualStyleBackColor = true;
             // 
-            // ctlShowMyRetweet
-            // 
-            this.ctlShowMyRetweet.AutoSize = true;
-            this.ctlShowMyRetweet.Location = new System.Drawing.Point(3, 28);
-            this.ctlShowMyRetweet.Name = "ctlShowMyRetweet";
-            this.ctlShowMyRetweet.Size = new System.Drawing.Size(134, 19);
-            this.ctlShowMyRetweet.TabIndex = 3;
-            this.ctlShowMyRetweet.Text = "내 리트윗 다시 표시";
-            this.ctlShowMyRetweet.UseVisualStyleBackColor = true;
-            // 
             // ctlShowRetweet
             // 
             this.ctlShowRetweet.AutoSize = true;
@@ -212,6 +211,26 @@ namespace StreamingRespirator.Core.Windows
             this.ctlShowRetweet.TabIndex = 2;
             this.ctlShowRetweet.Text = "리트윗된 내 트윗 표시";
             this.ctlShowRetweet.UseVisualStyleBackColor = true;
+            // 
+            // ctlShowRetweetWithComment
+            // 
+            this.ctlShowRetweetWithComment.AutoSize = true;
+            this.ctlShowRetweetWithComment.Location = new System.Drawing.Point(3, 53);
+            this.ctlShowRetweetWithComment.Name = "ctlShowRetweetWithComment";
+            this.ctlShowRetweetWithComment.Size = new System.Drawing.Size(146, 19);
+            this.ctlShowRetweetWithComment.TabIndex = 5;
+            this.ctlShowRetweetWithComment.Text = "내 트윗이 첨부된 트윗";
+            this.ctlShowRetweetWithComment.UseVisualStyleBackColor = true;
+            // 
+            // ctlShowMyRetweet
+            // 
+            this.ctlShowMyRetweet.AutoSize = true;
+            this.ctlShowMyRetweet.Location = new System.Drawing.Point(3, 28);
+            this.ctlShowMyRetweet.Name = "ctlShowMyRetweet";
+            this.ctlShowMyRetweet.Size = new System.Drawing.Size(134, 19);
+            this.ctlShowMyRetweet.TabIndex = 3;
+            this.ctlShowMyRetweet.Text = "내 리트윗 다시 표시";
+            this.ctlShowMyRetweet.UseVisualStyleBackColor = true;
             // 
             // tableLayoutPanel2
             // 
@@ -223,7 +242,7 @@ namespace StreamingRespirator.Core.Windows
             this.tableLayoutPanel2.Controls.Add(this.ctlOK, 0, 0);
             this.tableLayoutPanel2.Controls.Add(this.ctlCancel, 1, 0);
             this.tableLayoutPanel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.tableLayoutPanel2.Location = new System.Drawing.Point(95, 218);
+            this.tableLayoutPanel2.Location = new System.Drawing.Point(92, 304);
             this.tableLayoutPanel2.Name = "tableLayoutPanel2";
             this.tableLayoutPanel2.RowCount = 1;
             this.tableLayoutPanel2.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
@@ -260,15 +279,75 @@ namespace StreamingRespirator.Core.Windows
             this.ctlCancel.UseVisualStyleBackColor = true;
             this.ctlCancel.Click += new System.EventHandler(this.ctlCancel_Click);
             // 
-            // ctlShowRetweetWithComment
+            // groupBox1
             // 
-            this.ctlShowRetweetWithComment.AutoSize = true;
-            this.ctlShowRetweetWithComment.Location = new System.Drawing.Point(3, 53);
-            this.ctlShowRetweetWithComment.Name = "ctlShowRetweetWithComment";
-            this.ctlShowRetweetWithComment.Size = new System.Drawing.Size(146, 19);
-            this.ctlShowRetweetWithComment.TabIndex = 5;
-            this.ctlShowRetweetWithComment.Text = "내 트윗이 첨부된 트윗";
-            this.ctlShowRetweetWithComment.UseVisualStyleBackColor = true;
+            this.groupBox1.AutoSize = true;
+            this.groupBox1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.groupBox1.Controls.Add(this.tableLayoutPanel3);
+            this.groupBox1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.groupBox1.Location = new System.Drawing.Point(8, 90);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(218, 80);
+            this.groupBox1.TabIndex = 6;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "프록시 보안 설정";
+            // 
+            // tableLayoutPanel3
+            // 
+            this.tableLayoutPanel3.AutoSize = true;
+            this.tableLayoutPanel3.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.tableLayoutPanel3.ColumnCount = 2;
+            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
+            this.tableLayoutPanel3.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 100F));
+            this.tableLayoutPanel3.Controls.Add(this.ctlAuthPw, 1, 1);
+            this.tableLayoutPanel3.Controls.Add(this.ctlAuthIdLabel, 0, 0);
+            this.tableLayoutPanel3.Controls.Add(this.ctlAuthPwLabel, 0, 1);
+            this.tableLayoutPanel3.Controls.Add(this.ctlAuthId, 1, 0);
+            this.tableLayoutPanel3.Dock = System.Windows.Forms.DockStyle.Top;
+            this.tableLayoutPanel3.Location = new System.Drawing.Point(3, 19);
+            this.tableLayoutPanel3.Name = "tableLayoutPanel3";
+            this.tableLayoutPanel3.RowCount = 2;
+            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel3.RowStyles.Add(new System.Windows.Forms.RowStyle());
+            this.tableLayoutPanel3.Size = new System.Drawing.Size(212, 58);
+            this.tableLayoutPanel3.TabIndex = 0;
+            // 
+            // ctlAuthPw
+            // 
+            this.ctlAuthPw.Location = new System.Drawing.Point(64, 32);
+            this.ctlAuthPw.Name = "ctlAuthPw";
+            this.ctlAuthPw.PasswordChar = '*';
+            this.ctlAuthPw.Size = new System.Drawing.Size(145, 23);
+            this.ctlAuthPw.TabIndex = 3;
+            // 
+            // ctlAuthIdLabel
+            // 
+            this.ctlAuthIdLabel.AutoSize = true;
+            this.ctlAuthIdLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ctlAuthIdLabel.Location = new System.Drawing.Point(3, 0);
+            this.ctlAuthIdLabel.Name = "ctlAuthIdLabel";
+            this.ctlAuthIdLabel.Size = new System.Drawing.Size(55, 29);
+            this.ctlAuthIdLabel.TabIndex = 0;
+            this.ctlAuthIdLabel.Text = "아이디";
+            this.ctlAuthIdLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // ctlAuthPwLabel
+            // 
+            this.ctlAuthPwLabel.AutoSize = true;
+            this.ctlAuthPwLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.ctlAuthPwLabel.Location = new System.Drawing.Point(3, 29);
+            this.ctlAuthPwLabel.Name = "ctlAuthPwLabel";
+            this.ctlAuthPwLabel.Size = new System.Drawing.Size(55, 29);
+            this.ctlAuthPwLabel.TabIndex = 1;
+            this.ctlAuthPwLabel.Text = "비밀번호";
+            this.ctlAuthPwLabel.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            // 
+            // ctlAuthId
+            // 
+            this.ctlAuthId.Location = new System.Drawing.Point(64, 3);
+            this.ctlAuthId.Name = "ctlAuthId";
+            this.ctlAuthId.Size = new System.Drawing.Size(145, 23);
+            this.ctlAuthId.TabIndex = 2;
             // 
             // ConfigWindow
             // 
@@ -276,7 +355,7 @@ namespace StreamingRespirator.Core.Windows
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
             this.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.ClientSize = new System.Drawing.Size(237, 247);
+            this.ClientSize = new System.Drawing.Size(234, 418);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedToolWindow;
@@ -299,6 +378,10 @@ namespace StreamingRespirator.Core.Windows
             this.ctlStreamingGroupPanel.PerformLayout();
             this.tableLayoutPanel2.ResumeLayout(false);
             this.tableLayoutPanel2.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
+            this.tableLayoutPanel3.ResumeLayout(false);
+            this.tableLayoutPanel3.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -321,5 +404,11 @@ namespace StreamingRespirator.Core.Windows
         private System.Windows.Forms.CheckBox ctlReduceApiCall;
         private System.Windows.Forms.NumericUpDown ctlPort;
         private System.Windows.Forms.CheckBox ctlShowRetweetWithComment;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel3;
+        private System.Windows.Forms.Label ctlAuthIdLabel;
+        private System.Windows.Forms.Label ctlAuthPwLabel;
+        private System.Windows.Forms.TextBox ctlAuthPw;
+        private System.Windows.Forms.TextBox ctlAuthId;
     }
 }

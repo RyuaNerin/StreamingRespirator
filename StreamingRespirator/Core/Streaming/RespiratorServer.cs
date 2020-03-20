@@ -5,8 +5,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Security.Authentication;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -15,6 +17,8 @@ using System.Web;
 using Newtonsoft.Json;
 using Sentry;
 using StreamingRespirator.Core.Streaming.Proxy;
+using StreamingRespirator.Core.Streaming.Proxy.Handler;
+using StreamingRespirator.Core.Streaming.Proxy.Streams;
 using StreamingRespirator.Core.Streaming.Twitter;
 using StreamingRespirator.Extensions;
 
@@ -25,6 +29,8 @@ namespace StreamingRespirator.Core.Streaming
     /// </summary>
     internal class RespiratorServer : IDisposable
     {
+        private const SslProtocols SslProtocol = SslProtocols.Tls | SslProtocols.Tls11 | SslProtocols.Tls12;
+
         private readonly CancellationTokenSource m_tunnelCancel = new CancellationTokenSource();
 
         private readonly Socket m_socketServer;
@@ -156,6 +162,9 @@ namespace StreamingRespirator.Core.Streaming
                 {
                     this.SocketThreadSub(stream);
                 }
+                catch (SocketException)
+                {
+                }
                 catch (Exception ex)
                 {
                     SentrySdk.CaptureException(ex);
@@ -184,12 +193,34 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
-        private void SocketThreadSub(Stream clientStream)
+        private void SocketThreadSub(Stream rawStream)
         {
-            using (var req = ProxyRequest.Parse(clientStream, false))
-            {
-                Tunnel t = null;
+            var proxyStream = new ProxyStream(rawStream);
 
+            // https 연결인지, plain 인지 확인하는 과정
+            // ContentType type
+            // https://tools.ietf.org/html/rfc5246#page-41
+            var buff = new byte[1];
+            var read = proxyStream.Peek(buff, 0, buff.Length);
+
+            if (read != buff.Length)
+                throw new NotSupportedException();
+
+            if (buff[0] == 22)
+            {
+                var ssl = new SslStream(proxyStream, false);
+                ssl.AuthenticateAsServer(Certificates.Client, false, SslProtocol, false);
+
+                proxyStream = new ProxyStream(ssl);
+            }
+
+            Handler handler = null;
+
+            if (!ProxyRequest.TryParse(proxyStream, false, out var req))
+                return;
+
+            using (req)
+            {
                 // HTTPS
                 if (req.Method == "CONNECT")
                 {
@@ -197,20 +228,14 @@ namespace StreamingRespirator.Core.Streaming
                     switch (req.RemoteHost)
                     {
                         case "userstream.twitter.com":
-                            t = new TunnelSslMitm(req, clientStream, this.m_tunnelCancel.Token, Certificates.Client, this.HostStreaming);
-                            break;
-
                         case "api.twitter.com":
-                            t = new TunnelSslMitm(req, clientStream, this.m_tunnelCancel.Token, Certificates.Client, this.HostAPI);
-                            break;
-
                         case "localhost":
                         case "127.0.0.1":
-                            t = new TunnelSslMitm(req, clientStream, this.m_tunnelCancel.Token, Certificates.Client, this.HostLocalhost);
+                            handler = new TunnelSslMitm(req, proxyStream, this.m_tunnelCancel.Token, Certificates.Client, SslProtocol, this.HandleContext);
                             break;
 
                         default:
-                            t = new TunnelSslForward(req, clientStream, this.m_tunnelCancel.Token);
+                            handler = new TunnelSslForward(req, proxyStream, this.m_tunnelCancel.Token);
                             break;
                     }
                 }
@@ -223,39 +248,57 @@ namespace StreamingRespirator.Core.Streaming
                     {
                         case "localhost":
                         case "127.0.0.1":
-                            using (var resp = new ProxyResponse(clientStream))
-                            {
-                                this.HostLocalhost(new ProxyContext(req, resp));
-
-                                if (!resp.HeaderSent)
-                                {
-                                    using (var respErr = new ProxyResponse(clientStream))
-                                        respErr.StatusCode = HttpStatusCode.InternalServerError;
-                                }
-                            }
+                            handler = new HandlerPlain(req, proxyStream, this.m_tunnelCancel.Token, this.HandleContext);
                             break;
 
                         default:
-                            t = new TunnelPlain(req, clientStream, this.m_tunnelCancel.Token);
+                            handler = new TunnelPlain(req, proxyStream, this.m_tunnelCancel.Token);
                             break;
                     }
                 }
 
-                using (t)
-                    t.Handle();
+                using (handler)
+                    handler.Handle();
             }
         }
 
-        private bool HostLocalhost(ProxyContext ctx)
+        private void HandleContext(ProxyContext ctx)
         {
-            if (TrimHost("/userstream.twitter.com/"))
-                return this.HostStreaming(ctx);
+            if (!ctx.CheckAuthentication())
+                return;
 
-            if (TrimHost("/api.twitter.com/"))
-                return this.HostAPI(ctx);
+            switch (ctx.Request.RequestUri.Host)
+            {
+                case "userstream.twitter.com":
+                    this.HostStreaming(ctx);
+                    break;
+
+                case "api.twitter.com":
+                    this.HostAPI(ctx);
+                    break;
+
+                case "localhost":
+                case "127.0.0.1":
+                    this.HostLocalhost(ctx);
+                    break;
+            }
+        }
+
+        private void HostLocalhost(ProxyContext ctx)
+        {
+            if (TrimHost("userstream.twitter.com"))
+            {
+                this.HostStreaming(ctx);
+                return;
+            }
+
+            if (TrimHost("api.twitter.com"))
+            {
+                this.HostAPI(ctx);
+                return;
+            }
 
             ctx.Response.StatusCode = HttpStatusCode.BadRequest;
-            return true;
 
             bool TrimHost(string host)
             {
@@ -263,6 +306,7 @@ namespace StreamingRespirator.Core.Streaming
                 {
                     ctx.Request.RequestUri = new UriBuilder(ctx.Request.RequestUri)
                     {
+                        Host = host,
                         Path = ctx.Request.RequestUri.AbsolutePath.Substring(host.Length + 1),
                     }.Uri;
 
@@ -273,7 +317,7 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
-        private bool HostStreaming(ProxyContext ctx)
+        private void HostStreaming(ProxyContext ctx)
         {
             var desc = $"{ctx.Request.RequestUri}";
             Debug.WriteLine($"streaming connected : {desc}");
@@ -281,20 +325,20 @@ namespace StreamingRespirator.Core.Streaming
             if (!ctx.Request.RequestUri.AbsolutePath.Equals("/1.1/user.json", StringComparison.OrdinalIgnoreCase))
             {
                 ctx.Response.StatusCode = HttpStatusCode.NotFound;
-                return true;
+                return;
             }
 
             if (!TryGetOwnerId(ctx.Request.RequestUri, ctx.Request.Headers, null, out var ownerId))
             {
                 ctx.Response.StatusCode = HttpStatusCode.Unauthorized;
-                return true;
+                return;
             }
 
             var twitterClient = TwitterClientFactory.GetClient(ownerId);
             if (twitterClient == null)
             {
                 ctx.Response.StatusCode = HttpStatusCode.Unauthorized;
-                return true;
+                return;
             }
 
             ctx.Response.StatusCode = HttpStatusCode.OK;
@@ -313,11 +357,9 @@ namespace StreamingRespirator.Core.Streaming
             }
 
             Debug.WriteLine($"streaming disconnected : {desc}");
-
-            return true;
         }
 
-        private bool HostAPI(ProxyContext ctx)
+        private void HostAPI(ProxyContext ctx)
         {
             switch (ctx.Request.RequestUri.AbsolutePath)
             {
@@ -326,24 +368,29 @@ namespace StreamingRespirator.Core.Streaming
                 // POST https://api.twitter.com/1.1/statuses/unretweet/:id.json
                 case string path when path.StartsWith("/1.1/statuses/destroy/", StringComparison.OrdinalIgnoreCase) ||
                                       path.StartsWith("/1.1/statuses/unretweet/", StringComparison.OrdinalIgnoreCase):
-                    return HandleDestroyOrUnretweet(ctx);
+                    if (HandleDestroyOrUnretweet(ctx))
+                        return;
+                    break;
 
                 // api 호출 후 스트리밍에 리트윗 날려주는 함수
                 // 404 : id = 삭제된 트윗일 수 있음
                 // 200 : 성공시 스트리밍에 전송해서 한번 더 띄우도록
                 // POST https://api.twitter.com/1.1/statuses/retweet/:id.json
                 case string path when path.StartsWith("/1.1/statuses/retweet/", StringComparison.OrdinalIgnoreCase):
-                    return HandleRetweet(ctx);
+                    if (HandleRetweet(ctx))
+                        return;
+                    break;
 
                 // d @ID 로 DM 보내는 기능 추가된 함수.
                 // 401 : in_reply_to_status_id = 삭제된 트윗일 수 있음
                 // POST https://api.twitter.com/1.1/statuses/update.json
                 case string path when path.Equals("/1.1/statuses/update.json", StringComparison.OrdinalIgnoreCase):
-                    return HandleUpdate(ctx);
-
-                default:
-                    return HandleTunnel(ctx);
+                    if (HandleUpdate(ctx))
+                        return;
+                    break;
             }
+
+            HandleTunnel(ctx);
         }
 
         private static bool HandleDestroyOrUnretweet(ProxyContext ctx)
@@ -541,18 +588,15 @@ namespace StreamingRespirator.Core.Streaming
             return true;
         }
 
-        private static bool HandleTunnel(ProxyContext ctx)
+        private static void HandleTunnel(ProxyContext ctx)
         {
-            if (!TryGetTwitterClient(ctx, null, out var twitClient))
-                return false;
+            TryGetTwitterClient(ctx, null, out var twitClient);
 
             if (!TryCallAPIThenSetContext(ctx, null, twitClient, null, out _, out _))
             {
+                ctx.Response.Headers.Clear();
                 ctx.Response.StatusCode = HttpStatusCode.InternalServerError;
-                return true;
             }
-
-            return true;
         }
 
         private static bool TryGetOwnerId(Uri uri, WebHeaderCollection authorizationValue, string body, out long ownerId)

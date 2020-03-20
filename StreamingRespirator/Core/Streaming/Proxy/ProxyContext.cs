@@ -1,7 +1,10 @@
+using System;
+using System.Net;
+using System.Text;
+
 namespace StreamingRespirator.Core.Streaming.Proxy
 {
-    /// <returns>false 면 forward</returns>
-    internal delegate bool MitmHandler(ProxyContext ctx);
+    internal delegate void HandleFunc(ProxyContext ctx);
 
     internal sealed class ProxyContext
     {
@@ -13,5 +16,43 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
         public ProxyRequest Request { get; }
         public ProxyResponse Response { get; }
+
+        public bool CheckAuthentication()
+        {
+            string id, pw;
+            lock (Config.Instance.Lock)
+            {
+                id = Config.Instance.Proxy.Id;
+                pw = Config.Instance.Proxy.Pw;
+            }
+
+            if (!string.IsNullOrWhiteSpace(Config.Instance.Proxy.Id))
+            {
+                var pa = this.Request.Headers[HttpRequestHeader.ProxyAuthorization];
+                if (string.IsNullOrWhiteSpace(pa))
+                {
+                    this.Response.StatusCode = HttpStatusCode.ProxyAuthenticationRequired;
+                    this.Response.Headers.Set(HttpResponseHeader.ProxyAuthenticate, "Basic realm=\"Access to Streamning-Respirator\"");
+                    return false;
+                }
+
+                var sp = pa.IndexOf(' ');
+
+                if (pa.Substring(0, sp) != "Basic")
+                {
+                    this.Response.StatusCode = HttpStatusCode.ProxyAuthenticationRequired;
+                    this.Response.Headers.Set(HttpResponseHeader.ProxyAuthenticate, "Basic realm=\"Access to Streamning-Respirator\"");
+                    return false;
+                }
+
+                if (pa.Substring(sp + 1).Trim() != Convert.ToBase64String(Encoding.ASCII.GetBytes($"{id}:{pw}")))
+                {
+                    this.Response.StatusCode = HttpStatusCode.Unauthorized;
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }

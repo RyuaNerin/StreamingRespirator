@@ -41,6 +41,8 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             if (disposing)
             {
                 this.WriteHeader();
+                this.m_streamWriter.WriteLine();
+
                 this.ResponseStream.Dispose();
                 this.m_streamWriter.Dispose();
             }
@@ -79,6 +81,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 if (this.m_headerSent)
                     return;
                 this.m_headerSent = true;
+
+                this.Headers.Set(HttpResponseHeader.Connection, "Keep-Alive");
+                this.Headers.Set(HttpResponseHeader.KeepAlive, "timeout=30");
 
                 this.m_streamWriter.WriteLine("HTTP/1.1 {0:000} {1}", (int)this.StatusCode, HttpWorkerRequest.GetStatusDescription((int)this.StatusCode));
 
@@ -144,6 +149,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                     this.m_resp.m_streamWriter.WriteLine(count.ToString("x"));
                     this.m_resp.m_streamWriter.Flush();
                     this.m_resp.m_stream.Write(buffer, offset, count);
+                    this.m_resp.m_stream.Flush();
                     this.m_resp.m_streamWriter.WriteLine();
                     this.m_resp.m_streamWriter.Flush();
                 }
