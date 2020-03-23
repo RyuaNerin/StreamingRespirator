@@ -160,9 +160,13 @@ namespace StreamingRespirator.Core.Streaming
 
                 try
                 {
-                    this.SocketThreadSub(stream);
+                    using (var proxyStream = new ProxyStream(stream))
+                        this.SocketThreadSub(proxyStream);
                 }
                 catch (SocketException)
+                {
+                }
+                catch (IOException)
                 {
                 }
                 catch (Exception ex)
@@ -193,10 +197,8 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
-        private void SocketThreadSub(Stream rawStream)
+        private void SocketThreadSub(ProxyStream proxyStream)
         {
-            var proxyStream = new ProxyStream(rawStream);
-
             // https 연결인지, plain 인지 확인하는 과정
             // ContentType type
             // https://tools.ietf.org/html/rfc5246#page-41
@@ -231,11 +233,11 @@ namespace StreamingRespirator.Core.Streaming
                         case "api.twitter.com":
                         case "localhost":
                         case "127.0.0.1":
-                            handler = new TunnelSslMitm(req, proxyStream, this.m_tunnelCancel.Token, Certificates.Client, SslProtocol, this.HandleContext);
+                            handler = new TunnelSslMitm(proxyStream, this.m_tunnelCancel.Token, Certificates.Client, SslProtocol, this.HandleContext);
                             break;
 
                         default:
-                            handler = new TunnelSslForward(req, proxyStream, this.m_tunnelCancel.Token);
+                            handler = new TunnelSslForward(proxyStream, this.m_tunnelCancel.Token);
                             break;
                     }
                 }
@@ -248,17 +250,17 @@ namespace StreamingRespirator.Core.Streaming
                     {
                         case "localhost":
                         case "127.0.0.1":
-                            handler = new HandlerPlain(req, proxyStream, this.m_tunnelCancel.Token, this.HandleContext);
+                            handler = new HandlerPlain(proxyStream, this.m_tunnelCancel.Token, this.HandleContext);
                             break;
 
                         default:
-                            handler = new TunnelPlain(req, proxyStream, this.m_tunnelCancel.Token);
+                            handler = new TunnelPlain(proxyStream, this.m_tunnelCancel.Token);
                             break;
                     }
                 }
 
                 using (handler)
-                    handler.Handle();
+                    handler.Handle(req);
             }
         }
 
@@ -279,6 +281,9 @@ namespace StreamingRespirator.Core.Streaming
 
                 case "localhost":
                 case "127.0.0.1":
+                    ctx.Response.Headers.Set(HttpResponseHeader.Connection, "Keep-Alive");
+                    ctx.Response.Headers.Set(HttpResponseHeader.KeepAlive, "timeout=30");
+
                     this.HostLocalhost(ctx);
                     break;
             }
@@ -506,6 +511,9 @@ namespace StreamingRespirator.Core.Streaming
                         }
                     }
                 }
+            }
+            catch (WebException)
+            {
             }
             catch (Exception ex)
             {

@@ -1,4 +1,3 @@
-using System.Net;
 using System.Threading;
 using StreamingRespirator.Core.Streaming.Proxy.Streams;
 
@@ -8,27 +7,23 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
     {
         private readonly HandleFunc m_handler;
 
-        public HandlerPlain(ProxyRequest preq, ProxyStream stream, CancellationToken token, HandleFunc handler)
-            : base(preq, stream, token)
+        public HandlerPlain(ProxyStream stream, CancellationToken token, HandleFunc handler)
+            : base(stream, token)
         {
             this.m_handler = handler;
         }
 
-        public override void Handle()
+        public override void Handle(ProxyRequest req)
         {
-            using (var resp = new ProxyResponse(this.ProxyStream))
+            do
             {
-                var ctx = new ProxyContext(this.Request, resp);
-                this.m_handler(ctx);
-
-                resp.Headers.Set(HttpResponseHeader.Connection, "Keep-Alive");
-                resp.Headers.Set(HttpResponseHeader.KeepAlive, "timeout=30");
-            }
-
-            this.Request.Dispose();
-
-            ProxyRequest.TryParse(this.ProxyStream, false, out var req);
-            this.Request = req;
+                using (req)
+                using (var resp = new ProxyResponse(this.ProxyStream))
+                {
+                    var ctx = new ProxyContext(req, resp);
+                    this.m_handler(ctx);
+                }
+            } while (ProxyRequest.TryParse(this.ProxyStream, false, out req));
         }
     }
 }

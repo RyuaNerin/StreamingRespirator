@@ -13,8 +13,8 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
         private readonly SslProtocols m_sslProtocols;
         private readonly X509Certificate2 m_certificate;
 
-        public TunnelSslMitm(ProxyRequest preq, ProxyStream stream, CancellationToken token, X509Certificate2 certificate, SslProtocols sslProtocols, HandleFunc handler)
-            : base(preq, stream, token)
+        public TunnelSslMitm(ProxyStream stream, CancellationToken token, X509Certificate2 certificate, SslProtocols sslProtocols, HandleFunc handler)
+            : base(stream, token)
         {
             this.m_sslProtocols = sslProtocols;
             this.m_certificate = certificate;
@@ -22,18 +22,17 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
             this.m_handler = handler;
         }
 
-        public override void Handle()
+        public override void Handle(ProxyRequest req)
         {
-            using (var proxyStreamSsl = new SslStream(this.ProxyStream))
+            using (var proxyStreamSsl = new SslStream(this.ProxyStream, true))
             {
                 this.ProxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
 
                 proxyStreamSsl.AuthenticateAsServer(this.m_certificate, false, this.m_sslProtocols, false);
-                
-                this.Request.Dispose();
-                this.Request = null;
 
-                while (ProxyRequest.TryParse(proxyStreamSsl, true, out var req))
+                req.Dispose();
+
+                while (ProxyRequest.TryParse(proxyStreamSsl, true, out req))
                 {
                     using (req)
                     using (var resp = new ProxyResponse(proxyStreamSsl))

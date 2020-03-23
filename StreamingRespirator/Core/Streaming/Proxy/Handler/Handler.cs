@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,13 +11,11 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
     {
         protected const int CopyToBufferSize = 32 * 1024;
 
-        protected ProxyRequest Request { get; set; }
         protected ProxyStream ProxyStream { get; }
         protected CancellationTokenSource CancelSource { get; }
 
-        protected Handler(ProxyRequest preq, ProxyStream stream, CancellationToken token)
+        protected Handler(ProxyStream stream, CancellationToken token)
         {
-            this.Request = preq;
             this.ProxyStream = stream;
 
             this.CancelSource = CancellationTokenSource.CreateLinkedTokenSource(token);
@@ -41,8 +38,6 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
 
             if (disposing)
             {
-                this.Request?.Dispose();
-
                 try
                 {
                     this.CancelSource.Cancel();
@@ -57,7 +52,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
         /// <summary>
         /// 내부 Exception 모두 throw 함
         /// </summary>
-        public abstract void Handle();
+        public abstract void Handle(ProxyRequest req);
 
         protected Task[] CopyToAsyncBoth(Stream remoteStream)
         {
@@ -66,51 +61,21 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
 
             return new Task[]
             {
-                /*
-#if DEBUG
-                CopyToAsync("proxy -> remote", psSafe, rsSafe, CopyToBufferSize, this.CancelSource.Token).ContinueWith(Finalize),
-                CopyToAsync("remote -> proxy", rsSafe, psSafe, CopyToBufferSize, this.CancelSource.Token).ContinueWith(Finalize),
-#else
-*/
                 psSafe.CopyToAsync(rsSafe, CopyToBufferSize, this.CancelSource.Token).ContinueWith(Finalize),
                 rsSafe.CopyToAsync(psSafe, CopyToBufferSize, this.CancelSource.Token).ContinueWith(Finalize),
-//#endif
             };
 
             void Finalize(Task task)
             {
+                psSafe.Dispose();
+                rsSafe.Dispose();
+
                 if (!task.IsFaulted && !task.IsCanceled)
                     this.CancelSource.Cancel();
             }
         }
 
-        private static async Task CopyToAsync(string tag, Stream source, Stream destination, int bufferSize, CancellationToken cancellationToken)
-        {
-            var buff = new byte[bufferSize];
-
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                var read = await source.ReadAsync(buff, 0, buff.Length, cancellationToken);
-                Console.WriteLine($"{tag} Read : {read}");
-                if (read == 0)
-                    return;
-
-                await destination.WriteAsync(buff, 0, read, cancellationToken);
-                Console.WriteLine($"{tag} Write");
-            }
-        }
-
-        protected IPEndPoint GetEndPoint()
-        {
-            if (!IPAddress.TryParse(this.Request.RemoteHost, out IPAddress addr))
-            {
-                addr = Dns.GetHostAddresses(this.Request.RemoteHost)[0];
-            }
-
-            return new IPEndPoint(addr, this.Request.RemotePort);
-        }
-
-        protected static readonly byte[] ConnectionEstablished = Encoding.ASCII.GetBytes("HTTP/1.1 200 Connection Established\r\nConnection: close\r\n\r\n");
+        protected static readonly byte[] ConnectionEstablished = Encoding.ASCII.GetBytes("HTTP/1.1 200 Connection Established\r\nConnection: Keep-Alive\r\bKeep-Alive: timeout=30\r\n\r\n");
         protected static readonly byte[] ConnectionFailed      = Encoding.ASCII.GetBytes("HTTP/1.1 502 Connection Failed\r\nConnection: close\r\n\r\n");
     }
 }

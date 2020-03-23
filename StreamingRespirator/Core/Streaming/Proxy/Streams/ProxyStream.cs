@@ -29,6 +29,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
             if (disposing)
             {
                 this.m_buffStream.Dispose();
+                this.m_baseStream.Dispose();
             }
 
             base.Dispose(disposing);
@@ -138,7 +139,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
                 {
                     read = this.Read(buff, buffLen, buff.Length - buffLen);
                     if (read == 0)
-                        break;
+                        continue;
 
                     buffLen += read;
 
@@ -164,8 +165,6 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Streams
                         buffLen = 1;
                     }
                 } while (true);
-
-                return null;
             }
         }
 

@@ -52,6 +52,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         public Stream RequestBodyReader { get; private set; }
 
         public WebHeaderCollection Headers { get; } = new WebHeaderCollection();
+        public string ProxyAuthorization { get; private set; }
 
         public static bool TryParse(Stream proxyStream, bool isSsl, out ProxyRequest req)
         {
@@ -93,6 +94,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 }
 
                 var i = line.IndexOf(':');
+
                 req.Headers.Add(line.Substring(0, i), line.Substring(i + 1).Trim());
             }
 
@@ -126,9 +128,16 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 req.RequestBodyReader = new ProxyRequestBody(req);
             }
 
+            req.ProxyAuthorization = req.Headers[HttpRequestHeader.ProxyAuthorization];
+            req.Headers.Remove(HttpRequestHeader.ProxyAuthorization);
+
             return true;
         }
 
+        /// <summary>ProxyRequest → HttpWebRequest</summary>
+        /// <param name="create">베이스가 될 WebRequest 를 생성할 함수입니다. TwitterCredentials 를 위해 추가되었습니다.</param>
+        /// <param name="copyAuthorization">true일 때 authorization 헤더 복사</param>
+        /// <returns></returns>
         public WebRequest CreateRequest(Func<string, Uri, WebRequest> create, bool copyAuthorization)
         {
             var req = (create?.Invoke(this.Method, this.RequestUri) ?? WebRequest.Create(this.RequestUri)) as HttpWebRequest;
@@ -187,6 +196,16 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             }
 
             this.RequestBodyReader?.CopyTo(stream);
+        }
+
+        public IPEndPoint GetEndPoint()
+        {
+            if (!IPAddress.TryParse(this.RemoteHost, out IPAddress addr))
+            {
+                addr = Dns.GetHostAddresses(this.RemoteHost)[0];
+            }
+
+            return new IPEndPoint(addr, this.RemotePort);
         }
 
         private sealed class ProxyRequestBody : Stream

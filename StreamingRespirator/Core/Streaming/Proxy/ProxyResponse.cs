@@ -41,7 +41,6 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             if (disposing)
             {
                 this.WriteHeader();
-                this.m_streamWriter.WriteLine();
 
                 this.ResponseStream.Dispose();
                 this.m_streamWriter.Dispose();

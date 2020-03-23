@@ -28,11 +28,14 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
             if (!string.IsNullOrWhiteSpace(Config.Instance.Proxy.Id))
             {
-                var pa = this.Request.Headers[HttpRequestHeader.ProxyAuthorization];
+                var pa = this.Request.ProxyAuthorization;
+
                 if (string.IsNullOrWhiteSpace(pa))
                 {
                     this.Response.StatusCode = HttpStatusCode.ProxyAuthenticationRequired;
                     this.Response.Headers.Set(HttpResponseHeader.ProxyAuthenticate, "Basic realm=\"Access to Streamning-Respirator\"");
+                    this.Response.Headers.Set(HttpResponseHeader.Connection, "Keep-Alive");
+                    this.Response.Headers.Set(HttpResponseHeader.KeepAlive, "timeout=30");
                     return false;
                 }
 
@@ -42,6 +45,8 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 {
                     this.Response.StatusCode = HttpStatusCode.ProxyAuthenticationRequired;
                     this.Response.Headers.Set(HttpResponseHeader.ProxyAuthenticate, "Basic realm=\"Access to Streamning-Respirator\"");
+                    this.Response.Headers.Set(HttpResponseHeader.Connection, "Keep-Alive");
+                    this.Response.Headers.Set(HttpResponseHeader.KeepAlive, "timeout=30");
                     return false;
                 }
 

@@ -1,40 +1,74 @@
-using System.Net.Sockets;
+using System.IO;
+using System.Net;
 using System.Threading;
-using System.Threading.Tasks;
 using StreamingRespirator.Core.Streaming.Proxy.Streams;
 
 namespace StreamingRespirator.Core.Streaming.Proxy.Handler
 {
     internal sealed class TunnelPlain : Handler
     {
-        public TunnelPlain(ProxyRequest preq, ProxyStream stream, CancellationToken token)
-            : base(preq, stream, token)
+        public TunnelPlain(ProxyStream stream, CancellationToken token)
+            : base(stream, token)
         {
         }
 
-        public override void Handle()
+        public override void Handle(ProxyRequest req)
         {
-            using (var remoteClient = new TcpClient())
+            HttpWebRequest hreq = null;
+
+            this.CancelSource.Token.Register(() =>
             {
-                this.CancelSource.Token.Register(remoteClient.Close);
-
-                remoteClient.Connect(this.GetEndPoint());
-
-                using (var remoteStream = remoteClient.GetStream())
+                try
                 {
-                    this.Request.WriteRawRequest(remoteStream);
+                    hreq.Abort();
+                }
+                catch
+                {
+                }
+            });
 
-                    var tasks = this.CopyToAsyncBoth(remoteStream);
+            do
+            {
+                using (req)
+                using (var resp = new ProxyResponse(this.ProxyStream))
+                {
+                    hreq = req.CreateRequest(null, true) as HttpWebRequest;
+                    if (req.RequestBodyReader != null)
+                    {
+                        var hreqStream = hreq.GetRequestStream();
+                        req.RequestBodyReader.CopyTo(hreqStream);
+                    }
+
+                    HttpWebResponse hresp = null;
 
                     try
                     {
-                        Task.WaitAll(tasks);
+                        hresp = hreq.GetResponse() as HttpWebResponse;
+                    }
+                    catch (WebException ex)
+                    {
+                        hresp = ex.Response as HttpWebResponse;
                     }
                     catch
                     {
                     }
+
+                    if (hresp == null)
+                    {
+                        resp.StatusCode = HttpStatusCode.InternalServerError;
+
+                        req.RequestBodyReader?.CopyTo(Stream.Null);
+                    }
+                    else
+                    {
+                        using (hresp)
+                        {
+                            using (var hrespBody = hresp.GetResponseStream())
+                                resp.FromHttpWebResponse(hresp, hrespBody);
+                        }
+                    }
                 }
-            }
+            } while (ProxyRequest.TryParse(this.ProxyStream, false, out req));
         }
     }
 }

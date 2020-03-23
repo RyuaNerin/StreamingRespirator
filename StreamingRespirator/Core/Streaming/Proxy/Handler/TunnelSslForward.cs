@@ -7,20 +7,29 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
 {
     internal sealed class TunnelSslForward : Handler
     {
-        public TunnelSslForward(ProxyRequest preq, ProxyStream stream, CancellationToken token)
-            : base(preq, stream, token)
+        public TunnelSslForward(ProxyStream stream, CancellationToken token)
+            : base(stream, token)
         {
         }
 
-        public override void Handle()
+        public override void Handle(ProxyRequest req)
         {
             using (var remoteClient = new TcpClient())
             {
-                this.CancelSource.Token.Register(remoteClient.Close);
+                this.CancelSource.Token.Register(() =>
+                {
+                    try
+                    {
+                        remoteClient.Close();
+                    }
+                    catch
+                    {
+                    }
+                });
 
                 try
                 {
-                    remoteClient.Connect(this.GetEndPoint());
+                    remoteClient.Connect(req.GetEndPoint());
                 }
                 catch
                 {

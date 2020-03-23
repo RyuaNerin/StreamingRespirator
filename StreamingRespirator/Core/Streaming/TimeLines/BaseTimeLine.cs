@@ -208,34 +208,46 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
                         Task.Factory.StartNew(() =>
                         {
-                            Parallel.ForEach(
-                                setUsers,
-                                new ParallelOptions
-                                {
-                                    CancellationToken = token,
-                                },
-                                user =>
-                                {
-                                    if (this.m_twitterClient.UserCache.IsUpdated(user))
-                                        this.UserUpdatedEvent(user);
-                                });
+                            try
+                            {
+                                Parallel.ForEach(
+                                    setUsers,
+                                    new ParallelOptions
+                                    {
+                                        CancellationToken = token,
+                                    },
+                                    user =>
+                                    {
+                                        if (this.m_twitterClient.UserCache.IsUpdated(user))
+                                            this.UserUpdatedEvent(user);
+                                    });
+                            }
+                            catch
+                            {
+                            }
                         });
 
                         if (!this.m_firstRefresh && setItems.Count > 0)
                         {
                             Task.Factory.StartNew(() =>
                             {
-                                Parallel.ForEach(
-                                    this.m_twitterClient.GetConnections(),
-                                    new ParallelOptions
-                                    {
-                                        CancellationToken = token,
-                                    },
-                                    connection =>
-                                    {
-                                        foreach (var item in setItems)
-                                            connection.SendToStream(item);
-                                    });
+                                try
+                                {
+                                    Parallel.ForEach(
+                                        this.m_twitterClient.GetConnections(),
+                                        new ParallelOptions
+                                        {
+                                            CancellationToken = token,
+                                        },
+                                        connection =>
+                                        {
+                                            foreach (var item in setItems)
+                                                connection.SendToStream(item);
+                                        });
+                                }
+                                catch
+                                {
+                                }
                             });
                         }
                         this.m_firstRefresh = false;
