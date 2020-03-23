@@ -104,7 +104,7 @@ namespace StreamingRespirator.Core.Streaming
 
                 try
                 {
-                    this.m_connectionsBarrier.SignalAndWait();
+                    this.m_connectionsBarrier.SignalAndWait(TimeSpan.FromSeconds(5));
                 }
                 catch
                 {
@@ -147,6 +147,12 @@ namespace StreamingRespirator.Core.Streaming
             using (var socket = (Socket)socketObject)
             using (var stream = new NetworkStream(socket))
             {
+                socket.ReceiveTimeout = 30 * 1000;
+                socket.SendTimeout = 30 * 1000;
+
+                stream.ReadTimeout = 30 * 1000;
+                stream.WriteTimeout = 30 * 1000;
+
                 var desc = $"{socket.LocalEndPoint} > {socket.RemoteEndPoint}";
 
                 LinkedListNode<Socket> socketNode;
@@ -155,7 +161,7 @@ namespace StreamingRespirator.Core.Streaming
                 lock (this.m_connections)
                 {
                     socketNode = this.m_connections.AddLast(socket);
-                    Debug.WriteLine($"Connected {desc} ({this.m_connections.Count})");
+                    Console.WriteLine($"Connected {desc} ({this.m_connections.Count})");
                 }
 
                 try
@@ -163,21 +169,14 @@ namespace StreamingRespirator.Core.Streaming
                     using (var proxyStream = new ProxyStream(stream))
                         this.SocketThreadSub(proxyStream);
                 }
-                catch (SocketException)
+                catch (Exception)
                 {
-                }
-                catch (IOException)
-                {
-                }
-                catch (Exception ex)
-                {
-                    SentrySdk.CaptureException(ex);
                 }
 
                 lock (this.m_connections)
                 {
                     this.m_connections.Remove(socketNode);
-                    Debug.WriteLine($"Disconnected {desc} {this.m_connections.Count}");
+                    Console.WriteLine($"Disconnected {desc} {this.m_connections.Count}");
                 }
                 try
                 {
@@ -281,9 +280,6 @@ namespace StreamingRespirator.Core.Streaming
 
                 case "localhost":
                 case "127.0.0.1":
-                    ctx.Response.Headers.Set(HttpResponseHeader.Connection, "Keep-Alive");
-                    ctx.Response.Headers.Set(HttpResponseHeader.KeepAlive, "timeout=30");
-
                     this.HostLocalhost(ctx);
                     break;
             }

@@ -52,7 +52,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         public Stream RequestBodyReader { get; private set; }
 
         public WebHeaderCollection Headers { get; } = new WebHeaderCollection();
+
         public string ProxyAuthorization { get; private set; }
+        public bool KeepAlive { get; private set; }
 
         public static bool TryParse(Stream proxyStream, bool isSsl, out ProxyRequest req)
         {
@@ -131,6 +133,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             req.ProxyAuthorization = req.Headers[HttpRequestHeader.ProxyAuthorization];
             req.Headers.Remove(HttpRequestHeader.ProxyAuthorization);
 
+            req.KeepAlive = (req.Headers["Proxy-Connection"] ?? req.Headers[HttpRequestHeader.Connection])?.Equals("Keep-Alive", StringComparison.OrdinalIgnoreCase) ?? false;
+            req.Headers.Remove("Proxy-Connection");
+
             return true;
         }
 
@@ -182,8 +187,6 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 writer.NewLine = "\r\n";
 
                 writer.WriteLine($"{this.Method} {this.RequestUriRaw} {this.Version}");
-
-                this.Headers.Set("Connection", "close");
 
                 foreach (var key in this.Headers.AllKeys)
                 {

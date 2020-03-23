@@ -26,7 +26,11 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
         {
             using (var proxyStreamSsl = new SslStream(this.ProxyStream, true))
             {
-                this.ProxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
+
+                if (req.KeepAlive)
+                    this.ProxyStream.Write(ConnectionEstablishedKA, 0, ConnectionEstablishedKA.Length);
+                else
+                    this.ProxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
 
                 proxyStreamSsl.AuthenticateAsServer(this.m_certificate, false, this.m_sslProtocols, false);
 
@@ -52,6 +56,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
                             throw;
                         }
                     }
+
+                    if (!req.KeepAlive)
+                        break;
                 }
             }
         }

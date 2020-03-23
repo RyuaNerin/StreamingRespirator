@@ -100,7 +100,15 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
             foreach (var headerName in resHttp.Headers.AllKeys)
             {
-                this.Headers.Set(headerName, resHttp.Headers.Get(headerName));
+                switch (headerName.ToLower())
+                {
+                    case "connection":  break;
+                    case "keep-alive":  break;
+
+                    default:
+                        this.Headers.Set(headerName, resHttp.Headers.Get(headerName));
+                        break;
+                }
             }
 
             stream.CopyTo(this.ResponseStream);

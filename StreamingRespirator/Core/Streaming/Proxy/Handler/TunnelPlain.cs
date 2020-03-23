@@ -63,10 +63,19 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
                     {
                         using (hresp)
                         {
+                            if (req.KeepAlive)
+                            {
+                                resp.Headers.Set(HttpResponseHeader.Connection, "Keep-Alive");
+                                resp.Headers.Set(HttpResponseHeader.KeepAlive, "timeout=30");
+                            }
+                            
                             using (var hrespBody = hresp.GetResponseStream())
                                 resp.FromHttpWebResponse(hresp, hrespBody);
                         }
                     }
+
+                    if (!req.KeepAlive)
+                        break;
                 }
             } while (ProxyRequest.TryParse(this.ProxyStream, false, out req));
         }

@@ -75,7 +75,8 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
             }
         }
 
-        protected static readonly byte[] ConnectionEstablished = Encoding.ASCII.GetBytes("HTTP/1.1 200 Connection Established\r\nConnection: Keep-Alive\r\bKeep-Alive: timeout=30\r\n\r\n");
-        protected static readonly byte[] ConnectionFailed      = Encoding.ASCII.GetBytes("HTTP/1.1 502 Connection Failed\r\nConnection: close\r\n\r\n");
+        protected static readonly byte[] ConnectionEstablishedKA = Encoding.ASCII.GetBytes("HTTP/1.1 200 Connection Established\r\nConnection: keep-alive\r\nKeep-Alive: timeout=30\r\n\r\n");
+        protected static readonly byte[] ConnectionEstablished   = Encoding.ASCII.GetBytes("HTTP/1.1 200 Connection Established\r\nConnection: close\r\n\r\n");
+        protected static readonly byte[] ConnectionFailed        = Encoding.ASCII.GetBytes("HTTP/1.1 502 Connection Failed\r\nConnection: close\r\n\r\n");
     }
 }

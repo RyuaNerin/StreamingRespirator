@@ -37,7 +37,10 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
                     throw;
                 }
 
-                this.ProxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
+                if (req.KeepAlive)
+                    this.ProxyStream.Write(ConnectionEstablishedKA, 0, ConnectionEstablishedKA.Length);
+                else
+                    this.ProxyStream.Write(ConnectionEstablished, 0, ConnectionEstablished.Length);
 
                 using (var remoteStream = remoteClient.GetStream())
                 {
