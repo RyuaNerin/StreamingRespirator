@@ -10,8 +10,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy
     {
         private readonly Stream m_stream;
         private readonly StreamWriter m_streamWriter;
+        private readonly ProxyResponseWriter m_responseWriter;
 
-        public Stream ResponseStream { get; }
+        public Stream ResponseStream => this.m_responseWriter;
 
         public ProxyResponse(Stream stream)
         {
@@ -21,7 +22,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 NewLine = "\r\n",
             };
 
-            this.ResponseStream = new ProxyResponseWriter(this);
+            this.m_responseWriter = new ProxyResponseWriter(this);
         }
         ~ProxyResponse()
         {
@@ -40,7 +41,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
 
             if (disposing)
             {
-                this.WriteHeader();
+                this.WriteHeader(true);
 
                 this.ResponseStream.Dispose();
                 this.m_streamWriter.Dispose();
@@ -73,7 +74,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 this.m_headerSent = true;
             }
         }
-        private void WriteHeader()
+        private void WriteHeader(bool disposing)
         {
             lock (this.m_writerHeaderLock)
             {
@@ -82,6 +83,11 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                 this.m_headerSent = true;
 
                 this.m_streamWriter.WriteLine("HTTP/1.1 {0:000} {1}", (int)this.StatusCode, HttpWorkerRequest.GetStatusDescription((int)this.StatusCode));
+
+                if (disposing && !this.m_responseWriter.BodyWritten)
+                {
+                    this.Headers.Set(HttpResponseHeader.ContentLength, "0");
+                }
 
                 foreach (var key in this.Headers.AllKeys)
                 {
@@ -134,8 +140,11 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             public override bool CanSeek => false;
 
             private bool m_doCheckHeaders = true;
+            public bool BodyWritten { get; private set; }
             public override void Write(byte[] buffer, int offset, int count)
             {
+                this.BodyWritten = true;
+
                 if (this.m_doCheckHeaders && count > 0)
                 {
                     this.m_doCheckHeaders = false;
@@ -146,7 +155,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                     }
                 }
 
-                this.m_resp.WriteHeader();
+                this.m_resp.WriteHeader(false);
 
                 if (this.m_resp.m_chunked)
                 {
