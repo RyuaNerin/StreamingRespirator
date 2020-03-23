@@ -143,7 +143,10 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             public bool BodyWritten { get; private set; }
             public override void Write(byte[] buffer, int offset, int count)
             {
-                this.BodyWritten = true;
+                if (count > 0)
+                {
+                    this.BodyWritten = true;
+                }
 
                 if (this.m_doCheckHeaders && count > 0)
                 {
