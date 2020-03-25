@@ -9,18 +9,13 @@ namespace StreamingRespirator.Core.Streaming.Proxy
     internal sealed class ProxyResponse : IDisposable
     {
         private readonly Stream m_stream;
-        private readonly StreamWriter m_streamWriter;
         private readonly ProxyResponseWriter m_responseWriter;
 
         public Stream ResponseStream => this.m_responseWriter;
 
         public ProxyResponse(Stream stream)
         {
-            this.m_stream       = stream;
-            this.m_streamWriter = new StreamWriter(this.m_stream, Encoding.ASCII, 4096, true)
-            {
-                NewLine = "\r\n",
-            };
+            this.m_stream = stream;
 
             this.m_responseWriter = new ProxyResponseWriter(this);
         }
@@ -43,19 +38,12 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             {
                 this.WriteHeader(true);
 
-                this.ResponseStream.Dispose();
-                this.m_streamWriter.Dispose();
+                this.m_responseWriter.Dispose();
             }
         }
 
         public HttpStatusCode StatusCode { get; set; } = HttpStatusCode.OK;
         public WebHeaderCollection Headers { get; } = new WebHeaderCollection();
-
-        private bool m_chunked;
-        public void SetChunked()
-        {
-            this.m_chunked = true;
-        }
 
         private readonly object m_writerHeaderLock = new object();
         private bool m_headerSent;
@@ -82,21 +70,27 @@ namespace StreamingRespirator.Core.Streaming.Proxy
                     return;
                 this.m_headerSent = true;
 
-                this.m_streamWriter.WriteLine("HTTP/1.1 {0:000} {1}", (int)this.StatusCode, HttpWorkerRequest.GetStatusDescription((int)this.StatusCode));
 
-                if (disposing && !this.m_responseWriter.BodyWritten)
+                using (var writer = new StreamWriter(this.m_stream, Encoding.ASCII, 4096, true))
                 {
-                    this.Headers.Set(HttpResponseHeader.ContentLength, "0");
+                    writer.NewLine = "\r\n";
+
+                    writer.WriteLine("HTTP/1.1 {0:000} {1}", (int)this.StatusCode, HttpWorkerRequest.GetStatusDescription((int)this.StatusCode));
+
+                    if (disposing && !this.m_responseWriter.BodyWritten)
+                    {
+                        this.Headers.Set(HttpResponseHeader.ContentLength, "0");
+                    }
+
+                    foreach (var key in this.Headers.AllKeys)
+                    {
+                        writer.WriteLine($"{key}: {this.Headers.Get(key)}");
+                    }
+
+                    writer.WriteLine();
+
+                    writer.Flush();
                 }
-
-                foreach (var key in this.Headers.AllKeys)
-                {
-                    this.m_streamWriter.WriteLine($"{key}: {this.Headers.Get(key)}");
-                }
-
-                this.m_streamWriter.WriteLine();
-
-                this.m_streamWriter.Flush();
             }
         }
 
@@ -140,39 +134,48 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             public override bool CanSeek => false;
 
             private bool m_doCheckHeaders = true;
+            private bool m_chunked;
+
             public bool BodyWritten { get; private set; }
+
+            private static readonly byte[] CrLf = new byte[] { (byte)'\r', (byte)'\n' };
+
             public override void Write(byte[] buffer, int offset, int count)
             {
-                if (count > 0)
-                {
-                    this.BodyWritten = true;
-                }
+                if (count == 0)
+                    return;
 
-                if (this.m_doCheckHeaders && count > 0)
+                this.BodyWritten = true;
+
+                if (this.m_doCheckHeaders)
                 {
                     this.m_doCheckHeaders = false;
 
-                    if (this.m_resp.m_chunked || this.m_resp.Headers.Get("Content-Length") == null)
+                    if (this.m_resp.Headers.Get("Content-Length") == null)
                     {
                         this.m_resp.Headers.Set("Transfer-Encoding", "chunked");
+                        this.m_chunked = true;
                     }
+
+                    this.m_resp.WriteHeader(false);
                 }
 
-                this.m_resp.WriteHeader(false);
-
-                if (this.m_resp.m_chunked)
+                if (this.m_chunked)
                 {
-                    this.m_resp.m_streamWriter.WriteLine(count.ToString("x"));
-                    this.m_resp.m_streamWriter.Flush();
+                    var buff = Encoding.ASCII.GetBytes(count.ToString("x"));
+
+                    this.m_resp.m_stream.Write(buff, 0, buff.Length);
+                    this.m_resp.m_stream.Write(CrLf, 0, CrLf.Length);
                     this.m_resp.m_stream.Write(buffer, offset, count);
+                    this.m_resp.m_stream.Write(CrLf, 0, CrLf.Length);
                     this.m_resp.m_stream.Flush();
-                    this.m_resp.m_streamWriter.WriteLine();
-                    this.m_resp.m_streamWriter.Flush();
                 }
                 else
                 {
                     this.m_resp.m_stream.Write(buffer, offset, count);
                 }
+
+                this.m_resp.m_stream.Flush();
             }
 
             public override void Flush()

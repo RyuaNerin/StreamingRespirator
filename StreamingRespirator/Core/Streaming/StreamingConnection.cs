@@ -77,7 +77,6 @@ namespace StreamingRespirator.Core.Streaming
                     this.Stream.Close();
                 }
 
-
                 try
                 {
                     this.m_keepAlive.Change(KeepAlivePeriod, KeepAlivePeriod);
@@ -102,7 +101,6 @@ namespace StreamingRespirator.Core.Streaming
                 try
                 {
                     Program.JsonSerializer.Serialize(this.m_streamWriter, data);
-                    this.m_streamWriter.WriteLine();
                     this.m_streamWriter.WriteLine();
                     this.m_streamWriter.Flush();
                 }

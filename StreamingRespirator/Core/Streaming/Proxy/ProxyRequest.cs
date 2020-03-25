@@ -143,9 +143,9 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         /// <param name="create">베이스가 될 WebRequest 를 생성할 함수입니다. TwitterCredentials 를 위해 추가되었습니다.</param>
         /// <param name="copyAuthorization">true일 때 authorization 헤더 복사</param>
         /// <returns></returns>
-        public WebRequest CreateRequest(Func<string, Uri, WebRequest> create, bool copyAuthorization)
+        public WebRequest CreateRequest(WebRequest baseWebRequest, bool copyAuthorization)
         {
-            var req = (create?.Invoke(this.Method, this.RequestUri) ?? WebRequest.Create(this.RequestUri)) as HttpWebRequest;
+            var req = (baseWebRequest ?? WebRequest.Create(this.RequestUri)) as HttpWebRequest;
             req.Method = this.Method;
 
             foreach (var key in this.Headers.AllKeys)

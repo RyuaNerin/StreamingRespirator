@@ -346,7 +346,6 @@ namespace StreamingRespirator.Core.Streaming
 
             ctx.Response.Headers.Set("Content-type", "application/json; charset=utf-8");
             ctx.Response.Headers.Set("Connection", "close");
-            ctx.Response.SetChunked();
 
             using (var sc = new StreamingConnection(new WaitableStream(ctx.Response.ResponseStream), twitterClient))
             {
@@ -700,7 +699,7 @@ namespace StreamingRespirator.Core.Streaming
 
         private static HttpWebResponse CallAPI(ProxyContext ctx, Stream proxyReqBody, TwitterClient client)
         {
-            var reqHttp = ctx.Request.CreateRequest((method, uri) => client?.Credential.CreateReqeust(method, uri), client == null);
+            var reqHttp = ctx.Request.CreateRequest(client?.Credential.CreateReqeust(ctx.Request.Method, ctx.Request.RequestUri), client == null);
 
             if (proxyReqBody == null)
             {
