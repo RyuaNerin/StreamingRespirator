@@ -56,7 +56,13 @@ namespace StreamingRespirator.Core
         {
             if (disposing)
             {
-                this.m_server.Dispose();
+                try
+                {
+                    this.m_server.Dispose();
+                }
+                catch
+                {
+                }
             }
 
             base.Dispose(disposing);
