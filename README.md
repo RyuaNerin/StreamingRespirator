@@ -7,6 +7,11 @@
 
 - 스트리밍 호흡기를 연결하면 예전에나 사용 가능했던 **`d @BLABLA TEXT` 로 DM 보내는게 다시 가능합니다!!**
 
+- **트위터 이미지 로딩 속도 개선 패치가 포함되어 있습니다. (한국 유저 대상)**
+  - OS 언어가 한글일 때 자동으로 활성화됩니다.
+  - 설정에서 비활성화하실 수 있습니다.
+  - 관련 문서는 [여기](https://github.com/RyuaNerin/DNS-For-Twimg) 를 참조해주세요.
+
 - 버그 및 건의사항은 아래 방법으로 연락주세요.
   - [Github Issues](https://github.com/RyuaNerin/StreamingRespirator/issues)
   - [Twitter @RyuaNerin](https://twitter.com/RyuaNerin)

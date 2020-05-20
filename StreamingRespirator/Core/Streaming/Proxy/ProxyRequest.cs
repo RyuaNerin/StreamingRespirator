@@ -2,8 +2,10 @@ using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Text;
+using DnsClient;
 using StreamingRespirator.Core.Streaming.Proxy.Streams;
 
 namespace StreamingRespirator.Core.Streaming.Proxy
@@ -201,11 +203,27 @@ namespace StreamingRespirator.Core.Streaming.Proxy
             this.RequestBodyReader?.CopyTo(stream);
         }
 
+        private static readonly LookupClient TwimgDNS = new LookupClient(
+            new IPEndPoint(IPAddress.Parse("141.164.49.73"), 53)
+        );
+
         public IPEndPoint GetEndPoint()
         {
             if (!IPAddress.TryParse(this.RemoteHost, out IPAddress addr))
             {
-                addr = Dns.GetHostAddresses(this.RemoteHost)[0];
+                if ((Config.Instance.EnableDnsPatch ?? false) || this.RemoteHost.IndexOf("twimg.com", StringComparison.OrdinalIgnoreCase) != -1)
+                {
+                    try
+                    {
+                        addr = TwimgDNS.Query(this.RemoteHost, QueryType.A, QueryClass.IN).Answers.ARecords().Last().Address;
+                    }
+                    catch
+                    {
+                        addr = Dns.GetHostAddresses(this.RemoteHost)[0];
+                    }
+                }
+                else
+                    addr = Dns.GetHostAddresses(this.RemoteHost)[0];
             }
 
             return new IPEndPoint(addr, this.RemotePort);

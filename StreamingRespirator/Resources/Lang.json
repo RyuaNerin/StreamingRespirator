@@ -114,6 +114,13 @@
         "ja": "ストリームオプション",
         "en": "Streamin option"
       }
+    },
+    "ctlDnsPatch": {
+      "Text": {
+        "ko": "이미지 로딩속도 개선 (한국)",
+        "ja": "画像読み込み改善(韓国専用)",
+        "en": "Improve image loading speed (for korea)"
+      }
     }
   },
   "LoginWindowWeb": {

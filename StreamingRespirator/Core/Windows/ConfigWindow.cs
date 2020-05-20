@@ -25,6 +25,8 @@ namespace StreamingRespirator.Core.Windows
                 this.ctlShowRetweet.Checked = Config.Instance.Filter.ShowRetweetedMyStatus;
                 this.ctlShowRetweetWithComment.Checked = Config.Instance.Filter.ShowRetweetWithComment;
                 this.ctlShowMyRetweet.Checked = Config.Instance.Filter.ShowMyRetweet;
+
+                this.ctlDnsPatch.Checked = Config.Instance.EnableDnsPatch ?? false;
             }
         }
 
@@ -76,6 +78,8 @@ namespace StreamingRespirator.Core.Windows
                 Config.Instance.Filter.ShowRetweetedMyStatus = this.ctlShowRetweet.Checked;
                 Config.Instance.Filter.ShowRetweetWithComment = this.ctlShowRetweetWithComment.Checked;
                 Config.Instance.Filter.ShowMyRetweet = this.ctlShowMyRetweet.Checked;
+
+                Config.Instance.EnableDnsPatch = this.ctlDnsPatch.Checked;
             }
 
             Config.Save();
