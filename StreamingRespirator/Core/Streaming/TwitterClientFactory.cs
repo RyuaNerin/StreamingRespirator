@@ -86,7 +86,7 @@ namespace StreamingRespirator.Core.Streaming
 
                 if (!verified)
                 {
-                    RemoveClient(id);
+                    //RemoveClient(id);
                     return null;
                 }
 
