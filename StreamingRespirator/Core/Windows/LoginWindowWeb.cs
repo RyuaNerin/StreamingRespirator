@@ -127,7 +127,7 @@ namespace StreamingRespirator.Core.Windows
             this.m_webBrowserSh.AddressBar = false;
 
             NativeMethods.SetCookieSupressBehavior();
-            this.m_webBrowser.Navigate("https://twitter.com/login");
+            this.m_webBrowser.Navigate("https://mobile.twitter.com/login?redirect_after_login=https%3A%2F%2Ftwitter.com%2F");
         }
 
         protected override void OnGotFocus(EventArgs e)
@@ -148,9 +148,9 @@ namespace StreamingRespirator.Core.Windows
             if (string.IsNullOrWhiteSpace(e.Url.Host))
                 return;
 
-            if (e.Url.Host != "twitter.com")
+            if (!e.Url.Host.EndsWith("twitter.com"))
             {
-                this.m_webBrowser.Navigate("https://twitter.com/login");
+                this.m_webBrowser.Navigate("https://mobile.twitter.com/login?redirect_after_login=https%3A%2F%2Ftwitter.com%2F");
                 return;
             }
 
@@ -168,19 +168,22 @@ namespace StreamingRespirator.Core.Windows
                     var cookie = NativeMethods.GetCookies(TwitterUri).GetCookieHeader(TwitterUri);
                     var twitCred = TwitterCredential.GetCredential(cookie);
 
-                    if (twitCred != null)
-                    {
-                        this.Invoke(new Action(() => MessageBox.Show(this, string.Format(Lang.LoginWindowWeb__AddSuccess, twitCred.ScreenName), Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information)));
+                    this.Invoke(new Action(() => {
+                        if (twitCred != null)
+                        {
+                            MessageBox.Show(string.Format(Lang.LoginWindowWeb__AddSuccess, twitCred.ScreenName), Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                        this.TwitterCredential = twitCred;
-                    }
-                    else
-                    {
-                        this.Invoke(new Action(() => MessageBox.Show(this, Lang.LoginWindowWeb__AddError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation)));
-                    }
-
-                    this.Invoke(new Action(this.Close));
+                            this.TwitterCredential = twitCred;
+                        }
+                        else
+                        {
+                            MessageBox.Show(Lang.LoginWindowWeb__AddError, Lang.Name, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        }
+                        
+                        this.Close();
+                    }));
                 });
+
                 return;
             }
 
@@ -200,27 +203,35 @@ namespace StreamingRespirator.Core.Windows
 
                 if (e.Url.AbsolutePath.StartsWith("/login"))
                 {
-                    doc.RemoveElementByClass("topbar js-topbar");
-                    doc.RemoveElementByClass("clearfix mobile has-sms");
-                    doc.RemoveElementByClass("subchck");
+                    doc.RemoveElementByClass("chromeless");
+                    doc.RemoveElementByClass("footer");
 
                     doc.body.style.backgroundColor = "#FFF";
+                    doc.body.style.border = "none";
 
-                    elem = doc.GetElementByClassName("message-text");
+                    elem = doc.GetElementByClassName("message");
                     if (elem != null)
                     {
                         var msg = elem.innerText;
-                        if (!string.IsNullOrWhiteSpace(msg))
-                            MessageBox.Show(this, msg, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
-                        elem.RemoveElement();
+                        if (!string.IsNullOrWhiteSpace(msg) && !msg.Contains("이전 버전"))
+                        {
+                            MessageBox.Show(msg, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                        }
                     }
+                    doc.RemoveElementByClass("toast");
 
-                    elem = doc.getElementById("page-container");
+                    elem = doc.getElementById("container");
                     if (elem != null)
                     {
                         elem.style.padding = "3px";
-                        elem.style.border = "";
+                        elem.style.width = "auto";
                     }
+
+                    doc.body.ExecuteChildren(le =>
+                    {
+                        le.style.background = null;
+                        le.style.border = null;
+                    });
                 }
                 else if (e.Url.AbsolutePath.StartsWith("/account/login_verification"))
                 {
@@ -250,7 +261,9 @@ namespace StreamingRespirator.Core.Windows
                     {
                         var msg = elem.innerText;
                         if (!string.IsNullOrWhiteSpace(msg))
-                            MessageBox.Show(this, msg, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                        {
+                            MessageBox.Show(msg, this.Text, MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                        }
                         elem.RemoveElement();
                     }
 
@@ -258,9 +271,13 @@ namespace StreamingRespirator.Core.Windows
                     if (elem != null)
                     {
                         elem.style.padding = "3px";
-                        elem.style.border = "";
+                        elem.style.border = "none";
                     }
                 }
+
+#if DEBUG
+                Console.WriteLine(this.m_webBrowser.Document.Body.OuterHtml);
+#endif
             }
             catch (Exception ex)
             {
@@ -395,6 +412,41 @@ namespace StreamingRespirator.Core.Windows
             try
             {
                 ((dynamic)element).parentNode.removeChild(element);
+            }
+            catch
+            {
+            }
+        }
+
+        public static void ExecuteChildren(this IHTMLElement element, Action<IHTMLElement> f, bool recursive = true)
+        {
+            try
+            {
+                switch (element.tagName)
+                {
+                case "body":
+                case "div":
+                        f(element);
+                    break;
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                foreach (var children in (IHTMLElementCollection)(element.children))
+                {
+                    var elem = children as IHTMLElement;
+                    if (elem != null)
+                    {
+                        f(element);
+
+                        if (recursive)
+                            elem.ExecuteChildren(f, false);
+                    }
+                }
             }
             catch
             {
