@@ -334,11 +334,11 @@ namespace StreamingRespirator.Core
 
         private void NotifyIcon_BalloonTipClicked(object sender, EventArgs e)
         {
-            Task.Factory.StartNew(() => TwitterClientFactory.AddClient(this.m_invoker));
+            TwitterClientFactory.AddClient();
         }
         private void StripAdd_Click(object sender, EventArgs e)
         {
-            Task.Factory.StartNew(() => TwitterClientFactory.AddClient(this.m_invoker));
+            TwitterClientFactory.AddClient();
         }
 
         private void StripAbout_Click(object sender, EventArgs e)

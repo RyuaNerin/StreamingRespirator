@@ -150,21 +150,18 @@ namespace StreamingRespirator.Core.Streaming
             }
         }
 
-        public static void AddClient(Control invoker)
+        public static void AddClient()
         {
-            var twitCred = (TwitterCredential)invoker.Invoke(new Func<TwitterCredential>(
-                () =>
-                {
-                    using (var frm = new LoginWindowWeb())
-                    {
-                        frm.ShowDialog();
+            TwitterCredential cred;
 
-                        return frm.TwitterCredential;
-                    }
-                }));
+            using (var frm = new LoginWindowWeb())
+            {
+                frm.ShowDialog();
+                cred = frm.TwitterCredential;
+            }
 
-            if (twitCred != null)
-                AddClient(twitCred);
+            if (cred != null)
+                AddClient(cred);
         }
     }
 }
