@@ -67,6 +67,7 @@ namespace StreamingRespirator.Core
         {
         }
 
+        [JsonIgnore]
         public object Lock { get; } = new object();
 
         [JsonProperty("accounts")]
