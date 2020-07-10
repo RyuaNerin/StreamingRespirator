@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -51,7 +52,10 @@ namespace StreamingRespirator.Core.Streaming
             this.m_socketServer.Bind(new IPEndPoint(IPAddress.Loopback, Config.Instance.Proxy.Port));
             this.m_socketServer.Listen(64);
             this.m_socketServer.BeginAccept(this.AcceptClient, null);
+
+            NetworkChange.NetworkAvailabilityChanged += this.NetworkChange_NetworkAvailabilityChanged;
         }
+
         ~RespiratorServer()
         {
             this.Dispose(false);
@@ -74,46 +78,60 @@ namespace StreamingRespirator.Core.Streaming
 
                 this.m_socketServer.Close();
 
-                Socket[] currentConnections;
-                lock (this.m_connections)
-                {
-                    currentConnections = this.m_connections.ToArray();
-                }
-
-                Parallel.ForEach(
-                    currentConnections,
-                    client =>
-                    {
-                        try
-                        {
-                            client.Shutdown(SocketShutdown.Both);
-                            client.Disconnect(false);
-                        }
-                        catch
-                        {
-                        }
-
-                        try
-                        {
-                            client.Close();
-                        }
-                        catch
-                        {
-                        }
-                    });
-
-                try
-                {
-                    this.m_connectionsBarrier.SignalAndWait(TimeSpan.FromSeconds(5));
-                }
-                catch
-                {
-                }
+                this.CloseAllConnections();
 
                 this.m_tunnelCancel.Dispose();
                 this.m_socketServer.Dispose();
 
                 this.m_connectionsBarrier.Dispose();
+            }
+        }
+
+        private void CloseAllConnections()
+        {
+            Socket[] currentConnections;
+            lock (this.m_connections)
+            {
+                currentConnections = this.m_connections.ToArray();
+            }
+
+            Parallel.ForEach(
+                currentConnections,
+                client =>
+                {
+                    try
+                    {
+                        client.Shutdown(SocketShutdown.Both);
+                        client.Disconnect(false);
+                    }
+                    catch
+                    {
+                    }
+
+                    try
+                    {
+                        client.Close();
+                    }
+                    catch
+                    {
+                    }
+                });
+
+            try
+            {
+                this.m_connectionsBarrier.SignalAndWait(TimeSpan.FromSeconds(5));
+            }
+            catch
+            {
+            }
+        }
+
+        private void NetworkChange_NetworkAvailabilityChanged(object sender, NetworkAvailabilityEventArgs e)
+        {
+            // 모든 커넥션을 닫는다.
+            if (!e.IsAvailable)
+            {
+                this.CloseAllConnections();
             }
         }
 
