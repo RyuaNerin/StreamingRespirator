@@ -59,19 +59,43 @@ namespace StreamingRespirator.Core.Streaming.Proxy.Handler
             var psSafe = new SafeAsyncStream(this.ProxyStream);
             var rsSafe = new SafeAsyncStream(remoteStream);
 
+            var factory = new TaskFactory();
             return new Task[]
             {
-                psSafe.CopyToAsync(rsSafe, CopyToBufferSize, this.CancelSource.Token).ContinueWith(Finalize),
-                rsSafe.CopyToAsync(psSafe, CopyToBufferSize, this.CancelSource.Token).ContinueWith(Finalize),
+                CopyToAsync(factory, psSafe, rsSafe, this.CancelSource.Token).ContinueWith(Finalize),
+                CopyToAsync(factory, rsSafe, psSafe, this.CancelSource.Token).ContinueWith(Finalize),
             };
 
             void Finalize(Task task)
             {
+                try
+                {
+                    this.CancelSource.Cancel();
+                }
+                catch
+                {
+                }
+
                 psSafe.Dispose();
                 rsSafe.Dispose();
 
-                if (!task.IsFaulted && !task.IsCanceled)
-                    this.CancelSource.Cancel();
+            }
+        }
+
+        private static async Task CopyToAsync(TaskFactory taskFactory, Stream from, Stream to, CancellationToken token)
+        {
+            var buff = new byte[CopyToBufferSize];
+            int read;
+
+            try
+            {
+                while ((read = await taskFactory.FromAsync(from.BeginRead, from.EndRead, buff, 0, CopyToBufferSize, token).ConfigureAwait(false)) > 0)
+                {
+                    await taskFactory.FromAsync(to.BeginWrite, to.EndWrite, buff, 0, read, token).ConfigureAwait(false);
+                }
+            }
+            catch
+            {
             }
         }
 
