@@ -18,10 +18,13 @@ namespace StreamingRespirator.Core.Streaming.Twitter
         [JsonProperty("max_position")]
         public long MaxPosition { get; set; }
 
-        [JsonProperty("targets")]
-        public TwitterStatus[] Targets { get; set; }
-
         [JsonProperty("sources", NullValueHandling = NullValueHandling.Ignore)]
         public TwitterUser[] Sources { get; set; }
+
+        [JsonProperty("targets", NullValueHandling = NullValueHandling.Ignore)]
+        public TwitterUser[] Targets { get; set; }
+
+        [JsonProperty("target_objects")]
+        public TwitterStatus[] TargetObjects { get; set; }
     }
 }

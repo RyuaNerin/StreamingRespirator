@@ -48,15 +48,32 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
                     {
                         foreach (var user in activity.Sources)
                             lstUsers.Add(user);
+                        foreach (var user in activity.Targets)
+                            lstUsers.Add(user);
 
-                        foreach (var tweet in activity.Targets)
+                        foreach (var tweet in activity.TargetObjects)
                             tweet.AddUserToHashSet(lstUsers);
 
-                        if ((Config.Instance.Filter.ShowRetweetedMyStatus && activity.Action == "retweet")
-                            || (Config.Instance.Filter.ShowRetweetWithComment && activity.Action == "quote")
-                            || activity.Action == "reply")
+                        var add = false;
+                        switch (activity.Action)
                         {
-                            foreach (var tweet in activity.Targets)
+                            case "retweet":
+                                add = Config.Instance.Filter.ShowRetweetedMyStatus;
+                                break;
+
+                            case "quote":
+                                add = Config.Instance.Filter.ShowRetweetWithComment;
+                                break;
+
+                            case "reply":
+                            case "mention":
+                                add = true;
+                                break;
+                        }
+
+                        if (add)
+                        {
+                            foreach (var tweet in activity.TargetObjects)
                             {
                                 lstItems.Add(tweet);
                             }
