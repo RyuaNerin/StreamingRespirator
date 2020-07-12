@@ -12,10 +12,10 @@ namespace StreamingRespirator.Core.Streaming.Twitter
         [JsonProperty("id")]
         public long Id { get; set; }
 
-        [JsonProperty("name")]
+        [JsonProperty("name", Required = Required.Always)]
         public string Name { get; set; }
 
-        [JsonProperty("screen_name")]
+        [JsonProperty("screen_name", Required = Required.Always)]
         public string ScreenName { get; set; }
 
         [JsonProperty("profile_image_url")]

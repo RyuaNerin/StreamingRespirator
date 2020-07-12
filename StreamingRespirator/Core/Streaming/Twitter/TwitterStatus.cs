@@ -19,7 +19,7 @@ namespace StreamingRespirator.Core.Streaming.Twitter
         [JsonProperty("id")]
         public long Id { get; set; }
 
-        [JsonProperty("user")]
+        [JsonProperty("user", Required = Required.Always)]
         public TwitterUser User { get; set; }
 
         [JsonIgnore]

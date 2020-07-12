@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace StreamingRespirator.Core.Streaming.Twitter
 {
@@ -22,7 +23,7 @@ namespace StreamingRespirator.Core.Streaming.Twitter
         public TwitterUser[] Sources { get; set; }
 
         [JsonProperty("targets", NullValueHandling = NullValueHandling.Ignore)]
-        public TwitterUser[] Targets { get; set; }
+        public JObject[] Targets { get; set; }
 
         [JsonProperty("target_objects")]
         public TwitterStatus[] TargetObjects { get; set; }
