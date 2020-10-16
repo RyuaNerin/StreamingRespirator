@@ -744,8 +744,6 @@ namespace StreamingRespirator.Core.Streaming
             {
                 if (webEx.Response != null)
                     resHttp = webEx.Response as HttpWebResponse;
-                else
-                    SentrySdk.CaptureException(webEx);
             }
             catch (Exception ex)
             {

@@ -46,8 +46,6 @@ namespace StreamingRespirator.Extensions
             {
                 if (ex.Response != null)
                     res = ex.Response as HttpWebResponse;
-                else
-                    SentrySdk.CaptureException(ex);
             }
             catch (Exception ex)
             {
