@@ -24,12 +24,18 @@ namespace StreamingRespirator.Core
                     Instance = inst;
                 }
             }
+            catch (FileNotFoundException)
+            {
+            }
+            catch (DirectoryNotFoundException)
+            {
+            }
             catch (Exception ex)
             {
                 SentrySdk.CaptureException(ex);
-
-                Instance = new Config();
             }
+
+            Instance = Instance ?? new Config();
 
             TwitterClientFactory.SetInstances(Instance.Accounts);
 
@@ -56,6 +62,12 @@ namespace StreamingRespirator.Core
                 {
                     Program.JsonSerializer.Serialize(writer, Instance);
                 }
+            }
+            catch (FileNotFoundException)
+            {
+            }
+            catch (DirectoryNotFoundException)
+            {
             }
             catch (Exception ex)
             {
