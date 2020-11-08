@@ -204,7 +204,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         }
 
         private static readonly LookupClient TwimgDNS = new LookupClient(
-            new IPEndPoint(IPAddress.Parse("141.164.49.73"), 53)
+            new IPEndPoint(IPAddress.Parse("141.164.54.111"), 53)
         );
 
         public IPEndPoint GetEndPoint()
