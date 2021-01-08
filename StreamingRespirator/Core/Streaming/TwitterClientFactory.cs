@@ -154,7 +154,7 @@ namespace StreamingRespirator.Core.Streaming
         {
             TwitterCredential cred;
 
-            using (var frm = new LoginWindowWeb())
+            using (var frm = new LoginWindow())
             {
                 frm.ShowDialog();
                 cred = frm.TwitterCredential;

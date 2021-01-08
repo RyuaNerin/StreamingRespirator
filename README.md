@@ -24,6 +24,7 @@
 
 - [LICENSE](#license)
 - [사용 방법](#사용-방법)
+  - [계정 추가 방법](#계정-추가-방법)
   - [아즈레아 적용법](#아즈레아-적용-방법)
   - [기타 앱 적용 방법](#기타-앱-적용-방법)
 - [개발중인 앱에 연결](#개발중인-앱에-연결)
@@ -51,6 +52,38 @@
   - 아즈레아 (v1.4.33)
   - 달새 mk.2
   - 달새 mk.3
+
+
+### 계정 추가 방법
+
+- **TODO**
+
+1. Chrome 을 실행합니다.
+
+1. 쿠키 추출을 위해 [확장 프로그램 (Get cookies.txt)](https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid) 을 설치합니다
+
+1. [여기](chrome://extensions/) 로 이동한 후 `Get cookies.txt` 를 찾아 클릭합니다
+
+1. 시크릿 모드에서 확장 프로그램을 사용하기 위해서 **시크릿 모드에서 허용** 을 체크합니다
+
+1. 시크릿 모드 창을 생성합니다 (`Ctrl + Shift + N`)
+
+1. [TweetDeck](https://tweetdeck.twitter.com/) 에 로그인합니다
+
+1. `Get cookies.txt` 확장 프로그램을 클릭합니다
+
+1. `Export` 버튼을 클릭하여 쿠키를 다운로드합니다
+
+1. **화면 우측 하단 트레이 아이콘**을 **우클릭** 한 후 **계정 추가**를 클릭합니다
+
+1. **쿠키 파일 선택** 을 클릭한 후, 5번에서 받은 파일을 선택합니다
+
+- **EditThisCookie** 등의 확장 프로그램도 사용이 가능합니다.
+
+- 지원 타입
+  - Json
+  - Netscape HTTP Cookie
+  - Semicolon separated name=value pairs
 
 ### 아즈레아 적용 방법
 
