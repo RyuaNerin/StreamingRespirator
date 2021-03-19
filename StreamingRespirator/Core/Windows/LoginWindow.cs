@@ -37,7 +37,7 @@ namespace StreamingRespirator.Core.Windows
             this.ctlCookie.Text = this.ctlCookie.Text.Replace("\n", "\r\n").Replace("\r\r\n", "\r\n");
         }
 
-        private void ctlOkFile_Click(object sender, System.EventArgs e)
+        private void ctlOkFile_Click(object sender, EventArgs e)
         {
             this.ctlOkFile.Enabled = false;
 
@@ -52,7 +52,7 @@ namespace StreamingRespirator.Core.Windows
             this.ctlOkFile.Enabled = true;
         }
 
-        private void ctlOkText_Click(object sender, System.EventArgs e)
+        private void ctlOkText_Click(object sender, EventArgs e)
         {
             this.ctlOkText.Enabled = false;
 
@@ -104,8 +104,10 @@ namespace StreamingRespirator.Core.Windows
                     stream.Seek(0, SeekOrigin.Begin);
                     tr = new StreamReader(stream);
                 }
-
-                tr = new StringReader(text);
+                else
+                {
+                    tr = new StringReader(text);
+                }
 
                 using (tr)
                 {
