@@ -29,8 +29,11 @@ namespace StreamingRespirator.Core
 #endif
                 opt.MaxRequestBodySize = RequestSize.Always;
                 opt.IsEnvironmentUser = true;
+                opt.SendDefaultPii = true;
 
                 opt.HttpProxy = null;
+
+                opt.SampleRate = null;
 
                 opt.AddExceptionFilter(new CrashReport());
             });
