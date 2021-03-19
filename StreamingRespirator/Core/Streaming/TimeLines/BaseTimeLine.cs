@@ -286,6 +286,9 @@ namespace StreamingRespirator.Core.Streaming.TimeLines
 
                     return CalcNextRefresh(res.Headers);
                 }
+                catch (JsonSerializationException)
+                {
+                }
                 catch (Exception ex)
                 {
                     SentrySdk.CaptureException(ex);
