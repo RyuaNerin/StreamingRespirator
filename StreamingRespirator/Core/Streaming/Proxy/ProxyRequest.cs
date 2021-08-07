@@ -211,19 +211,7 @@ namespace StreamingRespirator.Core.Streaming.Proxy
         {
             if (!IPAddress.TryParse(this.RemoteHost, out IPAddress addr))
             {
-                if ((Config.Instance.EnableDnsPatch ?? false) || this.RemoteHost.IndexOf("twimg.com", StringComparison.OrdinalIgnoreCase) != -1)
-                {
-                    try
-                    {
-                        addr = TwimgDNS.Query(this.RemoteHost, QueryType.A, QueryClass.IN).Answers.ARecords().Last().Address;
-                    }
-                    catch
-                    {
-                        addr = Dns.GetHostAddresses(this.RemoteHost)[0];
-                    }
-                }
-                else
-                    addr = Dns.GetHostAddresses(this.RemoteHost)[0];
+                addr = Dns.GetHostAddresses(this.RemoteHost)[0];
             }
 
             return new IPEndPoint(addr, this.RemotePort);

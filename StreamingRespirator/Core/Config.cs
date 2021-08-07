@@ -39,11 +39,6 @@ namespace StreamingRespirator.Core
 
             TwitterClientFactory.SetInstances(Instance.Accounts);
 
-            if (!Instance.EnableDnsPatch.HasValue && CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ko")
-            {
-                Instance.EnableDnsPatch = true;
-            }
-
             Loaded = true;
         }
 
@@ -117,8 +112,5 @@ namespace StreamingRespirator.Core
             [JsonProperty("pw")]
             public string Pw { get; set; }
         }
-
-        [JsonProperty("enable_dns_patch")]
-        public bool? EnableDnsPatch { get; set; }
     }
 }
