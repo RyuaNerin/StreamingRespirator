@@ -136,7 +136,7 @@ namespace StreamingRespirator.Core.Windows
                     {
                         //Discard = s[1] == "TRUE",
                         Secure = s[3] == "TRUE",
-                        Expires = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(int.Parse(s[4])).ToLocalTime(),
+                        Expires = DateTime.MaxValue,
                     };
 
                     cc.Add(cookie);
@@ -164,7 +164,7 @@ namespace StreamingRespirator.Core.Windows
                         {
                             HttpOnly = jc.HttpOnly,
                             Secure = jc.Secure,
-                            Expires = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(jc.ExpirationDate).ToLocalTime(),
+                            Expires = DateTime.MaxValue,
                         };
 
                         cc.Add(cookie);
